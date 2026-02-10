@@ -1,0 +1,53 @@
+// 
+// user.scss
+// Use this to write your custom SCSS
+//
+/* Fix dropdown being cut */
+.dropdown-menu {
+  z-index: 2000 !important;
+}
+
+/* Prevent table clipping dropdown */
+.table-responsive {
+  overflow: visible !important;
+}
+
+/* Remove ugly background from 3 dots */
+.dropdown-toggle::after {
+  display: none !important;
+}
+
+.skill-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.skill-chip {
+  padding: 8px 16px;
+  background: #1e1e1e;
+  color: #fff;
+  border-radius: 30px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.3s;
+}
+
+.skill-chip:hover {
+  border: 1px solid #f5d76e;
+  color: #f5d76e;
+}
+
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  color: #ff4d4f;
+}
