@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Card, Row, Col, Form, Button } from "react-bootstrap";
+import { Card, Row, Col, Form, Button, Nav } from "react-bootstrap";
 import { useRouter } from "next/router";
 
 export default function CreateCustomer() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState("profile");
 
   const [customer, setCustomer] = useState({
     name: "",
@@ -11,10 +12,6 @@ export default function CreateCustomer() {
     username: "",
     phone: "",
     company: "",
-    designation: "",
-    website: "",
-    vat: "",
-    address: "",
     membership: "Basic",
     status: "Active",
   });
@@ -33,153 +30,163 @@ export default function CreateCustomer() {
       date: new Date().toISOString().split("T")[0],
     };
 
-    const updated = [...existing, newCustomer];
-    localStorage.setItem("gymCustomers", JSON.stringify(updated));
+    localStorage.setItem(
+      "gymCustomers",
+      JSON.stringify([...existing, newCustomer])
+    );
 
     router.push("/customers");
   };
 
   return (
-    <div className="p-4">
+    <div className="create-customer-page p-4">
+
+      {/* HEADER */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h3>Customers / Create</h3>
+        <Button variant="primary" onClick={handleSubmit}>
+          Create Customer
+        </Button>
+      </div>
+
       <Card className="shadow-sm border-0">
-        <Card.Body className="p-4">
+        <Card.Body>
 
-          {/* HEADER */}
-          <Row className="mb-4 align-items-center">
-            <Col>
-              <h3 className="fw-bold">Create New Customer</h3>
-              <small className="text-muted">
-                Fill in the information carefully
-              </small>
-            </Col>
+          {/* TABS */}
+          <Nav
+            variant="tabs"
+            activeKey={activeTab}
+            onSelect={(k) => setActiveTab(k)}
+            className="durulax-tabs mb-4"
+          >
+            <Nav.Item>
+              <Nav.Link eventKey="profile">Profile</Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="billing">Billing</Nav.Link>
+            </Nav.Item>
+          </Nav>
 
-            <Col className="text-end">
-              <Button variant="primary" onClick={handleSubmit}>
-                Save Customer
-              </Button>
-            </Col>
-          </Row>
+          {/* PROFILE TAB */}
+          {activeTab === "profile" && (
+            <Row>
 
-          <Row>
-
-            {/* LEFT SIDE - PROFILE */}
-            <Col md={4}>
-              <Card className="border-0 shadow-sm p-3 text-center">
-                <div className="mb-3">
-                  <div
-                    style={{
-                      width: 120,
-                      height: 120,
-                      borderRadius: "50%",
-                      background: "#f1f3f7",
-                      margin: "0 auto",
-                    }}
-                  ></div>
+              {/* LEFT AVATAR BLOCK */}
+              <Col md={4}>
+                <div className="profile-upload-box text-center">
+                  <div className="avatar-preview"></div>
+                  <Button variant="light" size="sm" className="mt-3">
+                    Upload Photo
+                  </Button>
+                  <p className="text-muted small mt-2">
+                    Avatar size 150x150 <br />
+                    PNG, JPG (Max 2MB)
+                  </p>
                 </div>
-                <Button variant="light" size="sm">
-                  Upload Avatar
-                </Button>
-                <p className="text-muted mt-2 small">
-                  PNG, JPG (Max 2MB)
-                </p>
-              </Card>
-            </Col>
+              </Col>
 
-            {/* RIGHT SIDE - FORM */}
-            <Col md={8}>
+              {/* RIGHT FORM */}
+              <Col md={8}>
+                <Row>
+
+                  <Col md={6} className="mb-3">
+                    <Form.Label>Name</Form.Label>
+                    <div className="input-icon">
+                      <i className="fe fe-user"></i>
+                      <Form.Control
+                        name="name"
+                        placeholder="Full name"
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </Col>
+
+                  <Col md={6} className="mb-3">
+                    <Form.Label>Email</Form.Label>
+                    <div className="input-icon">
+                      <i className="fe fe-mail"></i>
+                      <Form.Control
+                        type="email"
+                        name="email"
+                        placeholder="Email address"
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </Col>
+
+                  <Col md={6} className="mb-3">
+                    <Form.Label>Username</Form.Label>
+                    <div className="input-icon">
+                      <i className="fe fe-link"></i>
+                      <Form.Control
+                        name="username"
+                        placeholder="Username"
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </Col>
+
+                  <Col md={6} className="mb-3">
+                    <Form.Label>Phone</Form.Label>
+                    <div className="input-icon">
+                      <i className="fe fe-phone"></i>
+                      <Form.Control
+                        name="phone"
+                        placeholder="Phone"
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </Col>
+
+                  <Col md={6} className="mb-3">
+                    <Form.Label>Membership</Form.Label>
+                    <Form.Select name="membership" onChange={handleChange}>
+                      <option>Basic</option>
+                      <option>Premium</option>
+                      <option>VIP</option>
+                    </Form.Select>
+                  </Col>
+
+                  <Col md={6} className="mb-3">
+                    <Form.Label>Status</Form.Label>
+                    <Form.Select name="status" onChange={handleChange}>
+                      <option>Active</option>
+                      <option>Inactive</option>
+                    </Form.Select>
+                  </Col>
+
+                </Row>
+              </Col>
+
+            </Row>
+          )}
+
+          {/* BILLING TAB */}
+          {activeTab === "billing" && (
+            <div className="billing-box">
+              <h5 className="mb-3">Billing Information</h5>
+
               <Row>
                 <Col md={6} className="mb-3">
-                  <Form.Label>Name</Form.Label>
-                  <Form.Control
-                    name="name"
-                    placeholder="Enter full name"
-                    onChange={handleChange}
-                  />
-                </Col>
-
-                <Col md={6} className="mb-3">
-                  <Form.Label>Email</Form.Label>
-                  <Form.Control
-                    name="email"
-                    type="email"
-                    placeholder="Enter email"
-                    onChange={handleChange}
-                  />
-                </Col>
-
-                <Col md={6} className="mb-3">
-                  <Form.Label>Username</Form.Label>
-                  <Form.Control
-                    name="username"
-                    placeholder="Username"
-                    onChange={handleChange}
-                  />
-                </Col>
-
-                <Col md={6} className="mb-3">
-                  <Form.Label>Phone</Form.Label>
-                  <Form.Control
-                    name="phone"
-                    placeholder="Phone number"
-                    onChange={handleChange}
-                  />
-                </Col>
-
-                <Col md={6} className="mb-3">
-                  <Form.Label>Company</Form.Label>
-                  <Form.Control
-                    name="company"
-                    placeholder="Company name"
-                    onChange={handleChange}
-                  />
-                </Col>
-
-                <Col md={6} className="mb-3">
-                  <Form.Label>Designation</Form.Label>
-                  <Form.Control
-                    name="designation"
-                    placeholder="Designation"
-                    onChange={handleChange}
-                  />
-                </Col>
-
-                <Col md={6} className="mb-3">
-                  <Form.Label>Membership</Form.Label>
-                  <Form.Select
-                    name="membership"
-                    onChange={handleChange}
-                  >
-                    <option>Basic</option>
-                    <option>Premium</option>
-                    <option>VIP</option>
+                  <Form.Label>Plan Type</Form.Label>
+                  <Form.Select>
+                    <option>Basic - ₹999</option>
+                    <option>Premium - ₹1999</option>
+                    <option>VIP - ₹2999</option>
                   </Form.Select>
                 </Col>
 
                 <Col md={6} className="mb-3">
-                  <Form.Label>Status</Form.Label>
-                  <Form.Select
-                    name="status"
-                    onChange={handleChange}
-                  >
-                    <option>Active</option>
-                    <option>Inactive</option>
+                  <Form.Label>Payment Method</Form.Label>
+                  <Form.Select>
+                    <option>Cash</option>
+                    <option>UPI</option>
+                    <option>Card</option>
                   </Form.Select>
-                </Col>
-
-                <Col md={12} className="mb-3">
-                  <Form.Label>Address</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    name="address"
-                    placeholder="Enter address"
-                    onChange={handleChange}
-                  />
                 </Col>
               </Row>
-            </Col>
-
-          </Row>
+            </div>
+          )}
 
         </Card.Body>
       </Card>

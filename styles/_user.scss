@@ -168,3 +168,49 @@
   padding: 20px;
   border-radius: 10px;
 }
+
+
+//create customer 
+.durulax-tabs .nav-link {
+  border: none;
+  font-weight: 500;
+}
+
+.durulax-tabs .nav-link.active {
+  border-bottom: 3px solid #4f46e5;
+  color: #4f46e5 !important;
+}
+
+.profile-upload-box {
+  background: #f9fafb;
+  padding: 30px;
+  border-radius: 12px;
+}
+
+.avatar-preview {
+  width: 150px;
+  height: 150px;
+  background: #e5e7eb;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+.input-icon {
+  position: relative;
+}
+
+.input-icon i {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.input-icon input {
+  padding-left: 40px;
+}
+
+.billing-box {
+  padding: 20px;
+}
