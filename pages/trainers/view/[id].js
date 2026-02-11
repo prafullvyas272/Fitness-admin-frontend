@@ -7,7 +7,6 @@ import {
   Table,
   Badge,
   Button,
-  Dropdown,
   Form,
   Modal,
 } from "react-bootstrap";
@@ -27,6 +26,8 @@ export default function TrainerProfile() {
 
   /* ================= LOAD DATA ================= */
   useEffect(() => {
+    if (!id) return;
+
     const trainers =
       JSON.parse(localStorage.getItem("gymTrainers")) || [];
 
@@ -36,20 +37,24 @@ export default function TrainerProfile() {
     setAllTrainers(trainers);
     setCustomers(customersData);
 
-    const found = trainers.find((t) => t.id === Number(id));
-    setTrainer(found);
+    const foundTrainer = trainers.find(
+      (t) => String(t.id) === String(id)
+    );
+
+    setTrainer(foundTrainer || null);
   }, [id]);
 
-  if (!trainer) return null;
+  if (!trainer) {
+    return <div className="p-4">Loading trainer data...</div>;
+  }
 
-  /* ================= STATUS BADGE ================= */
   const StatusBadge = ({ status }) => (
     <Badge bg={status === "Active" ? "success" : "danger"}>
       {status}
     </Badge>
   );
 
-  /* ================= ASSIGN TRAINER ================= */
+  /* ================= ASSIGN ================= */
   const openAssignModal = (customer) => {
     setSelectedCustomer(customer);
     setSelectedTrainerId(customer.assignedTrainerId || "");
@@ -77,21 +82,40 @@ export default function TrainerProfile() {
   };
 
   const getTrainerName = (trainerId) => {
-    const found = allTrainers.find((t) => t.id === trainerId);
+    const found = allTrainers.find(
+      (t) => String(t.id) === String(trainerId)
+    );
     return found
       ? `${found.firstName} ${found.lastName}`
       : "Not Assigned";
   };
 
+  /* ================= EDIT & DELETE ================= */
+
+const handleEditTrainer = () => {
+  router.push(`/trainers/edit/${trainer.id}`);
+};
+
+const handleDeleteTrainer = () => {
+  if (!confirm("Are you sure you want to delete this trainer?")) return;
+
+  const updatedTrainers = allTrainers.filter(
+    (t) => String(t.id) !== String(trainer.id)
+  );
+
+  localStorage.setItem("gymTrainers", JSON.stringify(updatedTrainers));
+
+  router.push("/trainers"); // go back to trainer list
+};
+
   return (
     <div className="p-4">
-
       <h3 className="fw-bold mb-4">Trainer Profile</h3>
 
       <Card className="shadow-sm border-0 rounded-3">
         <Card.Body>
 
-          {/* ================= TABS ================= */}
+          {/* TABS */}
           <div className="d-flex border-bottom mb-4">
             <div
               onClick={() => setActiveTab("profile")}
@@ -114,23 +138,22 @@ export default function TrainerProfile() {
               }`}
               style={{ cursor: "pointer" }}
             >
-              Customer List
+              Customer List ({customers.length})
             </div>
           </div>
 
-          {/* ================= PROFILE TAB ================= */}
+          {/* ================= PROFILE ================= */}
           {activeTab === "profile" && (
             <Row>
-              <Col md={4} className="text-center">
+
+              {/* LEFT SIDE IMAGE */}
+              <Col md={4} className="text-center border-end">
                 <img
-                  src={
-                    trainer.avatar ||
-                    "https://via.placeholder.com/150"
-                  }
+                  src="https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
                   alt="avatar"
                   style={{
-                    width: 150,
-                    height: 150,
+                    width: 170,
+                    height: 170,
                     objectFit: "cover",
                     borderRadius: "50%",
                   }}
@@ -141,46 +164,79 @@ export default function TrainerProfile() {
                   {trainer.firstName} {trainer.lastName}
                 </h5>
 
-                <p className="text-muted">{trainer.email}</p>
+                <p className="text-muted mb-2">
+                  {trainer.email}
+                </p>
 
                 <StatusBadge status={trainer.status} />
+                <div className="d-flex justify-content-center gap-2 mt-4">
+  <Button
+    variant="outline-danger"
+    size="sm"
+    onClick={handleDeleteTrainer}
+    style={{ minWidth: "100px" }}
+  >
+    Delete
+  </Button>
+
+  <Button
+    variant="primary"
+    size="sm"
+    onClick={handleEditTrainer}
+    style={{ minWidth: "120px" }}
+  >
+    Edit Profile
+  </Button>
+</div>
+
               </Col>
 
-              <Col md={8}>
+              {/* RIGHT SIDE DETAILS */}
+              <Col md={8} className="ps-4">
+
+                {/* BIO ON TOP */}
+                <h5 className="fw-bold mb-2">Profile About:</h5>
+                <p className="text-muted mb-4">
+                  {trainer.bio || "No bio available"}
+                </p>
+
+                <h6 className="fw-bold mb-3">Profile Details:</h6>
+
+                <Row className="mb-3">
+                  <Col md={4}><strong>Full Name:</strong></Col>
+                  <Col md={8}>
+                    {trainer.firstName} {trainer.lastName}
+                  </Col>
+                </Row>
+
                 <Row className="mb-3">
                   <Col md={4}><strong>Phone:</strong></Col>
-                  <Col md={8}>{trainer.phone}</Col>
+                  <Col md={8}>{trainer.phone || "-"}</Col>
                 </Row>
 
                 <Row className="mb-3">
                   <Col md={4}><strong>Host Gym:</strong></Col>
-                  <Col md={8}>{trainer.hostGymName}</Col>
+                  <Col md={8}>{trainer.hostGym || "-"}</Col>
                 </Row>
 
                 <Row className="mb-3">
                   <Col md={4}><strong>Gym Address:</strong></Col>
-                  <Col md={8}>{trainer.hostGymAddress}</Col>
-                </Row>
-
-                <Row className="mb-3">
-                  <Col md={4}><strong>Address:</strong></Col>
-                  <Col md={8}>{trainer.address}</Col>
+                  <Col md={8}>{trainer.gymAddress || "-"}</Col>
                 </Row>
 
                 <Row>
-                  <Col md={4}><strong>Bio:</strong></Col>
-                  <Col md={8}>{trainer.bio}</Col>
+                  <Col md={4}><strong>Address:</strong></Col>
+                  <Col md={8}>{trainer.address || "-"}</Col>
                 </Row>
+
               </Col>
             </Row>
           )}
 
-          {/* ================= CUSTOMER TAB ================= */}
+          {/* ================= CUSTOMER LIST ================= */}
           {activeTab === "customers" && (
             <>
-              <h5 className="fw-bold mb-3">
-                Customer List
-              </h5>
+              <h5 className="fw-bold mb-3">Customer List</h5>
 
               <Table responsive hover className="align-middle">
                 <thead className="bg-light">
@@ -197,35 +253,22 @@ export default function TrainerProfile() {
                 <tbody>
                   {customers.map((customer) => (
                     <tr key={customer.id}>
-                      <td className="fw-semibold">
-                        {customer.name}
-                      </td>
-
-                      <td className="text-muted">
-                        {customer.email}
-                      </td>
-
+                      <td className="fw-semibold">{customer.name}</td>
+                      <td>{customer.email}</td>
                       <td>{customer.phone}</td>
-
                       <td>
                         <StatusBadge status={customer.status} />
                       </td>
-
                       <td>
                         <span className="badge bg-primary">
-                          {getTrainerName(
-                            customer.assignedTrainerId
-                          )}
+                          {getTrainerName(customer.assignedTrainerId)}
                         </span>
                       </td>
-
                       <td className="text-end">
                         <Button
                           size="sm"
                           variant="outline-primary"
-                          onClick={() =>
-                            openAssignModal(customer)
-                          }
+                          onClick={() => openAssignModal(customer)}
                         >
                           Assign Trainer
                         </Button>
@@ -240,7 +283,7 @@ export default function TrainerProfile() {
         </Card.Body>
       </Card>
 
-      {/* ================= ASSIGN MODAL ================= */}
+      {/* ================= MODAL ================= */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Assign Trainer</Modal.Title>

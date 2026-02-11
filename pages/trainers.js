@@ -14,15 +14,115 @@ import {
 export default function Trainers() {
   const router = useRouter();
 
+  const demoData = [
+    {
+      id: 1,
+      firstName: "John",
+      lastName: "Smith",
+      email: "john@gmail.com",
+      phone: "9876543210",
+      status: "Active",
+    },
+    {
+      id: 2,
+      firstName: "Alex",
+      lastName: "Brown",
+      email: "alex@gmail.com",
+      phone: "9876543211",
+      status: "Inactive",
+    },
+    {
+      id: 3,
+      firstName: "David",
+      lastName: "Wilson",
+      email: "david@gmail.com",
+      phone: "9876543212",
+      status: "Active",
+    },
+    {
+      id: 4,
+      firstName: "Emma",
+      lastName: "Clark",
+      email: "emma@gmail.com",
+      phone: "9876543213",
+      status: "Active",
+    },
+    {
+      id: 5,
+      firstName: "Olivia",
+      lastName: "Lee",
+      email: "olivia@gmail.com",
+      phone: "9876543214",
+      status: "Inactive",
+    },
+  ];
+
   const [trainers, setTrainers] = useState([]);
   const [search, setSearch] = useState("");
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
 
-  useEffect(() => {
-    setTrainers(JSON.parse(localStorage.getItem("gymTrainers")) || []);
-  }, []);
+
+useEffect(() => {
+  let stored = JSON.parse(localStorage.getItem("gymTrainers"));
+
+  if (!stored) {
+    stored = [];
+  }
+
+  // If less than 5 trainers, reset demo data
+  if (stored.length < 5) {
+    const demoTrainers = [
+      {
+        id: 1,
+        firstName: "John",
+        lastName: "Smith",
+        email: "john@gmail.com",
+        phone: "9876543210",
+        status: "Active",
+      },
+      {
+        id: 2,
+        firstName: "Alex",
+        lastName: "Brown",
+        email: "alex@gmail.com",
+        phone: "9876543211",
+        status: "Inactive",
+      },
+      {
+        id: 3,
+        firstName: "David",
+        lastName: "Wilson",
+        email: "david@gmail.com",
+        phone: "9876543212",
+        status: "Active",
+      },
+      {
+        id: 4,
+        firstName: "Emma",
+        lastName: "Clark",
+        email: "emma@gmail.com",
+        phone: "9876543213",
+        status: "Active",
+      },
+      {
+        id: 5,
+        firstName: "Olivia",
+        lastName: "Lee",
+        email: "olivia@gmail.com",
+        phone: "9876543214",
+        status: "Inactive",
+      },
+    ];
+
+    localStorage.setItem("gymTrainers", JSON.stringify(demoTrainers));
+    setTrainers(demoTrainers);
+  } else {
+    setTrainers(stored);
+  }
+}, []);
+
 
   const updateTrainerStatus = (id, newStatus) => {
     const updated = trainers.map((trainer) =>
@@ -33,18 +133,19 @@ export default function Trainers() {
   };
 
   const handleDelete = (id) => {
-    if (!confirm("Are you sure you want to delete this trainer?")) return;
+    if (!confirm("Delete this trainer?")) return;
     const updated = trainers.filter((trainer) => trainer.id !== id);
     setTrainers(updated);
     localStorage.setItem("gymTrainers", JSON.stringify(updated));
   };
 
   const filteredTrainers = trainers.filter((trainer) => {
-    const fullName = `${trainer.firstName || ""} ${trainer.lastName || ""}`.toLowerCase();
+    const fullName =
+      `${trainer.firstName} ${trainer.lastName}`.toLowerCase();
 
     const matchesSearch =
       fullName.includes(search.toLowerCase()) ||
-      (trainer.email || "").toLowerCase().includes(search.toLowerCase());
+      trainer.email.toLowerCase().includes(search.toLowerCase());
 
     const matchesFilter =
       filterStatus === "All" || trainer.status === filterStatus;
@@ -89,53 +190,34 @@ export default function Trainers() {
               className="btn btn-light border d-flex align-items-center justify-content-center"
               style={{ width: 42, height: 42 }}
             >
-              <i className="fe fe-filter"></i>
+              <i className="fe fe-filter text-secondary"></i>
             </Dropdown.Toggle>
 
             <Dropdown.Menu className="shadow border-0 rounded-3 p-2">
-
-              <Dropdown.Item
-                active={filterStatus === "All"}
-                onClick={() => setFilterStatus("All")}
-                className="d-flex align-items-center gap-2"
-              >
-                <i className="fe fe-eye text-primary"></i>
-                All
+              <Dropdown.Item onClick={() => setFilterStatus("All")}>
+                <i className="fe fe-eye me-2 text-secondary"></i> All
               </Dropdown.Item>
 
-              <Dropdown.Item
-                active={filterStatus === "Active"}
-                onClick={() => setFilterStatus("Active")}
-                className="d-flex align-items-center gap-2"
-              >
-                <i className="fe fe-user-check text-success"></i>
-                Active
+              <Dropdown.Item onClick={() => setFilterStatus("Active")}>
+                <span className="text-success me-2">●</span> Active
               </Dropdown.Item>
 
-              <Dropdown.Item
-                active={filterStatus === "Inactive"}
-                onClick={() => setFilterStatus("Inactive")}
-                className="d-flex align-items-center gap-2"
-              >
-                <i className="fe fe-user-x text-danger"></i>
-                Inactive
+              <Dropdown.Item onClick={() => setFilterStatus("Inactive")}>
+                <span className="text-danger me-2">●</span> Inactive
               </Dropdown.Item>
-
             </Dropdown.Menu>
           </Dropdown>
 
-          {/* DELETE BUTTON (same style as filter) */}
+          {/* DELETE BUTTON (same style) */}
           <Button
-            className={`btn btn-light border d-flex align-items-center justify-content-center ${
-              selectionMode ? "text-danger" : ""
-            }`}
+            className="btn btn-light border d-flex align-items-center justify-content-center"
             style={{ width: 42, height: 42 }}
             onClick={() => {
               setSelectionMode(!selectionMode);
               setSelectedIds([]);
             }}
           >
-            <i className="fe fe-trash"></i>
+            <i className="fe fe-trash text-secondary"></i>
           </Button>
 
           {/* CREATE BUTTON */}
@@ -151,7 +233,6 @@ export default function Trainers() {
       <Card className="shadow-sm border-0 rounded-3">
         <Card.Body>
 
-          {/* TOP BAR */}
           <Row className="mb-3 align-items-center">
             <Col>
               <span className="fw-semibold">
@@ -180,7 +261,6 @@ export default function Trainers() {
             </Button>
           )}
 
-          {/* TABLE */}
           <Table responsive hover className="align-middle">
             <thead className="bg-light">
               <tr className="text-muted text-uppercase small">
@@ -205,23 +285,65 @@ export default function Trainers() {
                     </td>
                   )}
 
-                  <td className="fw-semibold">
+                  <td className="fw-semibold text-dark">
                     {trainer.firstName} {trainer.lastName}
                   </td>
 
-                  <td className="text-muted">{trainer.email}</td>
-                  <td>{trainer.phone}</td>
+                  <td className="text-dark">
+                    {trainer.email}
+                  </td>
+
+                  <td className="text-dark">
+                    {trainer.phone}
+                  </td>
 
                   <td>
-                    <span
-                      className={
-                        trainer.status === "Active"
-                          ? "text-success fw-semibold"
-                          : "text-danger fw-semibold"
-                      }
-                    >
-                      {trainer.status}
-                    </span>
+                    <Dropdown>
+                      <Dropdown.Toggle
+                        as="button"
+                        className="btn btn-sm border-0 bg-transparent d-flex align-items-center gap-2"
+                      >
+                        <span
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: "50%",
+                            backgroundColor:
+                              trainer.status === "Active"
+                                ? "#22c55e"
+                                : "#dc3545",
+                          }}
+                        ></span>
+
+                        <span className="fw-semibold text-dark">
+                          {trainer.status}
+                        </span>
+
+                        <i className="fe fe-chevron-down small text-muted"></i>
+                      </Dropdown.Toggle>
+
+                      <Dropdown.Menu className="shadow border-0 rounded-3">
+
+                        <Dropdown.Item
+                          onClick={() =>
+                            updateTrainerStatus(trainer.id, "Active")
+                          }
+                        >
+                          <span className="text-success me-2">●</span>
+                          Active
+                        </Dropdown.Item>
+
+                        <Dropdown.Item
+                          onClick={() =>
+                            updateTrainerStatus(trainer.id, "Inactive")
+                          }
+                        >
+                          <span className="text-danger me-2">●</span>
+                          Inactive
+                        </Dropdown.Item>
+
+                      </Dropdown.Menu>
+                    </Dropdown>
                   </td>
 
                   {!selectionMode && (
@@ -231,7 +353,7 @@ export default function Trainers() {
                           as="button"
                           className="btn btn-sm btn-light border-0"
                         >
-                          <i className="fe fe-more-vertical"></i>
+                          <i className="fe fe-more-vertical text-secondary"></i>
                         </Dropdown.Toggle>
 
                         <Dropdown.Menu className="shadow border-0 rounded-3">
@@ -241,7 +363,7 @@ export default function Trainers() {
                               router.push(`/trainers/view/${trainer.id}`)
                             }
                           >
-                            <i className="fe fe-eye me-2 text-primary"></i>
+                            <i className="fe fe-eye me-2 text-secondary"></i>
                             View
                           </Dropdown.Item>
 
@@ -250,19 +372,21 @@ export default function Trainers() {
                               router.push(`/trainers/edit/${trainer.id}`)
                             }
                           >
-                            <i className="fe fe-edit me-2 text-warning"></i>
+                            <i className="fe fe-edit me-2 text-secondary"></i>
                             Edit
                           </Dropdown.Item>
 
                           <Dropdown.Divider />
 
                           <Dropdown.Item
-                            className="text-danger"
-                            onClick={() => handleDelete(trainer.id)}
-                          >
-                            <i className="fe fe-trash me-2"></i>
-                            Delete
-                          </Dropdown.Item>
+  onClick={() => handleDelete(trainer.id)}
+  className="text-dark"
+  style={{ color: "#344767" }}
+>
+  <i className="fe fe-trash me-2"></i>
+  Delete
+</Dropdown.Item>
+
 
                         </Dropdown.Menu>
                       </Dropdown>
