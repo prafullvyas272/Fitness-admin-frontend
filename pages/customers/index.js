@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Table, Modal, Badge, Dropdown, Form, Button } from "react-bootstrap";
+import { useRouter } from "next/router";
+
 
 export default function AllCustomers() {
   const [customers, setCustomers] = useState([]);
@@ -12,6 +14,8 @@ export default function AllCustomers() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [editData, setEditData] = useState({});
   const [selectedTrainer, setSelectedTrainer] = useState("");
+
+  const router = useRouter();
 
   // Load customers + trainers
   useEffect(() => {
@@ -37,10 +41,10 @@ export default function AllCustomers() {
   };
 
   // VIEW
-  const handleView = (customer) => {
-    setSelectedCustomer(customer);
-    setShowView(true);
-  };
+const handleView = (customer) => {
+  router.push(`/customers/${customer.id}`);
+};
+
 
   // EDIT
   const handleEditOpen = (customer) => {
@@ -157,7 +161,7 @@ export default function AllCustomers() {
       </Table>
 
       {/* VIEW MODAL */}
-      <Modal show={showView} onHide={() => setShowView(false)}>
+      {/* <Modal show={showView} onHide={() => setShowView(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Customer Details</Modal.Title>
         </Modal.Header>
@@ -173,7 +177,7 @@ export default function AllCustomers() {
             </>
           )}
         </Modal.Body>
-      </Modal>
+      </Modal> */}
 
       {/* EDIT MODAL */}
       <Modal show={showEdit} onHide={() => setShowEdit(false)}>

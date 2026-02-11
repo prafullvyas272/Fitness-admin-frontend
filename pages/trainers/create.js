@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Card, Form, Button } from "react-bootstrap";
+import { useState } from "react";
+import { Card, Form, Button, Row, Col, InputGroup } from "react-bootstrap";
 import { useRouter } from "next/router";
 
 export default function CreateTrainer() {
@@ -22,7 +22,6 @@ export default function CreateTrainer() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Get existing trainers
     const existing =
       JSON.parse(localStorage.getItem("gymTrainers")) || [];
 
@@ -31,70 +30,134 @@ export default function CreateTrainer() {
       ...trainer,
     };
 
-    // Save updated list
     localStorage.setItem(
       "gymTrainers",
       JSON.stringify([...existing, newTrainer])
     );
 
-    // Redirect back to trainers page
     router.push("/trainers");
   };
 
   return (
     <div className="p-4">
-      <h2 className="mb-4">Create Trainer</h2>
+      <h3 className="fw-bold mb-4">Create Trainer</h3>
 
-      <Card className="p-4">
-        <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3">
-            <Form.Label>Name</Form.Label>
-            <Form.Control
-              type="text"
-              name="name"
-              value={trainer.name}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
+      <Card className="shadow-sm border-0 rounded-3">
+        <Card.Body className="p-4">
 
-          <Form.Group className="mb-3">
-            <Form.Label>Email</Form.Label>
-            <Form.Control
-              type="email"
-              name="email"
-              value={trainer.email}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
+          <Form onSubmit={handleSubmit}>
 
-          <Form.Group className="mb-3">
-            <Form.Label>Phone</Form.Label>
-            <Form.Control
-              type="text"
-              name="phone"
-              value={trainer.phone}
-              onChange={handleChange}
-            />
-          </Form.Group>
+            {/* NAME */}
+            <Row className="mb-4 align-items-center">
+              <Col md={3} className="fw-semibold">
+                Name:
+              </Col>
 
-          <Form.Group className="mb-4">
-            <Form.Label>Status</Form.Label>
-            <Form.Select
-              name="status"
-              value={trainer.status}
-              onChange={handleChange}
-            >
-              <option>Active</option>
-              <option>Inactive</option>
-            </Form.Select>
-          </Form.Group>
+              <Col md={9}>
+                <InputGroup>
+                  <InputGroup.Text className="bg-light border-0">
+                    <i className="fe fe-user"></i>
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    placeholder="Enter trainer name"
+                    value={trainer.name}
+                    onChange={handleChange}
+                    className="bg-light border-0"
+                    required
+                  />
+                </InputGroup>
+              </Col>
+            </Row>
 
-          <Button type="submit" variant="primary">
-            Create Trainer
-          </Button>
-        </Form>
+            {/* EMAIL */}
+            <Row className="mb-4 align-items-center">
+              <Col md={3} className="fw-semibold">
+                Email:
+              </Col>
+
+              <Col md={9}>
+                <InputGroup>
+                  <InputGroup.Text className="bg-light border-0">
+                    <i className="fe fe-mail"></i>
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    placeholder="Enter email"
+                    value={trainer.email}
+                    onChange={handleChange}
+                    className="bg-light border-0"
+                    required
+                  />
+                </InputGroup>
+              </Col>
+            </Row>
+
+            {/* PHONE */}
+            <Row className="mb-4 align-items-center">
+              <Col md={3} className="fw-semibold">
+                Mobile:
+              </Col>
+
+              <Col md={9}>
+                <InputGroup>
+                  <InputGroup.Text className="bg-light border-0">
+                    <i className="fe fe-phone"></i>
+                  </InputGroup.Text>
+                  <Form.Control
+                    type="text"
+                    name="phone"
+                    placeholder="Enter mobile number"
+                    value={trainer.phone}
+                    onChange={handleChange}
+                    className="bg-light border-0"
+                  />
+                </InputGroup>
+              </Col>
+            </Row>
+
+            {/* STATUS */}
+            <Row className="mb-4 align-items-center">
+              <Col md={3} className="fw-semibold">
+                Status:
+              </Col>
+
+              <Col md={9}>
+                <InputGroup>
+                  <InputGroup.Text className="bg-light border-0">
+                    <i className="fe fe-activity"></i>
+                  </InputGroup.Text>
+                  <Form.Select
+                    name="status"
+                    value={trainer.status}
+                    onChange={handleChange}
+                    className="bg-light border-0"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </Form.Select>
+                </InputGroup>
+              </Col>
+            </Row>
+
+            {/* BUTTON */}
+            <Row>
+              <Col md={{ span: 9, offset: 3 }}>
+                <Button
+                  type="submit"
+                  className="px-4 py-2 rounded-3"
+                  variant="primary"
+                >
+                  Create Trainer
+                </Button>
+              </Col>
+            </Row>
+
+          </Form>
+
+        </Card.Body>
       </Card>
     </div>
   );
