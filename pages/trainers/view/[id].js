@@ -116,31 +116,29 @@ const handleDeleteTrainer = () => {
         <Card.Body>
 
           {/* TABS */}
-          <div className="d-flex border-bottom mb-4">
-            <div
-              onClick={() => setActiveTab("profile")}
-              className={`me-4 pb-2 fw-semibold ${
-                activeTab === "profile"
-                  ? "border-bottom border-primary text-primary"
-                  : "text-muted"
-              }`}
-              style={{ cursor: "pointer" }}
-            >
-              Profile
-            </div>
+ {/* ================= NAV TABS ================= */}
+<ul className="nav nav-tabs custom-tabs mb-4">
 
-            <div
-              onClick={() => setActiveTab("customers")}
-              className={`pb-2 fw-semibold ${
-                activeTab === "customers"
-                  ? "border-bottom border-primary text-primary"
-                  : "text-muted"
-              }`}
-              style={{ cursor: "pointer" }}
-            >
-              Customer List ({customers.length})
-            </div>
-          </div>
+  <li className="nav-item">
+    <button
+      className={`nav-link ${activeTab === "profile" ? "active fw-semibold" : ""}`}
+      onClick={() => setActiveTab("profile")}
+    >
+      Overview
+    </button>
+  </li>
+
+  <li className="nav-item">
+    <button
+      className={`nav-link ${activeTab === "customers" ? "active fw-semibold" : ""}`}
+      onClick={() => setActiveTab("customers")}
+    >
+      Customers ({customers.length})
+    </button>
+  </li>
+
+</ul>
+
 
           {/* ================= PROFILE ================= */}
           {activeTab === "profile" && (

@@ -285,3 +285,45 @@
   align-items: flex-start !important;
   padding-top: 10px !important;
 }
+
+
+.nav-tabs .nav-link {
+  border: none;
+  color: #6c757d;
+}
+
+.nav-tabs .nav-link.active {
+  border: none;
+  border-bottom: 3px solid #4e73df;
+  color: #4e73df;
+  background: transparent;
+}
+
+/* ================= CUSTOM TABS LIKE DURALUX ================= */
+
+.custom-tabs {
+  border-bottom: none;
+  background: #f8f9fc;
+  padding: 0 10px;
+}
+
+.custom-tabs .nav-link {
+  border: none;
+  color: #6c757d;
+  font-weight: 500;
+  padding: 12px 18px;
+  transition: all 0.3s ease;
+  border-radius: 8px 8px 0 0;
+}
+
+.custom-tabs .nav-link:hover {
+  color: #4e73df;
+}
+
+.custom-tabs .nav-link.active {
+  background: #ffffff;
+  color: #4e73df;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-bottom: 3px solid #4e73df;
+  font-weight: 600;
+}
