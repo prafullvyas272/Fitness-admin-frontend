@@ -30,7 +30,7 @@ export default function EditTrainer() {
 useEffect(() => {
   if (!id) return;
 
-  const fetchTrainerProfile = async () => {
+  const fetchTrainer = async () => {
     try {
       const token = localStorage.getItem("adminToken");
 
@@ -46,31 +46,32 @@ useEffect(() => {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Failed to fetch trainer profile");
+        throw new Error(data.message || "Failed to fetch trainer");
       }
 
-      const t = data.data;
+      const profile = data.data;
 
       setTrainer({
-        firstName: t.firstName || "",
-        lastName: t.lastName || "",
-        email: t.email || "",
-        phone: t.phone || "",
-        hostGymName: t.userProfileDetails?.hostGymName || "",
-        hostGymAddress: t.userProfileDetails?.hostGymAddress || "",
-        address: t.userProfileDetails?.address || "",
-        bio: t.userProfileDetails?.bio || "",
-        avatar: t.userProfileDetails?.avatar || "",
-        status: t.isActive ? "Active" : "Inactive",
+        firstName: profile.firstName || "",
+        lastName: profile.lastName || "",
+        email: profile.email || "",
+        phone: profile.phone || "",
+        hostGymName: profile.userProfileDetails?.hostGymName || "",
+        hostGymAddress: profile.userProfileDetails?.hostGymAddress || "",
+        address: profile.userProfileDetails?.address || "",
+        bio: profile.userProfileDetails?.bio || "",
+        status: profile.isActive ? "Active" : "Inactive",
+        avatar: profile.userProfileDetails?.avatarUrl || "",
       });
 
-    } catch (err) {
-      alert(err.message);
+    } catch (error) {
+      alert(error.message);
     }
   };
 
-  fetchTrainerProfile();
+  fetchTrainer();
 }, [id]);
+
 
 
 
@@ -113,6 +114,10 @@ useEffect(() => {
           email: trainer.email,
           phone: trainer.phone,
           isActive: trainer.status === "Active",
+          hostGymName: trainer.hostGymName,
+          hostGymAddress: trainer.hostGymAddress,
+          address: trainer.address,
+          bio: trainer.bio,
         }),
       }
     );
@@ -124,13 +129,13 @@ useEffect(() => {
     }
 
     alert("Trainer updated successfully ✅");
-
-    router.push("/trainers");
+    router.push(`/trainers/view/${id}`);
 
   } catch (error) {
     alert(error.message);
   }
 };
+
 
 
 

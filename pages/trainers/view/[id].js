@@ -32,7 +32,7 @@ export default function TrainerProfile() {
     try {
       const token = localStorage.getItem("adminToken");
 
-      const response = await fetch(
+      const res = await fetch(
         `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}/profile`,
         {
           headers: {
@@ -41,26 +41,23 @@ export default function TrainerProfile() {
         }
       );
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
+      if (!res.ok) {
         throw new Error(data.message || "Failed to fetch trainer");
       }
 
-      const apiTrainer = data.data;
-
-      setTrainer({
-        ...apiTrainer,
-        status: apiTrainer.isActive ? "Active" : "Inactive",
-      });
+      setTrainer(data.data);
 
     } catch (error) {
+      console.error("Profile Fetch Error:", error.message);
       alert(error.message);
     }
   };
 
   fetchTrainerProfile();
 }, [id]);
+
 
 
   if (!trainer) {
@@ -233,7 +230,7 @@ const handleDeleteTrainer = async () => {
                 {/* BIO ON TOP */}
                 <h5 className="fw-bold mb-2">Profile About:</h5>
                 <p className="text-muted mb-4">
-                  {trainer.bio || "No bio available"}
+                  {trainer.userProfileDetails?.bio || "No bio available"}
                 </p>
 
                 <h6 className="fw-bold mb-3">Profile Details:</h6>
@@ -252,17 +249,17 @@ const handleDeleteTrainer = async () => {
 
                 <Row className="mb-3">
                   <Col md={4}><strong>Host Gym:</strong></Col>
-                  <Col md={8}>{trainer.hostGym || "-"}</Col>
+                  <Col md={8}>{trainer.userProfileDetails?.[0]?.hostGymName || "-"}</Col>
                 </Row>
 
                 <Row className="mb-3">
                   <Col md={4}><strong>Gym Address:</strong></Col>
-                  <Col md={8}>{trainer.gymAddress || "-"}</Col>
+                  <Col md={8}>{trainer.userProfileDetails?.[0]?.hostGymAddress || "-"}</Col>
                 </Row>
 
                 <Row>
                   <Col md={4}><strong>Address:</strong></Col>
-                  <Col md={8}>{trainer.address || "-"}</Col>
+                  <Col md={8}>{trainer.userProfileDetails?.[0]?.address || "-"}</Col>
                 </Row>
 
               </Col>
