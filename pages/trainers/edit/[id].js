@@ -50,19 +50,21 @@ useEffect(() => {
       }
 
       const profile = data.data;
+const details = profile.userProfileDetails?.[0] || {};
 
-      setTrainer({
-        firstName: profile.firstName || "",
-        lastName: profile.lastName || "",
-        email: profile.email || "",
-        phone: profile.phone || "",
-        hostGymName: profile.userProfileDetails?.hostGymName || "",
-        hostGymAddress: profile.userProfileDetails?.hostGymAddress || "",
-        address: profile.userProfileDetails?.address || "",
-        bio: profile.userProfileDetails?.bio || "",
-        status: profile.isActive ? "Active" : "Inactive",
-        avatar: profile.userProfileDetails?.avatarUrl || "",
-      });
+setTrainer({
+  firstName: profile.firstName || "",
+  lastName: profile.lastName || "",
+  email: profile.email || "",
+  phone: profile.phone || "",
+  hostGymName: details.hostGymName || "",
+  hostGymAddress: details.hostGymAddress || "",
+  address: details.address || "",
+  bio: details.bio || "",
+  status: profile.isActive ? "Active" : "Inactive",
+  avatar: details.avatarUrl || "",
+});
+
 
     } catch (error) {
       alert(error.message);

@@ -65,13 +65,19 @@ export default function CreateTrainer() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          firstName: trainer.firstName,
-          lastName: trainer.lastName,
-          email: trainer.email,
-          phone: trainer.phone,
-          password: "Trainer@123", // API requires password
-          isActive: trainer.status === "Active",
-        }),
+  firstName: trainer.firstName,
+  lastName: trainer.lastName,
+  email: trainer.email,
+  phone: trainer.phone,
+  password: "Trainer@123",
+  isActive: trainer.status === "Active",
+
+  hostGymName: trainer.hostGymName,
+  hostGymAddress: trainer.hostGymAddress,
+  address: trainer.address,
+  bio: trainer.bio,
+})
+
       }
     );
 

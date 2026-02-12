@@ -182,7 +182,10 @@ const handleDeleteTrainer = async () => {
               {/* LEFT SIDE IMAGE */}
               <Col md={4} className="text-center border-end">
                 <img
-                  src="https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+                  src={
+    trainer.userProfileDetails?.[0]?.avatarUrl ||
+    "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+  }
                   alt="avatar"
                   style={{
                     width: 170,
@@ -230,7 +233,7 @@ const handleDeleteTrainer = async () => {
                 {/* BIO ON TOP */}
                 <h5 className="fw-bold mb-2">Profile About:</h5>
                 <p className="text-muted mb-4">
-                  {trainer.userProfileDetails?.bio || "No bio available"}
+                  {trainer.userProfileDetails?.[0]?.bio || "No bio available"}
                 </p>
 
                 <h6 className="fw-bold mb-3">Profile Details:</h6>

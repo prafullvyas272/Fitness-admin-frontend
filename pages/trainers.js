@@ -160,7 +160,9 @@ const handleDelete = async (id) => {
       trainer.email.toLowerCase().includes(search.toLowerCase());
 
     const matchesFilter =
-      filterStatus === "All" || trainer.isActive ? "Active" : "Inactive" === filterStatus;
+  filterStatus === "All" ||
+  (trainer.isActive ? "Active" : "Inactive") === filterStatus;
+
 
     return matchesSearch && matchesFilter;
   });
@@ -346,17 +348,17 @@ const totalPages = Math.ceil(
                         as="button"
                         className="btn btn-sm border-0 bg-transparent d-flex align-items-center gap-2"
                       >
-                        <span
-                          style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: "50%",
-                            backgroundColor:
-                              trainer.isActive ? "Active" : "Inactive" === "Active"
-                                ? "#22c55e"
-                                : "#dc3545",
-                          }}
-                        ></span>
+<span
+  style={{
+    width: 8,
+    height: 8,
+    borderRadius: "50%",
+    backgroundColor: trainer.isActive
+      ? "#22c55e"
+      : "#dc3545",
+  }}
+></span>
+
 
                         <span className="fw-semibold text-dark">
                           {trainer.isActive ? "Active" : "Inactive"}
