@@ -188,14 +188,44 @@ const totalPages = Math.ceil(
     }
   };
 
-  const handleBulkDelete = () => {
-    const updated = trainers.filter(
-      (trainer) => !selectedIds.includes(trainer.id)
+  const handleBulkDelete = async () => {
+  if (selectedIds.length === 0) {
+    alert("Select trainers first");
+    return;
+  }
+
+  if (!confirm("Delete selected trainers?")) return;
+
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    await Promise.all(
+      selectedIds.map((id) =>
+        fetch(
+          `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+      )
     );
-    setTrainers(updated);
+
+    // remove from UI
+    setTrainers((prev) =>
+      prev.filter((trainer) => !selectedIds.includes(trainer.id))
+    );
+
     setSelectedIds([]);
-    setSelectionMode(false);
-  };
+    alert("Deleted successfully ✅");
+
+  } catch (err) {
+    alert("Delete failed");
+  }
+};
+
 
   return (
     <div className="p-4">
@@ -324,9 +354,17 @@ const totalPages = Math.ceil(
                   {selectionMode && (
                     <td>
                       <Form.Check
-                        checked={selectedIds.includes(trainer.id)}
-                        onChange={() => toggleSelect(trainer.id)}
-                      />
+  type="checkbox"
+  checked={selectedIds.includes(trainer.id)}
+  onChange={() => {
+    if (selectedIds.includes(trainer.id)) {
+      setSelectedIds(selectedIds.filter((id) => id !== trainer.id));
+    } else {
+      setSelectedIds([...selectedIds, trainer.id]);
+    }
+  }}
+/>
+
                     </td>
                   )}
 

@@ -22,7 +22,8 @@ export default function CreateTrainer() {
     address: "",
     bio: "",
     status: "Active",
-    avatar: "",
+    avatarFile: null,
+    avatarPreview: "",
   });
 
   const handleChange = (e) => {
@@ -36,12 +37,13 @@ export default function CreateTrainer() {
   const file = e.target.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    setTrainer({ ...trainer, avatar: reader.result });
-  };
-  reader.readAsDataURL(file);
+  setTrainer({
+    ...trainer,
+    avatarFile: file,
+    avatarPreview: URL.createObjectURL(file),
+  });
 };
+
 
 
   const handleSubmit = async (e) => {
@@ -124,7 +126,7 @@ export default function CreateTrainer() {
       <div className="avatar-circle">
         <img
   src={
-    trainer.avatar ||
+    trainer.avatarPreview ||
     "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
   }
   alt="avatar"
