@@ -14,49 +14,6 @@ import {
 export default function Trainers() {
   const router = useRouter();
 
-  const demoData = [
-    {
-      id: 1,
-      firstName: "John",
-      lastName: "Smith",
-      email: "john@gmail.com",
-      phone: "9876543210",
-      status: "Active",
-    },
-    {
-      id: 2,
-      firstName: "Alex",
-      lastName: "Brown",
-      email: "alex@gmail.com",
-      phone: "9876543211",
-      status: "Inactive",
-    },
-    {
-      id: 3,
-      firstName: "David",
-      lastName: "Wilson",
-      email: "david@gmail.com",
-      phone: "9876543212",
-      status: "Active",
-    },
-    {
-      id: 4,
-      firstName: "Emma",
-      lastName: "Clark",
-      email: "emma@gmail.com",
-      phone: "9876543213",
-      status: "Active",
-    },
-    {
-      id: 5,
-      firstName: "Olivia",
-      lastName: "Lee",
-      email: "olivia@gmail.com",
-      phone: "9876543214",
-      status: "Inactive",
-    },
-  ];
-
   const [trainers, setTrainers] = useState([]);
   const [search, setSearch] = useState("");
   const [selectionMode, setSelectionMode] = useState(false);
@@ -68,79 +25,131 @@ const [entriesPerPage, setEntriesPerPage] = useState(10);
 
 
 useEffect(() => {
-  let stored = JSON.parse(localStorage.getItem("gymTrainers"));
+  const fetchTrainers = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
 
-  if (!stored) {
-    stored = [];
-  }
+      if (!token) {
+        router.push("/login");
+        return;
+      }
 
-  // If less than 5 trainers, reset demo data
-  if (stored.length < 5) {
-    const demoTrainers = [
-      {
-        id: 1,
-        firstName: "John",
-        lastName: "Smith",
-        email: "john@gmail.com",
-        phone: "9876543210",
-        status: "Active",
-      },
-      {
-        id: 2,
-        firstName: "Alex",
-        lastName: "Brown",
-        email: "alex@gmail.com",
-        phone: "9876543211",
-        status: "Inactive",
-      },
-      {
-        id: 3,
-        firstName: "David",
-        lastName: "Wilson",
-        email: "david@gmail.com",
-        phone: "9876543212",
-        status: "Active",
-      },
-      {
-        id: 4,
-        firstName: "Emma",
-        lastName: "Clark",
-        email: "emma@gmail.com",
-        phone: "9876543213",
-        status: "Active",
-      },
-      {
-        id: 5,
-        firstName: "Olivia",
-        lastName: "Lee",
-        email: "olivia@gmail.com",
-        phone: "9876543214",
-        status: "Inactive",
-      },
-    ];
+      const response = await fetch(
+        "https://fitness-app-seven-beryl.vercel.app/api/trainers",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    localStorage.setItem("gymTrainers", JSON.stringify(demoTrainers));
-    setTrainers(demoTrainers);
-  } else {
-    setTrainers(stored);
-  }
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch trainers");
+      }
+
+      // 🔥 Format backend response
+      const formatted = (data.data || []).map((trainer) => ({
+        id: trainer.id,
+        firstName: trainer.firstName,
+        lastName: trainer.lastName,
+        email: trainer.email,
+        phone: trainer.phone,
+        isActive: trainer.isActive,
+        createdAt: trainer.createdAt,
+      }));
+
+      setTrainers(formatted);
+
+    } catch (error) {
+      console.error("Fetch Error:", error.message);
+      alert(error.message);
+    }
+  };
+
+  fetchTrainers();
 }, []);
 
 
-  const updateTrainerStatus = (id, newStatus) => {
-    const updated = trainers.map((trainer) =>
-      trainer.id === id ? { ...trainer, status: newStatus } : trainer
-    );
-    setTrainers(updated);
-    localStorage.setItem("gymTrainers", JSON.stringify(updated));
-  };
 
-  const handleDelete = (id) => {
-    if (!confirm("Delete this trainer?")) return;
-    const updated = trainers.filter((trainer) => trainer.id !== id);
+const updateTrainerStatus = async (id, newStatus) => {
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    const trainerToUpdate = trainers.find((t) => t.id === id);
+
+    const response = await fetch(
+      `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          firstName: trainerToUpdate.firstName,
+          lastName: trainerToUpdate.lastName,
+          email: trainerToUpdate.email,
+          phone: trainerToUpdate.phone,
+          isActive: newStatus === "Active",
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to update status");
+    }
+
+    // Update UI instantly after success
+    const updated = trainers.map((trainer) =>
+      trainer.id === id
+        ? { ...trainer, isActive: newStatus === "Active" }
+        : trainer
+    );
+
     setTrainers(updated);
-    localStorage.setItem("gymTrainers", JSON.stringify(updated));
-  };
+
+  } catch (error) {
+    console.error("Status Update Error:", error.message);
+    alert(error.message);
+  }
+};
+
+
+
+const handleDelete = async (id) => {
+  if (!confirm("Delete this trainer?")) return;
+
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    const response = await fetch(
+      `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Delete failed");
+    }
+
+    setTrainers((prev) => prev.filter((t) => t.id !== id));
+
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
 
   const filteredTrainers = trainers.filter((trainer) => {
     const fullName =
@@ -151,7 +160,7 @@ useEffect(() => {
       trainer.email.toLowerCase().includes(search.toLowerCase());
 
     const matchesFilter =
-      filterStatus === "All" || trainer.status === filterStatus;
+      filterStatus === "All" || trainer.isActive ? "Active" : "Inactive" === filterStatus;
 
     return matchesSearch && matchesFilter;
   });
@@ -182,7 +191,6 @@ const totalPages = Math.ceil(
       (trainer) => !selectedIds.includes(trainer.id)
     );
     setTrainers(updated);
-    localStorage.setItem("gymTrainers", JSON.stringify(updated));
     setSelectedIds([]);
     setSelectionMode(false);
   };
@@ -344,14 +352,14 @@ const totalPages = Math.ceil(
                             height: 8,
                             borderRadius: "50%",
                             backgroundColor:
-                              trainer.status === "Active"
+                              trainer.isActive ? "Active" : "Inactive" === "Active"
                                 ? "#22c55e"
                                 : "#dc3545",
                           }}
                         ></span>
 
                         <span className="fw-semibold text-dark">
-                          {trainer.status}
+                          {trainer.isActive ? "Active" : "Inactive"}
                         </span>
 
                         <i className="fe fe-chevron-down small text-muted"></i>

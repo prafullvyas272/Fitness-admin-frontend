@@ -1,4 +1,7 @@
 // import node module libraries
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+
 import { Fragment } from "react";
 import Link from 'next/link';
 import { Container, Col, Row } from 'react-bootstrap';
@@ -13,6 +16,16 @@ import { ActiveProjects, Teams, TasksPerformance } from "sub-components";
 import ProjectsStatsData from "data/dashboard/ProjectsStatsData";
 
 const Home = () => {
+    const router = useRouter();
+
+useEffect(() => {
+  const token = localStorage.getItem("adminToken");
+
+  if (!token) {
+    router.replace("/login");
+  }
+}, []);
+
     return (
         <Fragment>
             <div className="bg-primary pt-10 pb-21"></div>

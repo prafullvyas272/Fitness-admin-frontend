@@ -44,25 +44,61 @@ export default function CreateTrainer() {
 };
 
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const existing =
-      JSON.parse(localStorage.getItem("gymTrainers")) || [];
+  try {
+    const token = localStorage.getItem("adminToken");
 
-    const newTrainer = {
-      id: Date.now(),
-      name: `${trainer.firstName} ${trainer.lastName}`,
-      ...trainer,
-    };
+    if (!token) {
+      alert("Session expired. Please login again.");
+      router.push("/login");
+      return;
+    }
 
-    localStorage.setItem(
-      "gymTrainers",
-      JSON.stringify([...existing, newTrainer])
+    const response = await fetch(
+      "https://fitness-app-seven-beryl.vercel.app/api/trainers",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          firstName: trainer.firstName,
+          lastName: trainer.lastName,
+          email: trainer.email,
+          phone: trainer.phone,
+          password: "Trainer@123", // API requires password
+          isActive: trainer.status === "Active",
+        }),
+      }
     );
 
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem("adminToken");
+        alert("Session expired. Please login again.");
+        router.push("/login");
+        return;
+      }
+
+      throw new Error(data.message || "Failed to create trainer");
+    }
+
+    alert("Trainer created successfully ✅");
     router.push("/trainers");
-  };
+  } catch (error) {
+    console.error("Error:", error.message);
+    alert(error.message);
+  }
+};
+
+
+
+
 
   return (
     <div className="p-4">

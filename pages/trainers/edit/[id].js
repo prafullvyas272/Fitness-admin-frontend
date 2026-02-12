@@ -27,20 +27,52 @@ export default function EditTrainer() {
   });
 
   /* ================= LOAD TRAINER DATA ================= */
-  useEffect(() => {
-    if (!id) return;
+useEffect(() => {
+  if (!id) return;
 
-    const existing =
-      JSON.parse(localStorage.getItem("gymTrainers")) || [];
+  const fetchTrainerProfile = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
 
-    const foundTrainer = existing.find(
-      (t) => String(t.id) === String(id)
-    );
+      const res = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    if (foundTrainer) {
-      setTrainer(foundTrainer);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to fetch trainer profile");
+      }
+
+      const t = data.data;
+
+      setTrainer({
+        firstName: t.firstName || "",
+        lastName: t.lastName || "",
+        email: t.email || "",
+        phone: t.phone || "",
+        hostGymName: t.userProfileDetails?.hostGymName || "",
+        hostGymAddress: t.userProfileDetails?.hostGymAddress || "",
+        address: t.userProfileDetails?.address || "",
+        bio: t.userProfileDetails?.bio || "",
+        avatar: t.userProfileDetails?.avatar || "",
+        status: t.isActive ? "Active" : "Inactive",
+      });
+
+    } catch (err) {
+      alert(err.message);
     }
-  }, [id]);
+  };
+
+  fetchTrainerProfile();
+}, [id]);
+
+
 
   const handleChange = (e) => {
     setTrainer({
@@ -61,25 +93,46 @@ export default function EditTrainer() {
   };
 
   /* ================= UPDATE TRAINER ================= */
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const existing =
-      JSON.parse(localStorage.getItem("gymTrainers")) || [];
+  try {
+    const token = localStorage.getItem("adminToken");
 
-    const updatedTrainers = existing.map((t) =>
-      String(t.id) === String(id)
-        ? { ...trainer, id: t.id }
-        : t
+    const response = await fetch(
+      `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          firstName: trainer.firstName,
+          lastName: trainer.lastName,
+          email: trainer.email,
+          phone: trainer.phone,
+          isActive: trainer.status === "Active",
+        }),
+      }
     );
 
-    localStorage.setItem(
-      "gymTrainers",
-      JSON.stringify(updatedTrainers)
-    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Update failed");
+    }
+
+    alert("Trainer updated successfully ✅");
 
     router.push("/trainers");
-  };
+
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
+
 
   return (
     <div className="p-4">

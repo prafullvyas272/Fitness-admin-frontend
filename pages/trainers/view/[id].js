@@ -26,33 +26,53 @@ export default function TrainerProfile() {
 
   /* ================= LOAD DATA ================= */
   useEffect(() => {
-    if (!id) return;
+  if (!id) return;
 
-    const trainers =
-      JSON.parse(localStorage.getItem("gymTrainers")) || [];
+  const fetchTrainerProfile = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
 
-    const customersData =
-      JSON.parse(localStorage.getItem("gymCustomers")) || [];
+      const response = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    setAllTrainers(trainers);
-    setCustomers(customersData);
+      const data = await response.json();
 
-    const foundTrainer = trainers.find(
-      (t) => String(t.id) === String(id)
-    );
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch trainer");
+      }
 
-    setTrainer(foundTrainer || null);
-  }, [id]);
+      const apiTrainer = data.data;
+
+      setTrainer({
+        ...apiTrainer,
+        status: apiTrainer.isActive ? "Active" : "Inactive",
+      });
+
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  fetchTrainerProfile();
+}, [id]);
+
 
   if (!trainer) {
     return <div className="p-4">Loading trainer data...</div>;
   }
 
-  const StatusBadge = ({ status }) => (
-    <Badge bg={status === "Active" ? "success" : "danger"}>
-      {status}
-    </Badge>
-  );
+const StatusBadge = ({ isActive }) => (
+  <Badge bg={isActive ? "success" : "danger"}>
+    {isActive ? "Active" : "Inactive"}
+  </Badge>
+);
+
 
   /* ================= ASSIGN ================= */
   const openAssignModal = (customer) => {
@@ -96,17 +116,35 @@ const handleEditTrainer = () => {
   router.push(`/trainers/edit/${trainer.id}`);
 };
 
-const handleDeleteTrainer = () => {
-  if (!confirm("Are you sure you want to delete this trainer?")) return;
+const handleDeleteTrainer = async () => {
+  if (!confirm("Are you sure?")) return;
 
-  const updatedTrainers = allTrainers.filter(
-    (t) => String(t.id) !== String(trainer.id)
-  );
+  try {
+    const token = localStorage.getItem("adminToken");
 
-  localStorage.setItem("gymTrainers", JSON.stringify(updatedTrainers));
+    const res = await fetch(
+      `https://fitness-app-seven-beryl.vercel.app/api/trainers/${trainer.id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-  router.push("/trainers"); // go back to trainer list
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message);
+    }
+
+    router.push("/trainers");
+
+  } catch (err) {
+    alert(err.message);
+  }
 };
+
 
   return (
     <div className="p-4">
@@ -166,7 +204,7 @@ const handleDeleteTrainer = () => {
                   {trainer.email}
                 </p>
 
-                <StatusBadge status={trainer.status} />
+                <StatusBadge isActive={trainer.isActive} />
                 <div className="d-flex justify-content-center gap-2 mt-4">
   <Button
     variant="outline-danger"
