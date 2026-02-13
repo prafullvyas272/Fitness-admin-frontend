@@ -384,7 +384,9 @@ const totalPages = Math.ceil(
   <Dropdown>
                       <Dropdown.Toggle
                         as="button"
-                        className="btn btn-sm border-0 bg-transparent d-flex align-items-center justify-content-center gap-2 w-100"
+                        className={`status-pill ${
+  trainer.isActive ? "status-active" : "status-inactive"
+}`}
                       >
 <span
   style={{
