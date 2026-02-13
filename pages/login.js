@@ -52,7 +52,7 @@ export default function Login() {
       localStorage.setItem("adminToken", accessToken);
       localStorage.setItem("refreshToken", data?.data?.refresh_token);
 
-      router.push("/");
+      router.push("/dashboard");
     } catch (err) {
       setError(err.message);
     } finally {

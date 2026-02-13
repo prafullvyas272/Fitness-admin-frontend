@@ -7,36 +7,68 @@ export default function CreateCustomer() {
   const [activeTab, setActiveTab] = useState("profile");
 
   const [customer, setCustomer] = useState({
-    name: "",
-    email: "",
-    username: "",
-    phone: "",
-    company: "",
-    membership: "Basic",
-    status: "Active",
-  });
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  status: "Active",
+  avatarFile: null,
+});
+
+
 
   const handleChange = (e) => {
     setCustomer({ ...customer, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    const existing =
-      JSON.parse(localStorage.getItem("gymCustomers")) || [];
+  const handleSubmit = async () => {
+  try {
+    const token = localStorage.getItem("adminToken");
 
-    const newCustomer = {
-      ...customer,
-      id: Date.now(),
-      date: new Date().toISOString().split("T")[0],
-    };
+    if (!token) {
+      alert("Session expired");
+      router.push("/login");
+      return;
+    }
 
-    localStorage.setItem(
-      "gymCustomers",
-      JSON.stringify([...existing, newCustomer])
+    const formData = new FormData();
+    formData.append("firstName", customer.firstName);
+    formData.append("lastName", customer.lastName);
+    formData.append("email", customer.email);
+    formData.append("phone", customer.phone);
+
+    // Only send avatar if selected
+    if (customer.avatarFile) {
+      formData.append("avatar", customer.avatarFile);
+    }
+
+    const response = await fetch(
+      "https://fitness-app-seven-beryl.vercel.app/api/customers",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
     );
 
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Customer creation failed");
+    }
+
+    alert("Customer created successfully ✅");
     router.push("/customers");
-  };
+
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
+
+
 
   return (
     <div className="create-customer-page p-4">
@@ -90,16 +122,29 @@ export default function CreateCustomer() {
                 <Row>
 
                   <Col md={6} className="mb-3">
-                    <Form.Label>Name</Form.Label>
-                    <div className="input-icon">
-                      <i className="fe fe-user"></i>
-                      <Form.Control
-                        name="name"
-                        placeholder="Full name"
-                        onChange={handleChange}
-                      />
-                    </div>
-                  </Col>
+  <Form.Label>First Name</Form.Label>
+  <div className="input-icon">
+    <i className="fe fe-user"></i>
+    <Form.Control
+      name="firstName"
+      placeholder="First name"
+      onChange={handleChange}
+    />
+  </div>
+</Col>
+
+<Col md={6} className="mb-3">
+  <Form.Label>Last Name</Form.Label>
+  <div className="input-icon">
+    <i className="fe fe-user"></i>
+    <Form.Control
+      name="lastName"
+      placeholder="Last name"
+      onChange={handleChange}
+    />
+  </div>
+</Col>
+
 
                   <Col md={6} className="mb-3">
                     <Form.Label>Email</Form.Label>
@@ -114,7 +159,7 @@ export default function CreateCustomer() {
                     </div>
                   </Col>
 
-                  <Col md={6} className="mb-3">
+                  {/* <Col md={6} className="mb-3">
                     <Form.Label>Username</Form.Label>
                     <div className="input-icon">
                       <i className="fe fe-link"></i>
@@ -124,7 +169,7 @@ export default function CreateCustomer() {
                         onChange={handleChange}
                       />
                     </div>
-                  </Col>
+                  </Col> */}
 
                   <Col md={6} className="mb-3">
                     <Form.Label>Phone</Form.Label>
@@ -138,14 +183,14 @@ export default function CreateCustomer() {
                     </div>
                   </Col>
 
-                  <Col md={6} className="mb-3">
+                  {/* <Col md={6} className="mb-3">
                     <Form.Label>Membership</Form.Label>
                     <Form.Select name="membership" onChange={handleChange}>
                       <option>Basic</option>
                       <option>Premium</option>
                       <option>VIP</option>
                     </Form.Select>
-                  </Col>
+                  </Col> */}
 
                   <Col md={6} className="mb-3">
                     <Form.Label>Status</Form.Label>

@@ -9,17 +9,72 @@ export default function CustomerDetail() {
   const [customer, setCustomer] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
 
-  useEffect(() => {
-    if (!id) return;
+ useEffect(() => {
+  if (!id) return;
 
-    const storedCustomers =
-      JSON.parse(localStorage.getItem("gymCustomers")) || [];
+  const fetchCustomer = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
 
-    const found = storedCustomers.find((c) => c.id == id);
-    setCustomer(found);
-  }, [id]);
+      const res = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/customers`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok) {
+        const found = data.data.find((c) => c.id === id);
+        setCustomer(found);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchCustomer();
+}, [id]);
 
   if (!customer) return <div className="p-4">Loading...</div>;
+
+  const handleAssign = async () => {
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    const trainerId = prompt("Enter Trainer ID");
+
+    if (!trainerId) return;
+
+    const res = await fetch(
+      "https://fitness-app-seven-beryl.vercel.app/api/assign-customer",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          trainerId,
+          customerId: customer.id,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message);
+
+    alert("Trainer Assigned ✅");
+
+    router.reload(); // refresh data
+  } catch (err) {
+    alert(err.message);
+  }
+};
 
   return (
     <div className="customer-detail-page p-4">
@@ -61,7 +116,20 @@ export default function CustomerDetail() {
 
             <div className="profile-info">
               <p><strong>Phone:</strong> {customer.phone}</p>
-              <p><strong>Trainer:</strong> {customer.assignedTrainer || "-"}</p>
+              <p>
+  <strong>Trainer:</strong>{" "}
+  {customer.assignedTrainers?.length > 0
+    ? "Assigned"
+    : "Not Assigned"}
+</p>
+
+<Button
+  size="sm"
+  className="mt-2"
+  onClick={() => handleAssign()}
+>
+  Assign Trainer
+</Button>
             </div>
 
             <div className="profile-buttons">
@@ -119,7 +187,11 @@ export default function CustomerDetail() {
 
                   <div className="detail-row">
                     <div>Assigned Trainer</div>
-                    <div>{customer.assignedTrainer || "-"}</div>
+                    <div>
+  {customer.assignedTrainers?.length > 0
+    ? "Assigned"
+    : "Not Assigned"}
+/div>
                   </div>
                 </>
               )}

@@ -18,15 +18,52 @@ export default function AllCustomers() {
   const router = useRouter();
 
   // Load customers + trainers
-  useEffect(() => {
-    const storedCustomers =
-      JSON.parse(localStorage.getItem("gymCustomers")) || [];
-    const storedTrainers =
-      JSON.parse(localStorage.getItem("gymTrainers")) || [];
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
 
-    setCustomers(storedCustomers);
-    setTrainers(storedTrainers);
-  }, []);
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      // Fetch Customers
+      const customerRes = await fetch(
+        "https://fitness-app-seven-beryl.vercel.app/api/customers",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const customerData = await customerRes.json();
+
+      if (customerRes.ok) {
+        setCustomers(customerData.data);
+      }
+
+      // Fetch Trainers
+      const trainerRes = await fetch(
+        "https://fitness-app-seven-beryl.vercel.app/api/trainers",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const trainerData = await trainerRes.json();
+
+      if (trainerRes.ok) {
+        setTrainers(trainerData.data);
+      }
+
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   // Save customers
   const saveCustomers = (updated) => {
@@ -35,10 +72,32 @@ export default function AllCustomers() {
   };
 
   // DELETE
-  const deleteCustomer = (id) => {
-    const updated = customers.filter((c) => c.id !== id);
-    saveCustomers(updated);
-  };
+  const deleteCustomer = async (id) => {
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    const response = await fetch(
+      `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Delete failed");
+    }
+
+    setCustomers(customers.filter((c) => c.id !== id));
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
 
   // VIEW
 const handleView = (customer) => {
@@ -67,15 +126,42 @@ const handleView = (customer) => {
     setShowAssign(true);
   };
 
-  const handleAssignSave = () => {
-    const updated = customers.map((c) =>
-      c.id === selectedCustomer.id
-        ? { ...c, assignedTrainer: selectedTrainer }
-        : c
+ const handleAssignSave = async () => {
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    const response = await fetch(
+      "https://fitness-app-seven-beryl.vercel.app/api/assign-customer",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          trainerId: selectedTrainer,
+          customerId: selectedCustomer.id,
+        }),
+      }
     );
-    saveCustomers(updated);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Assign failed");
+    }
+
+    alert("Trainer Assigned ✅");
+
     setShowAssign(false);
-  };
+
+    // Refresh customers list
+    window.location.reload();
+
+  } catch (error) {
+    alert(error.message);
+  }
+};
 
   return (
     <div className="p-4">
@@ -87,7 +173,7 @@ const handleView = (customer) => {
             <th>Name</th>
             <th>Email</th>
             <th>Phone</th>
-            <th>Membership</th>
+            {/* <th>Membership</th> */}
             <th>Status</th>
             <th>Trainer</th>
             <th>Action</th>
@@ -104,22 +190,20 @@ const handleView = (customer) => {
           ) : (
             customers.map((customer) => (
               <tr key={customer.id}>
-                <td>{customer.name}</td>
+                <td>{customer.firstName} {customer.lastName}</td>
                 <td>{customer.email}</td>
                 <td>{customer.phone}</td>
-                <td>{customer.membership}</td>
+                {/* <td>{customer.membership}</td> */}
+               <td>
+  <Badge bg={customer.isActive ? "success" : "secondary"}>
+    {customer.isActive ? "Active" : "Inactive"}
+  </Badge>
+</td>
                 <td>
-                  <Badge
-                    bg={
-                      customer.status === "Active"
-                        ? "success"
-                        : "secondary"
-                    }
-                  >
-                    {customer.status}
-                  </Badge>
-                </td>
-                <td>{customer.assignedTrainer || "-"}</td>
+  {customer.assignedTrainers && customer.assignedTrainers.length > 0
+    ? "Assigned"
+    : "Not Assigned"}
+</td>
 
                 <td>
                   <Dropdown align="end">
@@ -224,10 +308,10 @@ const handleView = (customer) => {
           >
             <option value="">Select Trainer</option>
             {trainers.map((trainer) => (
-              <option key={trainer.id} value={trainer.name}>
-                {trainer.name}
-              </option>
-            ))}
+  <option key={trainer.id} value={trainer.id}>
+    {trainer.firstName} {trainer.lastName}
+  </option>
+))}
           </Form.Select>
 
           <Button className="mt-3" onClick={handleAssignSave}>

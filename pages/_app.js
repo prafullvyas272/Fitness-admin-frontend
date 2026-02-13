@@ -15,14 +15,15 @@ function MyApp({ Component, pageProps }) {
   const router = useRouter();
   const pageURL = process.env.baseURL + router.pathname;
   const title = "Upto - Next.Js Admin Dashboard";
-  const description = "Dash is a fully responsive and yet modern premium Nextjs template & snippets. Geek is feature-rich Nextjs components and beautifully designed pages that help you create the best possible website and web application projects. Nextjs Snippet "
-  const keywords = "Dash UI, Nextjs, Next.js, Course, Sass, landing, Marketing, admin themes, Nextjs admin, Nextjs dashboard, ui kit, web app, multipurpose"
+  const description = "Dash is a fully responsive and yet modern premium Nextjs template & snippets.";
+  const keywords = "Dash UI, Nextjs, Admin, Dashboard";
 
-  // Identify the layout, which will be applied conditionally
-  const Layout = Component.Layout || (router.pathname.includes('dashboard') ? 
-  (router.pathname.includes('instructor') || router.pathname.includes('student') ? 
-  DefaultDashboardLayout : DefaultDashboardLayout) : DefaultDashboardLayout)
-  
+  const noLayoutPages = ["/login"];
+
+const Layout = noLayoutPages.includes(router.pathname)
+  ? ({ children }) => <>{children}</>
+  : DefaultDashboardLayout;
+
   return (
     <SSRProvider>
       <Head>
@@ -30,23 +31,19 @@ function MyApp({ Component, pageProps }) {
         <meta name="keywords" content={keywords} />
         <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
       </Head>
+
       <NextSeo
         title={title}
         description={description}
         canonical={pageURL}
-        openGraph={{
-          url: pageURL,
-          title: title,
-          description: description,
-          site_name: process.env.siteName
-        }}
       />
-        <Layout>
-          <Component {...pageProps} />
-          <Analytics />
-        </Layout>
+
+      <Layout>
+        <Component {...pageProps} />
+        <Analytics />
+      </Layout>
     </SSRProvider>
-  )
+  );
 }
 
 export default MyApp
