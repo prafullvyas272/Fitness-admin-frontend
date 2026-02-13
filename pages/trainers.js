@@ -61,7 +61,11 @@ useEffect(() => {
         createdAt: trainer.createdAt,
       }));
 
-      setTrainers(formatted);
+      setTrainers(
+  formatted.sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  )
+);
 
     } catch (error) {
       console.error("Fetch Error:", error.message);
