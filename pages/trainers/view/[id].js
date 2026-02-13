@@ -24,6 +24,7 @@ export default function TrainerProfile() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedTrainerId, setSelectedTrainerId] = useState("");
 
+  const [showImageModal, setShowImageModal] = useState(false);
   /* ================= LOAD DATA ================= */
   useEffect(() => {
   if (!id) return;
@@ -268,20 +269,23 @@ const displayValue = (value) => {
               {/* LEFT SIDE IMAGE */}
               <Col md={4} className="text-center border-end">
                 <img
-                  src={
+  src={
     trainer.userProfileDetails?.[0]?.avatarUrl ||
     "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
   }
-                  alt="avatar"
-                  style={{
-                    width: 170,
-                    height: 170,
-                    objectFit: "cover",
-                    borderRadius: "50%",
-                    border: "4px solid #e9ecef",
-                  }}
-                  className="mb-3"
-                />
+  alt="avatar"
+  onClick={() => setShowImageModal(true)}
+  style={{
+    width: 170,
+    height: 170,
+    objectFit: "cover",
+    borderRadius: "50%",
+    border: "4px solid #e9ecef",
+    cursor: "pointer",
+    transition: "0.3s",
+  }}
+  className="mb-3"
+/>
 
                 <h5 className="fw-bold">
                   {trainer.firstName} {trainer.lastName}
@@ -319,36 +323,36 @@ const displayValue = (value) => {
 
                 {/* BIO ON TOP */}
                 <h5 className="fw-bold mb-2">Bio:</h5>
-                <p className="text-muted mb-4">
+                <p className=" mb-4">
                   {displayValue(trainer.userProfileDetails?.[0]?.bio)}
                 </p>
-
+<br />
                 <h5 className="fw-bold mb-2">Profile Details:</h5>
-
+<br />
                 <Row className="mb-3">
-                  <Col md={4}><strong>Full Name:</strong></Col>
+                  <Col md={4} className="fw-semibold">Full Name:</Col>
                   <Col md={8}>
                     {trainer.firstName} {trainer.lastName}
                   </Col>
                 </Row>
 
                 <Row className="mb-3">
-                  <Col md={4}><strong>Phone:</strong></Col>
+                  <Col md={4} className="fw-semibold">Phone:</Col>
                   <Col md={8}>{displayValue(trainer.phone)}</Col>
                 </Row>
 
                 <Row className="mb-3">
-                  <Col md={4}><strong>Host Gym:</strong></Col>
+                  <Col md={4} className="fw-semibold">Host Gym:</Col>
                   <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.hostGymName)}</Col>
                 </Row>
 
                 <Row className="mb-3">
-                  <Col md={4}><strong>Gym Address:</strong></Col>
+                  <Col md={4} className="fw-semibold">Gym Address:</Col>
                   <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.hostGymAddress)}</Col>
                 </Row>
 
                 <Row>
-                  <Col md={4}><strong>Address:</strong></Col>
+                  <Col md={4} className="fw-semibold">Address:</Col>
                   <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.address)}</Col>
                 </Row>
 
@@ -444,6 +448,30 @@ const displayValue = (value) => {
 </Button>
         </Modal.Footer>
       </Modal>
+
+{/* IMAGE PREVIEW MODAL */}
+<Modal
+  show={showImageModal}
+  onHide={() => setShowImageModal(false)}
+  centered
+  size="lg"
+>
+  <Modal.Body className="text-center p-0">
+    <img
+      src={
+        trainer.userProfileDetails?.[0]?.avatarUrl ||
+        "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+      }
+      alt="preview"
+      style={{
+        width: "100%",
+        maxHeight: "80vh",
+        objectFit: "contain",
+      }}
+    />
+  </Modal.Body>
+</Modal>
+      
 
     </div>
   );

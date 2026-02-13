@@ -19,6 +19,7 @@ export default function Trainers() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
+  const [loading, setLoading] = useState(true);
   // ================= PAGINATION =================
 const [currentPage, setCurrentPage] = useState(1);
 const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -27,6 +28,7 @@ const [entriesPerPage, setEntriesPerPage] = useState(10);
 useEffect(() => {
   const fetchTrainers = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem("adminToken");
 
       if (!token) {
@@ -66,10 +68,12 @@ useEffect(() => {
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   )
 );
+      setLoading(false);
 
-    } catch (error) {
+        } catch (error) {
       console.error("Fetch Error:", error.message);
       alert(error.message);
+      setLoading(false);
     }
   };
 
@@ -353,7 +357,16 @@ const totalPages = Math.ceil(
             </thead>
 
 <tbody>
-  {currentTrainers.length === 0 ? (
+  {loading ? (
+  <tr>
+    <td
+      colSpan={selectionMode ? 6 : 5}
+      className="text-center py-4 text-muted fw-semibold"
+    >
+      Loading trainers...
+    </td>
+  </tr>
+) : currentTrainers.length === 0 ? (
     <tr>
       <td
         colSpan={selectionMode ? 6 : 5}

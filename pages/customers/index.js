@@ -15,6 +15,7 @@ export default function AllCustomers() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [editData, setEditData] = useState({});
   const [selectedTrainer, setSelectedTrainer] = useState("");
+  const [loading, setLoading] = useState(true);
 
   //pagination logic
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,6 +28,7 @@ const [search, setSearch] = useState("");
 useEffect(() => {
   const fetchData = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem("adminToken");
 
       if (!token) {
@@ -45,7 +47,7 @@ useEffect(() => {
       const customerData = await customerRes.json();
 
       if (customerRes.ok) {
-  const sortedCustomers = [...customerData.data].reverse();
+  const sortedCustomers = [...(customerData.data || [])].reverse();
   setCustomers(sortedCustomers);
 }
 
@@ -56,7 +58,7 @@ useEffect(() => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
+setLoading(false);
       const trainerData = await trainerRes.json();
 
       if (trainerRes.ok) {
@@ -64,8 +66,9 @@ useEffect(() => {
       }
 
     } catch (error) {
-      console.error(error.message);
-    }
+  console.error(error.message);
+  setLoading(false);
+}
   };
 
   fetchData();
@@ -310,7 +313,13 @@ const totalPages = Math.ceil(
           </thead>
 
           <tbody>
-            {customers.length === 0 ? (
+            {loading ? (
+  <tr>
+    <td colSpan="6" className="text-center py-4 text-muted fw-semibold">
+      Loading customers...
+    </td>
+  </tr>
+) : currentCustomers.length === 0 ? (
               <tr>
                 <td colSpan="6" className="text-center">
                   No Customers Found
