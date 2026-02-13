@@ -105,17 +105,53 @@ export default function CreateCustomer() {
 
               {/* LEFT AVATAR BLOCK */}
               <Col md={4}>
-                <div className="profile-upload-box text-center">
-                  <div className="avatar-preview"></div>
-                  <Button variant="light" size="sm" className="mt-3">
-                    Upload Photo
-                  </Button>
-                  <p className="text-muted small mt-2">
-                    Avatar size 150x150 <br />
-                    PNG, JPG (Max 2MB)
-                  </p>
-                </div>
-              </Col>
+  <div className="avatar-wrapper text-center">
+
+    <div
+      className="avatar-container"
+      onClick={() => document.getElementById("avatarInput").click()}
+    >
+      <img
+  src={
+    customer.avatarUrl
+      ? customer.avatarUrl
+      : customer.avatar
+      ? `https://fitness-app-seven-beryl.vercel.app/${customer.avatar}`
+      : "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+  }
+  alt="avatar"
+  style={{
+    width: 150,
+    height: 150,
+    objectFit: "cover",
+    borderRadius: "50%",
+  }}
+/>
+
+      <div className="avatar-overlay">
+        <span>Upload Photo</span>
+      </div>
+    </div>
+
+    <input
+      type="file"
+      id="avatarInput"
+      accept="image/*"
+      hidden
+      onChange={(e) =>
+        setCustomer({
+          ...customer,
+          avatarFile: e.target.files[0],
+        })
+      }
+    />
+
+    <p className="text-muted small mt-3">
+      Avatar size 150x150 <br />
+      PNG, JPG (Max 2MB)
+    </p>
+  </div>
+</Col>
 
               {/* RIGHT FORM */}
               <Col md={8}>

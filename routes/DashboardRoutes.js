@@ -48,18 +48,7 @@ export const DashboardMenu = [
     id: uuid(),
     title: "Customers",
     icon: "user",
-    children: [
-      {
-        id: uuid(),
-        link: "/customers",
-        name: "All Customers",
-      },
-      {
-        id: uuid(),
-        link: "/customers/create",
-        name: "Create Customer",
-      },
-    ],
+    link: "/customers",
   },
 
   {

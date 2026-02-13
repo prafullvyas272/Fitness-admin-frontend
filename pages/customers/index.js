@@ -238,11 +238,21 @@ const totalPages = Math.ceil(
 
     {/* HEADER */}
     <Row className="align-items-center mb-4">
-      <Col>
-        <h3 className="fw-bold mb-1">All Customers</h3>
-        <small className="text-muted">Manage all customers</small>
-      </Col>
-    </Row>
+  <Col>
+    <h3 className="fw-bold mb-1">All Customers</h3>
+    <small className="text-muted">Manage all customers</small>
+  </Col>
+
+  <Col className="text-end">
+    <Button
+      variant="primary"
+      className="px-4"
+      onClick={() => router.push("/customers/create")}
+    >
+      + Create Customer
+    </Button>
+  </Col>
+</Row>
 
     {/* CARD */}
     <Card className="shadow-sm border-0 rounded-3">

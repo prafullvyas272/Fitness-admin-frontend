@@ -352,138 +352,142 @@ const totalPages = Math.ceil(
               </tr>
             </thead>
 
-            <tbody>
-              {currentTrainers.map((trainer) => (
-                <tr key={trainer.id}>
-                  {selectionMode && (
-                    <td>
-                      <Form.Check
-  type="checkbox"
-  checked={selectedIds.includes(trainer.id)}
-  onChange={() => {
-    if (selectedIds.includes(trainer.id)) {
-      setSelectedIds(selectedIds.filter((id) => id !== trainer.id));
-    } else {
-      setSelectedIds([...selectedIds, trainer.id]);
-    }
-  }}
-/>
+<tbody>
+  {currentTrainers.length === 0 ? (
+    <tr>
+      <td
+        colSpan={selectionMode ? 6 : 5}
+        className="text-center py-4 text-muted fw-semibold"
+      >
+        No data found
+      </td>
+    </tr>
+  ) : (
+    currentTrainers.map((trainer) => (
+      <tr key={trainer.id}>
+        {selectionMode && (
+          <td>
+            <Form.Check
+              type="checkbox"
+              checked={selectedIds.includes(trainer.id)}
+              onChange={() => {
+                if (selectedIds.includes(trainer.id)) {
+                  setSelectedIds(
+                    selectedIds.filter((id) => id !== trainer.id)
+                  );
+                } else {
+                  setSelectedIds([...selectedIds, trainer.id]);
+                }
+              }}
+            />
+          </td>
+        )}
 
-                    </td>
-                  )}
+        <td className="fw-semibold text-dark">
+          {trainer.firstName} {trainer.lastName}
+        </td>
 
-                  <td className="fw-semibold text-dark">
-                    {trainer.firstName} {trainer.lastName}
-                  </td>
+        <td className="text-dark">{trainer.email}</td>
+        <td className="text-dark">{trainer.phone}</td>
 
-                  <td className="text-dark">
-                    {trainer.email}
-                  </td>
+        <td className="text-center align-middle">
+          <Dropdown>
+            <Dropdown.Toggle
+              as="button"
+              className={`status-pill ${
+                trainer.isActive
+                  ? "status-active"
+                  : "status-inactive"
+              }`}
+            >
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  backgroundColor: trainer.isActive
+                    ? "#22c55e"
+                    : "#dc3545",
+                  display: "inline-block",
+                  marginRight: "6px",
+                }}
+              ></span>
 
-                  <td className="text-dark">
-                    {trainer.phone}
-                  </td>
+              <span className="fw-semibold">
+                {trainer.isActive ? "Active" : "Inactive"}
+              </span>
 
-                  <td className="text-center align-middle">
-  <Dropdown>
-                      <Dropdown.Toggle
-                        as="button"
-                        className={`status-pill ${
-  trainer.isActive ? "status-active" : "status-inactive"
-}`}
-                      >
-<span
-  style={{
-    width: 8,
-    height: 8,
-    borderRadius: "50%",
-    backgroundColor: trainer.isActive
-      ? "#22c55e"
-      : "#dc3545",
-  }}
-></span>
+              <i className="fe fe-chevron-down small text-muted ms-2"></i>
+            </Dropdown.Toggle>
 
+            <Dropdown.Menu className="shadow border-0 rounded-3">
+              <Dropdown.Item
+                onClick={() =>
+                  updateTrainerStatus(trainer.id, "Active")
+                }
+              >
+                <span className="text-success me-2">●</span>
+                Active
+              </Dropdown.Item>
 
-                        <span className="fw-semibold text-dark">
-                          {trainer.isActive ? "Active" : "Inactive"}
-                        </span>
+              <Dropdown.Item
+                onClick={() =>
+                  updateTrainerStatus(trainer.id, "Inactive")
+                }
+              >
+                <span className="text-danger me-2">●</span>
+                Inactive
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        </td>
 
-                        <i className="fe fe-chevron-down small text-muted"></i>
-                      </Dropdown.Toggle>
+        {!selectionMode && (
+          <td className="text-end">
+            <Dropdown align="end">
+              <Dropdown.Toggle
+                as="button"
+                className="btn btn-sm btn-light border-0"
+              >
+                <i className="fe fe-more-vertical text-secondary"></i>
+              </Dropdown.Toggle>
 
-                      <Dropdown.Menu className="shadow border-0 rounded-3">
+              <Dropdown.Menu className="shadow border-0 rounded-3">
+                <Dropdown.Item
+                  onClick={() =>
+                    router.push(`/trainers/view/${trainer.id}`)
+                  }
+                >
+                  <i className="fe fe-eye me-2 text-secondary"></i>
+                  View
+                </Dropdown.Item>
 
-                        <Dropdown.Item
-                          onClick={() =>
-                            updateTrainerStatus(trainer.id, "Active")
-                          }
-                        >
-                          <span className="text-success me-2">●</span>
-                          Active
-                        </Dropdown.Item>
+                <Dropdown.Item
+                  onClick={() =>
+                    router.push(`/trainers/edit/${trainer.id}`)
+                  }
+                >
+                  <i className="fe fe-edit me-2 text-secondary"></i>
+                  Edit
+                </Dropdown.Item>
 
-                        <Dropdown.Item
-                          onClick={() =>
-                            updateTrainerStatus(trainer.id, "Inactive")
-                          }
-                        >
-                          <span className="text-danger me-2">●</span>
-                          Inactive
-                        </Dropdown.Item>
+                <Dropdown.Divider />
 
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </td>
-
-                  {!selectionMode && (
-                    <td className="text-end">
-                      <Dropdown align="end">
-                        <Dropdown.Toggle
-                          as="button"
-                          className="btn btn-sm btn-light border-0"
-                        >
-                          <i className="fe fe-more-vertical text-secondary"></i>
-                        </Dropdown.Toggle>
-
-                        <Dropdown.Menu className="shadow border-0 rounded-3">
-
-                          <Dropdown.Item
-                            onClick={() =>
-                              router.push(`/trainers/view/${trainer.id}`)
-                            }
-                          >
-                            <i className="fe fe-eye me-2 text-secondary"></i>
-                            View
-                          </Dropdown.Item>
-
-                          <Dropdown.Item
-                            onClick={() =>
-                              router.push(`/trainers/edit/${trainer.id}`)
-                            }
-                          >
-                            <i className="fe fe-edit me-2 text-secondary"></i>
-                            Edit
-                          </Dropdown.Item>
-
-                          <Dropdown.Divider />
-
-                          <Dropdown.Item
-  onClick={() => handleDelete(trainer.id)}
-  className="text-dark"
-  style={{ color: "#344767" }}
->
-  <i className="fe fe-trash me-2"></i>
-  Delete
-</Dropdown.Item>
-
-
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
+                <Dropdown.Item
+                  onClick={() => handleDelete(trainer.id)}
+                  className="text-dark"
+                >
+                  <i className="fe fe-trash me-2"></i>
+                  Delete
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </td>
+        )}
+      </tr>
+    ))
+  )}
+</tbody>
           </Table>
               {/* ================= BOTTOM PAGINATION ================= */}
 <Row className="mt-4 align-items-center">
