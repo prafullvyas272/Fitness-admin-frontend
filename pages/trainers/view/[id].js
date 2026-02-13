@@ -58,6 +58,47 @@ export default function TrainerProfile() {
   fetchTrainerProfile();
 }, [id]);
 
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+
+      // Fetch all customers
+      const customerRes = await fetch(
+        "https://fitness-app-seven-beryl.vercel.app/api/customers",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const customerData = await customerRes.json();
+
+      if (customerRes.ok) {
+        setCustomers(customerData.data || []);
+      }
+
+      // Fetch all trainers
+      const trainerRes = await fetch(
+        "https://fitness-app-seven-beryl.vercel.app/api/trainers",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const trainerData = await trainerRes.json();
+
+      if (trainerRes.ok) {
+        setAllTrainers(trainerData.data || []);
+      }
+
+    } catch (error) {
+      console.error("Fetch Error:", error.message);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
 
   if (!trainer) {
@@ -71,6 +112,46 @@ const StatusBadge = ({ isActive }) => (
 );
 
 
+const assignToThisTrainer = async (customerId) => {
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    const response = await fetch(
+      "https://fitness-app-seven-beryl.vercel.app/api/assign-customer",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          trainerId: trainer.id,
+          customerId: customerId,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message);
+    }
+
+    alert("Customer Assigned ✅");
+
+    // refresh customers
+    const updated = customers.map((cust) =>
+      cust.id === customerId
+        ? { ...cust, assignedTrainerId: trainer.id }
+        : cust
+    );
+
+    setCustomers(updated);
+
+  } catch (error) {
+    alert(error.message);
+  }
+};
   /* ================= ASSIGN ================= */
   const openAssignModal = (customer) => {
     setSelectedCustomer(customer);
@@ -141,6 +222,11 @@ const handleDeleteTrainer = async () => {
     alert(err.message);
   }
 };
+
+const displayValue = (value) => {
+  return value && value !== "" ? value : "N/A";
+};
+
 
 
   return (
@@ -231,12 +317,12 @@ const handleDeleteTrainer = async () => {
               <Col md={8} className="ps-4">
 
                 {/* BIO ON TOP */}
-                <h5 className="fw-bold mb-2">Profile About:</h5>
+                <h5 className="fw-bold mb-2">Bio:</h5>
                 <p className="text-muted mb-4">
-                  {trainer.userProfileDetails?.[0]?.bio || "No bio available"}
+                  {displayValue(trainer.userProfileDetails?.[0]?.bio)}
                 </p>
 
-                <h6 className="fw-bold mb-3">Profile Details:</h6>
+                <h5 className="fw-bold mb-2">Profile Details:</h5>
 
                 <Row className="mb-3">
                   <Col md={4}><strong>Full Name:</strong></Col>
@@ -247,22 +333,22 @@ const handleDeleteTrainer = async () => {
 
                 <Row className="mb-3">
                   <Col md={4}><strong>Phone:</strong></Col>
-                  <Col md={8}>{trainer.phone || "-"}</Col>
+                  <Col md={8}>{displayValue(trainer.phone)}</Col>
                 </Row>
 
                 <Row className="mb-3">
                   <Col md={4}><strong>Host Gym:</strong></Col>
-                  <Col md={8}>{trainer.userProfileDetails?.[0]?.hostGymName || "-"}</Col>
+                  <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.hostGymName)}</Col>
                 </Row>
 
                 <Row className="mb-3">
                   <Col md={4}><strong>Gym Address:</strong></Col>
-                  <Col md={8}>{trainer.userProfileDetails?.[0]?.hostGymAddress || "-"}</Col>
+                  <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.hostGymAddress)}</Col>
                 </Row>
 
                 <Row>
                   <Col md={4}><strong>Address:</strong></Col>
-                  <Col md={8}>{trainer.userProfileDetails?.[0]?.address || "-"}</Col>
+                  <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.address)}</Col>
                 </Row>
 
               </Col>
@@ -289,11 +375,11 @@ const handleDeleteTrainer = async () => {
                 <tbody>
                   {customers.map((customer) => (
                     <tr key={customer.id}>
-                      <td className="fw-semibold">{customer.name}</td>
+                      <td className="fw-semibold">{customer.firstName} {customer.lastName}</td>
                       <td>{customer.email}</td>
                       <td>{customer.phone}</td>
                       <td>
-                        <StatusBadge status={customer.status} />
+                        <StatusBadge isActive={customer.isActive} />
                       </td>
                       <td>
                         <span className="badge bg-primary">
@@ -348,14 +434,13 @@ const handleDeleteTrainer = async () => {
           >
             Cancel
           </Button>
-
-          <Button
-            variant="primary"
-            onClick={handleAssignTrainer}
-            disabled={!selectedTrainerId}
-          >
-            Save
-          </Button>
+<Button
+  variant="primary"
+  onClick={() => assignToThisTrainer(selectedCustomer.id)}
+  disabled={!selectedCustomer}
+>
+  Assign to This Trainer
+</Button>
         </Modal.Footer>
       </Modal>
 
