@@ -343,7 +343,7 @@ const totalPages = Math.ceil(
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
-                <th>Status</th>
+                <th className="text-center">Status</th>
                 {!selectionMode && <th className="text-end">Action</th>}
               </tr>
             </thead>
@@ -380,11 +380,11 @@ const totalPages = Math.ceil(
                     {trainer.phone}
                   </td>
 
-                  <td>
-                    <Dropdown>
+                  <td className="text-center align-middle">
+  <Dropdown>
                       <Dropdown.Toggle
                         as="button"
-                        className="btn btn-sm border-0 bg-transparent d-flex align-items-center gap-2"
+                        className="btn btn-sm border-0 bg-transparent d-flex align-items-center justify-content-center gap-2 w-100"
                       >
 <span
   style={{
