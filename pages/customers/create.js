@@ -13,6 +13,7 @@ export default function CreateCustomer() {
   phone: "",
   status: "Active",
   avatarFile: null,
+  avatarPreview: "",
 });
 
 
@@ -32,22 +33,23 @@ export default function CreateCustomer() {
     }
 
     const formData = new FormData();
-    formData.append("firstName", customer.firstName);
-    formData.append("lastName", customer.lastName);
-    formData.append("email", customer.email);
-    formData.append("phone", customer.phone);
 
-    // Only send avatar if selected
-    if (customer.avatarFile) {
-      formData.append("avatar", customer.avatarFile);
-    }
+formData.append("firstName", customer.firstName);
+formData.append("lastName", customer.lastName);
+formData.append("email", customer.email);
+formData.append("phone", customer.phone);
+formData.append("password", "Customer@123"); // 👈 ADD THIS
+
+if (customer.avatarFile) {
+  formData.append("avatar", customer.avatarFile);
+}
 
     const response = await fetch(
       "https://fitness-app-seven-beryl.vercel.app/api/customers",
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // DO NOT SET CONTENT-TYPE
         },
         body: formData,
       }
@@ -113,11 +115,8 @@ export default function CreateCustomer() {
     >
       <img
   src={
-    customer.avatarUrl
-      ? customer.avatarUrl
-      : customer.avatar
-      ? `https://fitness-app-seven-beryl.vercel.app/${customer.avatar}`
-      : "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+    customer.avatarPreview ||
+    "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
   }
   alt="avatar"
   style={{
@@ -138,12 +137,16 @@ export default function CreateCustomer() {
       id="avatarInput"
       accept="image/*"
       hidden
-      onChange={(e) =>
-        setCustomer({
-          ...customer,
-          avatarFile: e.target.files[0],
-        })
-      }
+      onChange={(e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  setCustomer({
+    ...customer,
+    avatarFile: file,
+    avatarPreview: URL.createObjectURL(file),
+  });
+}}
     />
 
     <p className="text-muted small mt-3">

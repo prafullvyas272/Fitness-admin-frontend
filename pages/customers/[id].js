@@ -9,35 +9,37 @@ export default function CustomerDetail() {
   const [customer, setCustomer] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
 
-  useEffect(() => {
-    if (!id) return;
+ useEffect(() => {
+  if (!id) return;
 
-    const fetchCustomer = async () => {
-      try {
-        const token = localStorage.getItem("adminToken");
+  const fetchCustomer = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
 
-        const res = await fetch(
-          `https://fitness-app-seven-beryl.vercel.app/api/customers`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+      const res = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
-
-        const data = await res.json();
-
-        if (res.ok) {
-          const found = data.data.find((c) => c.id === id);
-          setCustomer(found);
         }
-      } catch (err) {
-        console.error(err);
-      }
-    };
+      );
 
-    fetchCustomer();
-  }, [id]);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message);
+      }
+
+      setCustomer(data.data);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchCustomer();
+}, [id]);
 
   if (!customer) return <div className="p-4">Loading...</div>;
 
@@ -88,11 +90,24 @@ export default function CustomerDetail() {
         {/* LEFT PROFILE BLOCK */}
         <Col md={4}>
           <div className="profile-card-custom">
-            <div className="profile-avatar"></div>
+            <div className="profile-avatar text-center mb-3">
+ <img
+  src={
+    customer?.userProfileDetails?.[0]?.avatarUrl ||
+    "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+  }
+  alt="avatar"
+  className="customer-avatar-img"
+/>
+</div>
 
-            <h5>{customer.name}</h5>
-            <p className="text-muted">{customer.email}</p>
+<h5 className="fw-bold mb-1">
+  {customer.firstName} {customer.lastName}
+</h5>
 
+<p className="text-muted mb-3">
+  {customer.email}
+</p>
             <div className="profile-stats">
               <div>
                 <h6>Membership</h6>

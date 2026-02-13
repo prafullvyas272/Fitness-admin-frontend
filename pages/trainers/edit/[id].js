@@ -150,38 +150,40 @@ setTrainer({
           <Form onSubmit={handleSubmit}>
 
             {/* AVATAR */}
-            <Row className="mb-4 align-items-center">
-              <Col md={3} className="fw-semibold">
-                Avatar:
-              </Col>
+            {/* AVATAR */}
+<Row className="mb-4 align-items-center">
+  <Col md={3} className="fw-semibold">
+    Avatar:
+  </Col>
 
-              <Col md={9}>
-                <div className="avatar-circle-wrapper">
-                  <div className="avatar-circle">
-                    <img
-                      src={
-                        trainer.avatar ||
-                        "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
-                      }
-                      alt="avatar"
-                      className="avatar-img"
-                    />
+  <Col md={9}>
+    <div
+      className="avatar-circle-wrapper"
+      onClick={() => document.getElementById("editAvatarInput").click()}
+    >
+      <img
+        src={
+          trainer.avatar ||
+          "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+        }
+        alt="avatar"
+        className="avatar-img"
+      />
 
-                    <div className="avatar-overlay">
-                      <label className="avatar-upload-text">
-                        Change Photo
-                        <input
-                          type="file"
-                          accept="image/png, image/jpeg"
-                          onChange={handleImageUpload}
-                          hidden
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </Col>
-            </Row>
+      <div className="avatar-overlay">
+        <span>Change Photo</span>
+      </div>
+
+      <input
+        type="file"
+        id="editAvatarInput"
+        accept="image/png, image/jpeg"
+        onChange={handleImageUpload}
+        hidden
+      />
+    </div>
+  </Col>
+</Row>
 
             {/* FIRST NAME */}
             <Row className="mb-4 align-items-center">

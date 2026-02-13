@@ -278,6 +278,7 @@ const displayValue = (value) => {
                     height: 170,
                     objectFit: "cover",
                     borderRadius: "50%",
+                    border: "4px solid #e9ecef",
                   }}
                   className="mb-3"
                 />

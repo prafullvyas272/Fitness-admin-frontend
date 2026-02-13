@@ -58,52 +58,48 @@ export default function CreateTrainer() {
       return;
     }
 
+    const formData = new FormData();
+
+    formData.append("firstName", trainer.firstName);
+    formData.append("lastName", trainer.lastName);
+    formData.append("email", trainer.email);
+    formData.append("phone", trainer.phone);
+    formData.append("password", "Trainer@123");
+    // formData.append("isActive", trainer.status === "Active" ? "true" : "false");
+    formData.append("hostGymName", trainer.hostGymName);
+    formData.append("hostGymAddress", trainer.hostGymAddress);
+    formData.append("address", trainer.address);
+    formData.append("bio", trainer.bio);
+
+    // 🔥 THIS IS THE IMPORTANT PART
+    if (trainer.avatarFile) {
+      formData.append("avatar", trainer.avatarFile);
+    }
+
     const response = await fetch(
       "https://fitness-app-seven-beryl.vercel.app/api/trainers",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // ❌ DO NOT SET Content-Type
         },
-        body: JSON.stringify({
-  firstName: trainer.firstName,
-  lastName: trainer.lastName,
-  email: trainer.email,
-  phone: trainer.phone,
-  password: "Trainer@123",
-  isActive: trainer.status === "Active",
-
-  hostGymName: trainer.hostGymName,
-  hostGymAddress: trainer.hostGymAddress,
-  address: trainer.address,
-  bio: trainer.bio,
-})
-
+        body: formData,
       }
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-      if (response.status === 401) {
-        localStorage.removeItem("adminToken");
-        alert("Session expired. Please login again.");
-        router.push("/login");
-        return;
-      }
-
       throw new Error(data.message || "Failed to create trainer");
     }
 
     alert("Trainer created successfully ✅");
     router.push("/trainers");
+
   } catch (error) {
-    console.error("Error:", error.message);
     alert(error.message);
   }
 };
-
 
 
 
@@ -118,34 +114,35 @@ export default function CreateTrainer() {
           <Form onSubmit={handleSubmit}>
 
             {/* AVATAR */}
+{/* AVATAR */}
 <Row className="mb-4 align-items-center">
   <Col md={3} className="fw-semibold">Avatar:</Col>
 
   <Col md={9}>
-    <div className="avatar-circle-wrapper">
-      <div className="avatar-circle">
-        <img
-  src={
-    trainer.avatarPreview ||
-    "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
-  }
-  alt="avatar"
-  className="avatar-img"
-/>
+    <div
+      className="avatar-circle-wrapper"
+      onClick={() => document.getElementById("createAvatarInput").click()}
+    >
+      <img
+        src={
+          trainer.avatarPreview ||
+          "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+        }
+        alt="avatar"
+        className="avatar-img"
+      />
 
-
-        <div className="avatar-overlay">
-          <label className="avatar-upload-text">
-            Change Photo
-            <input
-              type="file"
-              accept="image/png, image/jpeg"
-              onChange={handleImageUpload}
-              hidden
-            />
-          </label>
-        </div>
+      <div className="avatar-overlay">
+        <span>Change Photo</span>
       </div>
+
+      <input
+        type="file"
+        id="createAvatarInput"
+        accept="image/png, image/jpeg"
+        onChange={handleImageUpload}
+        hidden
+      />
     </div>
   </Col>
 </Row>
