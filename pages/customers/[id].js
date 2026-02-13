@@ -191,7 +191,7 @@ export default function CustomerDetail() {
   {customer.assignedTrainers?.length > 0
     ? "Assigned"
     : "Not Assigned"}
-/div>
+</div>
                   </div>
                 </>
               )}
