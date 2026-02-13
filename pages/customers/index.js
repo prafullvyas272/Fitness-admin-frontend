@@ -45,8 +45,9 @@ useEffect(() => {
       const customerData = await customerRes.json();
 
       if (customerRes.ok) {
-        setCustomers(customerData.data);
-      }
+  const sortedCustomers = [...customerData.data].reverse();
+  setCustomers(sortedCustomers);
+}
 
       // Fetch Trainers
       const trainerRes = await fetch(
