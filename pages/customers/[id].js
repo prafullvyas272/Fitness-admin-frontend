@@ -9,76 +9,75 @@ export default function CustomerDetail() {
   const [customer, setCustomer] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
 
- useEffect(() => {
-  if (!id) return;
+  useEffect(() => {
+    if (!id) return;
 
-  const fetchCustomer = async () => {
-    try {
-      const token = localStorage.getItem("adminToken");
+    const fetchCustomer = async () => {
+      try {
+        const token = localStorage.getItem("adminToken");
 
-      const res = await fetch(
-        `https://fitness-app-seven-beryl.vercel.app/api/customers`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+        const res = await fetch(
+          `https://fitness-app-seven-beryl.vercel.app/api/customers`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
+        );
+
+        const data = await res.json();
+
+        if (res.ok) {
+          const found = data.data.find((c) => c.id === id);
+          setCustomer(found);
         }
-      );
-
-      const data = await res.json();
-
-      if (res.ok) {
-        const found = data.data.find((c) => c.id === id);
-        setCustomer(found);
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    };
 
-  fetchCustomer();
-}, [id]);
+    fetchCustomer();
+  }, [id]);
 
   if (!customer) return <div className="p-4">Loading...</div>;
 
   const handleAssign = async () => {
-  try {
-    const token = localStorage.getItem("adminToken");
+    try {
+      const token = localStorage.getItem("adminToken");
 
-    const trainerId = prompt("Enter Trainer ID");
+      const trainerId = prompt("Enter Trainer ID");
 
-    if (!trainerId) return;
+      if (!trainerId) return;
 
-    const res = await fetch(
-      "https://fitness-app-seven-beryl.vercel.app/api/assign-customer",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        "https://fitness-app-seven-beryl.vercel.app/api/assign-customer",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            trainerId,
+            customerId: customer.id,
+          }),
         },
-        body: JSON.stringify({
-          trainerId,
-          customerId: customer.id,
-        }),
-      }
-    );
+      );
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) throw new Error(data.message);
+      if (!res.ok) throw new Error(data.message);
 
-    alert("Trainer Assigned ✅");
+      alert("Trainer Assigned ✅");
 
-    router.reload(); // refresh data
-  } catch (err) {
-    alert(err.message);
-  }
-};
+      router.reload(); // refresh data
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   return (
     <div className="customer-detail-page p-4">
-
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h3>Customers / View</h3>
@@ -86,11 +85,9 @@ export default function CustomerDetail() {
       </div>
 
       <Row>
-
         {/* LEFT PROFILE BLOCK */}
         <Col md={4}>
           <div className="profile-card-custom">
-
             <div className="profile-avatar"></div>
 
             <h5>{customer.name}</h5>
@@ -104,46 +101,48 @@ export default function CustomerDetail() {
 
               <div>
                 <h6>Status</h6>
-                <span className={
-                  customer.status === "Active"
-                    ? "text-success"
-                    : "text-secondary"
-                }>
+                <span
+                  className={
+                    customer.status === "Active"
+                      ? "text-success"
+                      : "text-secondary"
+                  }
+                >
                   {customer.status}
                 </span>
               </div>
             </div>
 
             <div className="profile-info">
-              <p><strong>Phone:</strong> {customer.phone}</p>
               <p>
-  <strong>Trainer:</strong>{" "}
-  {customer.assignedTrainers?.length > 0
-    ? "Assigned"
-    : "Not Assigned"}
-</p>
+                <strong>Phone:</strong> {customer.phone}
+              </p>
+              <p>
+                <strong>Trainer:</strong>{" "}
+                {customer.assignedTrainers?.length > 0
+                  ? "Assigned"
+                  : "Not Assigned"}
+              </p>
 
-<Button
-  size="sm"
-  className="mt-2"
-  onClick={() => handleAssign()}
->
-  Assign Trainer
-</Button>
+              <Button size="sm" className="mt-2" onClick={() => handleAssign()}>
+                Assign Trainer
+              </Button>
             </div>
 
             <div className="profile-buttons">
-              <Button variant="outline-danger" size="sm">Delete</Button>
-              <Button variant="primary" size="sm">Edit Profile</Button>
+              <Button variant="outline-danger" size="sm">
+                Delete
+              </Button>
+              <Button variant="primary" size="sm">
+                Edit Profile
+              </Button>
             </div>
-
           </div>
         </Col>
 
         {/* RIGHT CONTENT BLOCK */}
         <Col md={8}>
           <div className="content-card-custom">
-
             <Nav
               variant="tabs"
               activeKey={activeTab}
@@ -160,7 +159,6 @@ export default function CustomerDetail() {
             </Nav>
 
             <div className="tab-content-area">
-
               {activeTab === "overview" && (
                 <>
                   <h5 className="mb-3">Profile Details</h5>
@@ -188,42 +186,38 @@ export default function CustomerDetail() {
                   <div className="detail-row">
                     <div>Assigned Trainer</div>
                     <div>
-  {customer.assignedTrainers?.length > 0
-    ? "Assigned"
-    : "Not Assigned"}
-</div>
+                      {customer.assignedTrainers?.length > 0
+                        ? "Assigned"
+                        : "Not Assigned"}
+                    </div>
                   </div>
                 </>
               )}
+{activeTab === "billing" && (
+  <>
+    <div className="billing-alert">
+      We need your attention! Add Payment Method.
+    </div>
 
-              {activeTab === "billing" && (
-                <>
-                  <div className="billing-alert">
-                    We need your attention! Add Payment Method.
-                  </div>
+    <div className="billing-plan-box">
+      <div>
+        <h6>Your current plan</h6>
+        <p>Gym Premium</p>
+      </div>
 
-                  <div className="billing-plan-box">
-                    <div>
-                      <h6>Your current plan</h6>
-                      <p>Gym Premium</p>
-                    </div>
+      <div>
+        <h4>₹1999 / Month</h4>
+      </div>
 
-                    <div>
-                      <h4>₹1999 / Month</h4>
-                    </div>
-
-                    <Button variant="outline-primary" size="sm">
-                      Update Plan
-                    </Button>
-                  </div>
-                </>
-              )}
-
+      <Button variant="outline-primary" size="sm">
+        Update Plan
+      </Button>
+    </div>
+  </>
+)}
             </div>
-
           </div>
         </Col>
-
       </Row>
     </div>
   );
