@@ -141,83 +141,80 @@ export default function CustomerDetail() {
         </Col>
 
         {/* RIGHT CONTENT BLOCK */}
-        <Col md={8}>
-          <div className="content-card-custom">
-            <Nav
-              variant="tabs"
-              activeKey={activeTab}
-              onSelect={(k) => setActiveTab(k)}
-              className="custom-tabs"
-            >
-              <Nav.Item>
-                <Nav.Link eventKey="overview">Overview</Nav.Link>
-              </Nav.Item>
+<Col md={8}>
+  <div className="content-card-custom">
+    <Nav
+      variant="tabs"
+      activeKey={activeTab}
+      onSelect={(k) => setActiveTab(k)}
+      className="custom-tabs"
+    >
+      <Nav.Item>
+        <Nav.Link eventKey="overview">Overview</Nav.Link>
+      </Nav.Item>
+      <Nav.Item>
+        <Nav.Link eventKey="billing">Billing</Nav.Link>
+      </Nav.Item>
+    </Nav>
 
-              <Nav.Item>
-                <Nav.Link eventKey="billing">Billing</Nav.Link>
-              </Nav.Item>
-            </Nav>
+    <div className="tab-content-area">
 
-            <div className="tab-content-area">
-              {activeTab === "overview" && (
-                <>
-                  <h5 className="mb-3">Profile Details</h5>
+      {activeTab === "overview" && (
+        <>
+          <h5 className="mb-3">Profile Details</h5>
 
-                  <div className="detail-row">
-                    <div>Full Name</div>
-                    <div>{customer.name}</div>
-                  </div>
+          <div className="detail-row">
+            <div>Full Name</div>
+            <div>{customer.firstName} {customer.lastName}</div>
+          </div>
 
-                  <div className="detail-row">
-                    <div>Email</div>
-                    <div>{customer.email}</div>
-                  </div>
+          <div className="detail-row">
+            <div>Email</div>
+            <div>{customer.email}</div>
+          </div>
 
-                  <div className="detail-row">
-                    <div>Phone</div>
-                    <div>{customer.phone}</div>
-                  </div>
+          <div className="detail-row">
+            <div>Phone</div>
+            <div>{customer.phone}</div>
+          </div>
 
-                  <div className="detail-row">
-                    <div>Membership</div>
-                    <div>{customer.membership}</div>
-                  </div>
-
-                  <div className="detail-row">
-                    <div>Assigned Trainer</div>
-                    <div>
-                      {customer.assignedTrainers?.length > 0
-                        ? "Assigned"
-                        : "Not Assigned"}
-                    </div>
-                  </div>
-                </>
-              )}
-{activeTab === "billing" && (
-  <>
-    <div className="billing-alert">
-      We need your attention! Add Payment Method.
-    </div>
-
-    <div className="billing-plan-box">
-      <div>
-        <h6>Your current plan</h6>
-        <p>Gym Premium</p>
-      </div>
-
-      <div>
-        <h4>₹1999 / Month</h4>
-      </div>
-
-      <Button variant="outline-primary" size="sm">
-        Update Plan
-      </Button>
-    </div>
-  </>
-)}
+          <div className="detail-row">
+            <div>Assigned Trainer</div>
+            <div>
+              {customer.assignedTrainers?.length > 0
+                ? "Assigned"
+                : "Not Assigned"}
             </div>
           </div>
-        </Col>
+        </>
+      )}
+
+      {activeTab === "billing" && (
+        <>
+          <div className="billing-alert">
+            We need your attention! Add Payment Method.
+          </div>
+
+          <div className="billing-plan-box">
+            <div>
+              <h6>Your current plan</h6>
+              <p>Gym Premium</p>
+            </div>
+
+            <div>
+              <h4>₹1999 / Month</h4>
+            </div>
+
+            <Button variant="outline-primary" size="sm">
+              Update Plan
+            </Button>
+          </div>
+        </>
+      )}
+
+    </div>
+  </div>
+</Col>
       </Row>
     </div>
   );
