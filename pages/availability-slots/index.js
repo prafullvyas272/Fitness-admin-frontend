@@ -1,102 +1,184 @@
 import { useState, useEffect } from "react";
-import { Card, Row, Col, Form, Button, ProgressBar, Alert } from "react-bootstrap";
+import {
+  Card,
+  Row,
+  Col,
+  Form,
+  Button,
+  Accordion,
+  Alert,
+  ProgressBar,
+  Badge,
+} from "react-bootstrap";
+
+const daysOfWeek = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 export default function AvailabilitySlots() {
-  const [date, setDate] = useState("");
-  const [dayOfWeek, setDayOfWeek] = useState("");
-  const [isAvailable, setIsAvailable] = useState(true);
+  const [weekStart, setWeekStart] = useState("");
+  const [weekData, setWeekData] = useState({});
+  const [backupWeekData, setBackupWeekData] = useState(null);
 
-  const [slots, setSlots] = useState([
-    { slotType: "PEAK", startTime: "", endTime: "" },
-  ]);
-
-  const [repeatWeek, setRepeatWeek] = useState(false);
-  const [repeatMonth, setRepeatMonth] = useState(false);
-
-  const [totalMinutes, setTotalMinutes] = useState(0);
   const [weeklyMinutes, setWeeklyMinutes] = useState(0);
-  const requiredMinutes = 2700; // 45 hours
+  const requiredMinutes = 2700;
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [applyToAll, setApplyToAll] = useState(false);
+  const [repeatMonth, setRepeatMonth] = useState(false);
 
-  /* ---------------- DATE HANDLER ---------------- */
+  /* -------- Initialize Week -------- */
 
-  const handleDateChange = (value) => {
-    setDate(value);
-    const day = new Date(value).toLocaleDateString("en-US", {
-      weekday: "long",
+  const initializeWeek = (startDate) => {
+    const start = new Date(startDate);
+    const newWeek = {};
+
+    daysOfWeek.forEach((day, index) => {
+      const current = new Date(start);
+      current.setDate(start.getDate() + index);
+
+      newWeek[day] = {
+        date: current.toISOString().split("T")[0],
+        isAvailable: true,
+        slots: [],
+      };
     });
-    setDayOfWeek(day);
+
+    setWeekData(newWeek);
   };
 
-  /* ---------------- SLOT MANAGEMENT ---------------- */
-
-  const addSlot = () => {
-    setSlots([...slots, { slotType: "PEAK", startTime: "", endTime: "" }]);
-  };
-
-  const removeSlot = (index) => {
-    const updated = slots.filter((_, i) => i !== index);
-    setSlots(updated);
-  };
-
-  const updateSlot = (index, field, value) => {
-    const updated = [...slots];
-    updated[index][field] = value;
-    setSlots(updated);
-  };
-
-  /* ---------------- TIME CALCULATION ---------------- */
+  /* -------- Time Calculation -------- */
 
   const calculateMinutes = (start, end) => {
-    const startTime = new Date(`1970-01-01T${start}`);
-    const endTime = new Date(`1970-01-01T${end}`);
-    return (endTime - startTime) / 60000;
+    const s = new Date(`1970-01-01T${start}`);
+    const e = new Date(`1970-01-01T${end}`);
+    if (e <= s) return 0;
+    return (e - s) / 60000;
+  };
+
+  const getDayMinutes = (day) => {
+    return weekData[day]?.slots.reduce((acc, slot) => {
+      if (slot.startTime && slot.endTime) {
+        return acc + calculateMinutes(slot.startTime, slot.endTime);
+      }
+      return acc;
+    }, 0);
   };
 
   useEffect(() => {
     let total = 0;
-    slots.forEach((slot) => {
-      if (slot.startTime && slot.endTime) {
-        total += calculateMinutes(slot.startTime, slot.endTime);
-      }
+    Object.keys(weekData).forEach((day) => {
+      total += getDayMinutes(day);
     });
-    setTotalMinutes(total);
-  }, [slots]);
+    setWeeklyMinutes(total);
+  }, [weekData]);
 
-  /* ---------------- SUBMIT HANDLER ---------------- */
+  /* -------- Slot Management -------- */
+
+  const addSlot = (day) => {
+    setWeekData((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        slots: [
+          ...prev[day].slots,
+          { slotType: "PEAK", startTime: "", endTime: "" },
+        ],
+      },
+    }));
+  };
+
+  const updateSlot = (day, index, field, value) => {
+    setWeekData((prev) => {
+      const updatedSlots = [...prev[day].slots];
+      updatedSlots[index][field] = value;
+
+      return {
+        ...prev,
+        [day]: {
+          ...prev[day],
+          slots: updatedSlots,
+        },
+      };
+    });
+  };
+
+  const removeSlot = (day, index) => {
+    setWeekData((prev) => {
+      const updatedSlots = prev[day].slots.filter((_, i) => i !== index);
+
+      return {
+        ...prev,
+        [day]: {
+          ...prev[day],
+          slots: updatedSlots,
+        },
+      };
+    });
+  };
+
+  const toggleAvailability = (day) => {
+    setWeekData((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        isAvailable: !prev[day].isAvailable,
+      },
+    }));
+  };
+
+  /* -------- Apply Monday To All (Reversible) -------- */
+
+  const handleApplyToAll = (checked) => {
+    setApplyToAll(checked);
+
+    if (checked) {
+      setBackupWeekData(weekData); // store original
+
+      const mondaySlots = weekData["Monday"]?.slots || [];
+      const updated = {};
+
+      daysOfWeek.forEach((day) => {
+        updated[day] = {
+          ...weekData[day],
+          slots: [...mondaySlots],
+        };
+      });
+
+      setWeekData(updated);
+    } else {
+      if (backupWeekData) {
+        setWeekData(backupWeekData);
+      }
+    }
+  };
+
+  /* -------- Submit -------- */
 
   const handleSubmit = async () => {
     setError("");
     setSuccess("");
 
-    if (!date) {
-      setError("Please select a date.");
+    if (!weekStart) {
+      setError("Please select week start date.");
       return;
     }
 
-    if (repeatWeek && totalMinutes < requiredMinutes) {
-      setError("Minimum 45 hours (2700 minutes) required for weekly schedule.");
+    if (weeklyMinutes < requiredMinutes) {
+      setError("Minimum 45 hours required per week.");
       return;
     }
-
-    const peakSlots = slots
-      .filter((s) => s.slotType === "PEAK")
-      .map((s) => ({
-        start: s.startTime,
-        end: s.endTime,
-      }));
-
-    const alternativeSlots = slots
-      .filter((s) => s.slotType === "ALTERNATIVE")
-      .map((s) => ({
-        start: s.startTime,
-        end: s.endTime,
-      }));
 
     try {
       const response = await fetch(
-        "https://fitness-app-seven-beryl.vercel.app/api/user/availability",
+        "https://fitness-app-seven-beryl.vercel.app/api/superadmin/trainer/availability",
         {
           method: "POST",
           headers: {
@@ -104,161 +186,178 @@ export default function AvailabilitySlots() {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({
-            date,
-            isAvailable,
-            peakSlots,
-            alternativeSlots,
-            repeatWeek,
+            weekStartDate: weekStart,
+            availability: weekData,
             repeatMonth,
           }),
         }
       );
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || "Something went wrong");
       }
 
-      setSuccess("Availability saved successfully.");
-      setWeeklyMinutes(data?.data?.trainerWeek?.totalBookedMinutes || 0);
+      setSuccess("Weekly availability saved successfully.");
     } catch (err) {
       setError(err.message);
     }
   };
 
-  /* ---------------- UI ---------------- */
+  const weeklyHours = (weeklyMinutes / 60).toFixed(1);
+
+  /* -------- UI -------- */
 
   return (
     <div className="p-4">
-      <h2 className="mb-4">Availability Slots</h2>
+      <h2 className="mb-4 fw-semibold">Weekly Availability</h2>
 
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
 
-      {/* BASIC INFO */}
-      <Card className="shadow-sm mb-4">
+      <Card className="shadow-sm border-0 mb-4">
         <Card.Body>
           <Row>
-            <Col md={4}>
-              <Form.Label>Date</Form.Label>
+            <Col md={6}>
+              <Form.Label className="fw-medium">
+                Select Week Start (Monday)
+              </Form.Label>
               <Form.Control
                 type="date"
-                value={date}
-                onChange={(e) => handleDateChange(e.target.value)}
+                value={weekStart}
+                onChange={(e) => {
+                  setWeekStart(e.target.value);
+                  initializeWeek(e.target.value);
+                }}
               />
             </Col>
 
-            <Col md={4}>
-              <Form.Label>Day</Form.Label>
-              <Form.Control value={dayOfWeek} disabled />
-            </Col>
-
-            <Col md={4} className="d-flex align-items-end">
-              <Form.Check
-                type="switch"
-                label="Available"
-                checked={isAvailable}
-                onChange={() => setIsAvailable(!isAvailable)}
-              />
+            <Col md={6} className="d-flex align-items-end justify-content-end">
+              <Badge
+                bg={weeklyMinutes >= requiredMinutes ? "success" : "danger"}
+                className="fs-6 px-3 py-2"
+              >
+                {weeklyHours}h / 45h
+              </Badge>
             </Col>
           </Row>
         </Card.Body>
       </Card>
 
-      {/* SLOT SECTION */}
-      <Card className="shadow-sm mb-4">
-        <Card.Body>
-          <h5 className="mb-3">Time Slots</h5>
-
-          {slots.map((slot, index) => (
-            <Row key={index} className="mb-3">
-              <Col md={3}>
-                <Form.Select
-                  value={slot.slotType}
-                  onChange={(e) =>
-                    updateSlot(index, "slotType", e.target.value)
-                  }
-                >
-                  <option value="PEAK">Peak</option>
-                  <option value="ALTERNATIVE">Alternative</option>
-                </Form.Select>
-              </Col>
-
-              <Col md={3}>
-                <Form.Control
-                  type="time"
-                  value={slot.startTime}
-                  onChange={(e) =>
-                    updateSlot(index, "startTime", e.target.value)
-                  }
-                />
-              </Col>
-
-              <Col md={3}>
-                <Form.Control
-                  type="time"
-                  value={slot.endTime}
-                  onChange={(e) =>
-                    updateSlot(index, "endTime", e.target.value)
-                  }
-                />
-              </Col>
-
-              <Col md={3}>
-                <Button
-                  variant="outline-danger"
-                  onClick={() => removeSlot(index)}
-                >
-                  Remove
-                </Button>
-              </Col>
-            </Row>
-          ))}
-
-          <Button variant="outline-primary" onClick={addSlot}>
-            + Add Slot
-          </Button>
-
-          <div className="mt-3">
-            <strong>Total Day Minutes:</strong> {totalMinutes}
-          </div>
-        </Card.Body>
-      </Card>
-
-      {/* REPEAT OPTIONS */}
-      <Card className="shadow-sm mb-4">
+      <Card className="shadow-sm border-0 mb-4">
         <Card.Body>
           <Form.Check
             type="checkbox"
-            label="Repeat for entire week"
-            checked={repeatWeek}
-            onChange={() => setRepeatWeek(!repeatWeek)}
+            label="Apply Monday slots to all days"
+            checked={applyToAll}
+            onChange={(e) => handleApplyToAll(e.target.checked)}
+            className="mb-2"
           />
 
           <Form.Check
             type="checkbox"
-            label="Repeat for entire month"
+            label="Repeat this weekly schedule for entire month"
             checked={repeatMonth}
-            onChange={() => setRepeatMonth(!repeatMonth)}
+            onChange={(e) => setRepeatMonth(e.target.checked)}
           />
         </Card.Body>
       </Card>
 
-      {/* WEEKLY PROGRESS */}
-      <Card className="shadow-sm mb-4">
+      <Card className="shadow-sm border-0 mb-4">
         <Card.Body>
-          <h6>Weekly Progress (Required: 2700 minutes)</h6>
           <ProgressBar
             now={(weeklyMinutes / requiredMinutes) * 100}
-            label={`${weeklyMinutes} / ${requiredMinutes}`}
+            style={{ height: "10px" }}
           />
         </Card.Body>
       </Card>
 
-      <Button variant="primary" size="lg" onClick={handleSubmit}>
-        Save Availability
-      </Button>
+      <Accordion alwaysOpen>
+        {Object.keys(weekData).map((day, idx) => (
+          <Accordion.Item eventKey={idx.toString()} key={day}>
+            <Accordion.Header>
+              <div className="d-flex justify-content-between w-100 me-3">
+                <span>
+                  {day} ({weekData[day].date})
+                </span>
+                <Badge bg="light" text="dark">
+                  {(getDayMinutes(day) / 60).toFixed(1)}h
+                </Badge>
+              </div>
+            </Accordion.Header>
+
+            <Accordion.Body className="bg-light">
+              <Form.Check
+                type="switch"
+                label="Available"
+                checked={weekData[day].isAvailable}
+                onChange={() => toggleAvailability(day)}
+                className="mb-3"
+              />
+
+              {weekData[day].slots.map((slot, index) => (
+                <Row key={index} className="mb-3">
+                  <Col md={3}>
+                    <Form.Select
+                      value={slot.slotType}
+                      onChange={(e) =>
+                        updateSlot(day, index, "slotType", e.target.value)
+                      }
+                    >
+                      <option value="PEAK">Peak</option>
+                      <option value="ALTERNATIVE">Alternative</option>
+                    </Form.Select>
+                  </Col>
+
+                  <Col md={3}>
+                    <Form.Control
+                      type="time"
+                      value={slot.startTime}
+                      onChange={(e) =>
+                        updateSlot(day, index, "startTime", e.target.value)
+                      }
+                    />
+                  </Col>
+
+                  <Col md={3}>
+                    <Form.Control
+                      type="time"
+                      value={slot.endTime}
+                      onChange={(e) =>
+                        updateSlot(day, index, "endTime", e.target.value)
+                      }
+                    />
+                  </Col>
+
+                  <Col md={3}>
+                    <Button
+                      variant="outline-danger"
+                      onClick={() => removeSlot(day, index)}
+                    >
+                      Remove
+                    </Button>
+                  </Col>
+                </Row>
+              ))}
+
+              <Button variant="outline-primary" onClick={() => addSlot(day)}>
+                + Add Slot
+              </Button>
+            </Accordion.Body>
+          </Accordion.Item>
+        ))}
+      </Accordion>
+
+      <div className="text-end mt-4">
+        <Button
+          size="lg"
+          variant="primary"
+          onClick={handleSubmit}
+          disabled={weeklyMinutes < requiredMinutes}
+        >
+          Save Weekly Availability
+        </Button>
+      </div>
     </div>
   );
 }
