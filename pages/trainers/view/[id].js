@@ -97,14 +97,19 @@ useEffect(() => {
     }
   };
 
+  console.log("Customers State:", customers);
   fetchData();
 }, []);
 
 
 
   if (!trainer) {
-    return <div className="p-4">Loading trainer data...</div>;
-  }
+  return <div className="p-4">Loading trainer data...</div>;
+}
+
+const assignedCustomers = customers.filter(
+  (cust) => String(cust.assignedTrainerId) === String(trainer.id)
+);
 
 const StatusBadge = ({ isActive }) => (
   <Badge bg={isActive ? "success" : "danger"}>
@@ -141,13 +146,18 @@ const assignToThisTrainer = async (customerId) => {
     alert("Customer Assigned ✅");
 
     // refresh customers
-    const updated = customers.map((cust) =>
-      cust.id === customerId
-        ? { ...cust, assignedTrainerId: trainer.id }
-        : cust
-    );
+    const customerRes = await fetch(
+  "https://fitness-app-seven-beryl.vercel.app/api/customers",
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
 
-    setCustomers(updated);
+const customerData = await customerRes.json();
+
+if (customerRes.ok) {
+  setCustomers(customerData.data || []);
+}
 
   } catch (error) {
     alert(error.message);
@@ -229,7 +239,6 @@ const displayValue = (value) => {
 };
 
 
-
   return (
     <div className="p-4">
       <h3 className="fw-bold mb-4">Trainer Profile</h3>
@@ -255,7 +264,7 @@ const displayValue = (value) => {
       className={`nav-link ${activeTab === "customers" ? "active fw-semibold" : ""}`}
       onClick={() => setActiveTab("customers")}
     >
-      Customers ({customers.length})
+    Customers ({assignedCustomers.length})
     </button>
   </li>
 
@@ -378,7 +387,12 @@ const displayValue = (value) => {
                 </thead>
 
                 <tbody>
-                  {customers.map((customer) => (
+  {customers
+    .filter(
+      (customer) =>
+        String(customer.assignedTrainerId) === String(trainer.id)
+    )
+    .map((customer) => (
                     <tr key={customer.id}>
                       <td className="fw-semibold">{customer.firstName} {customer.lastName}</td>
                       <td>{customer.email}</td>

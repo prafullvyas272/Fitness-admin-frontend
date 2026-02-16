@@ -51,12 +51,23 @@ export const DashboardMenu = [
     link: "/customers",
   },
 
-  {
-    id: uuid(),
-    title: "Speciality",
-    icon: "star",
-    link: "/speciality",
-  },
+ {
+  id: uuid(),
+  title: "Session Management",
+  icon: "calendar",
+  children: [
+    {
+      id: uuid(),
+      link: "/speciality",
+      name: "Speciality",
+    },
+    {
+      id: uuid(),
+      link: "/availability-slots",
+      name: "Availability Slots",
+    },
+  ],
+},
 
 {
   id: uuid(),
