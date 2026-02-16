@@ -134,7 +134,24 @@ export default function AvailabilitySlots() {
     });
   };
 
-  const removeSlot = (day, index) => {
+ const removeSlot = async (day, index) => {
+  const slot = weekData[day].slots[index];
+
+  try {
+    // If slot exists in backend → delete from DB
+    if (slot.id) {
+      await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/time-slots/${slot.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          },
+        }
+      );
+    }
+
+    // Remove from frontend state
     setWeekData((prev) => ({
       ...prev,
       [day]: {
@@ -142,7 +159,12 @@ export default function AvailabilitySlots() {
         slots: prev[day].slots.filter((_, i) => i !== index),
       },
     }));
-  };
+
+  } catch (err) {
+    console.error("Delete failed:", err);
+    alert("Failed to delete slot ❌");
+  }
+};
 
   /* -------- Same For Week -------- */
 
