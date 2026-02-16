@@ -16,7 +16,7 @@ export default function TrainerProfile() {
   const { id } = router.query;
 
   const [trainer, setTrainer] = useState(null);
-  const [customers, setCustomers] = useState([]);
+  // const [customers, setCustomers] = useState([]);
   const [allTrainers, setAllTrainers] = useState([]);
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -59,57 +59,13 @@ export default function TrainerProfile() {
   fetchTrainerProfile();
 }, [id]);
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const token = localStorage.getItem("adminToken");
-
-      // Fetch all customers
-      const customerRes = await fetch(
-        "https://fitness-app-seven-beryl.vercel.app/api/customers",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const customerData = await customerRes.json();
-
-      if (customerRes.ok) {
-        setCustomers(customerData.data || []);
-      }
-
-      // Fetch all trainers
-      const trainerRes = await fetch(
-        "https://fitness-app-seven-beryl.vercel.app/api/trainers",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const trainerData = await trainerRes.json();
-
-      if (trainerRes.ok) {
-        setAllTrainers(trainerData.data || []);
-      }
-
-    } catch (error) {
-      console.error("Fetch Error:", error.message);
-    }
-  };
-
-  console.log("Customers State:", customers);
-  fetchData();
-}, []);
-
-
 
   if (!trainer) {
   return <div className="p-4">Loading trainer data...</div>;
 }
+const assignedCustomers =
+  trainer.assignedCustomersAsTrainer || [];
 
-const assignedCustomers = customers.filter(
-  (cust) => String(cust.assignedTrainerId) === String(trainer.id)
-);
 
 const StatusBadge = ({ isActive }) => (
   <Badge bg={isActive ? "success" : "danger"}>
@@ -264,7 +220,7 @@ const displayValue = (value) => {
       className={`nav-link ${activeTab === "customers" ? "active fw-semibold" : ""}`}
       onClick={() => setActiveTab("customers")}
     >
-    Customers ({assignedCustomers.length})
+    Customers ({trainer.assignedCustomersAsTrainer?.length || 0})
     </button>
   </li>
 
@@ -386,37 +342,34 @@ const displayValue = (value) => {
                   </tr>
                 </thead>
 
-                <tbody>
-  {customers
-    .filter(
-      (customer) =>
-        String(customer.assignedTrainerId) === String(trainer.id)
-    )
-    .map((customer) => (
-                    <tr key={customer.id}>
-                      <td className="fw-semibold">{customer.firstName} {customer.lastName}</td>
-                      <td>{customer.email}</td>
-                      <td>{customer.phone}</td>
-                      <td>
-                        <StatusBadge isActive={customer.isActive} />
-                      </td>
-                      <td>
-                        <span className="badge bg-primary">
-                          {getTrainerName(customer.assignedTrainerId)}
-                        </span>
-                      </td>
-                      <td className="text-end">
-                        <Button
-                          size="sm"
-                          variant="outline-primary"
-                          onClick={() => openAssignModal(customer)}
-                        >
-                          Assign Trainer
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+<tbody>
+  {assignedCustomers.map((item) => {
+    const customer = item.customer;
+
+    return (
+      <tr key={customer.id}>
+        <td className="fw-semibold">
+          {customer.firstName} {customer.lastName}
+        </td>
+        <td>{customer.email}</td>
+        <td>{customer.phone}</td>
+        <td>
+          <StatusBadge isActive={item.isActive} />
+        </td>
+        <td>
+          <span className="badge bg-success">
+            Assigned
+          </span>
+        </td>
+        <td className="text-end">
+          <Button size="sm" variant="outline-primary">
+            Manage
+          </Button>
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
               </Table>
             </>
           )}
