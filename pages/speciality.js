@@ -1,45 +1,125 @@
 import { useState, useEffect } from "react";
-import { Card, Form } from "react-bootstrap";
+import { Card, Form, Alert } from "react-bootstrap";
 
 export default function Speciality() {
   const [input, setInput] = useState("");
   const [skills, setSkills] = useState([]);
+  const [error, setError] = useState("");
 
-  // Load from localStorage on page load
-  useEffect(() => {
-    const savedSkills = localStorage.getItem("gymSpecialities");
-    if (savedSkills) {
-      setSkills(JSON.parse(savedSkills));
+  const baseURL = "https://fitness-app-seven-beryl.vercel.app/api";
+
+  /* ---------------- LOAD SPECIALITIES ---------------- */
+
+  const fetchSpecialities = async () => {
+    try {
+      const res = await fetch(`${baseURL}/specialities`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error("Failed to fetch");
+
+      setSkills(data?.data || []);
+    } catch (err) {
+      console.error(err);
+      setError("Could not load specialities");
     }
+  };
+
+  useEffect(() => {
+    fetchSpecialities();
   }, []);
 
-  // Save to localStorage whenever skills change
-  useEffect(() => {
-    localStorage.setItem("gymSpecialities", JSON.stringify(skills));
-  }, [skills]);
+  /* ---------------- CREATE SPECIALITY ---------------- */
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = async (e) => {
     if (e.key === "Enter" && input.trim() !== "") {
       e.preventDefault();
-      const newSkill = input.trim();
 
-      if (!skills.includes(newSkill)) {
-        setSkills([...skills, newSkill]);
+      try {
+        const res = await fetch(`${baseURL}/specialities`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(
+              "adminToken"
+            )}`,
+          },
+          body: JSON.stringify({ name: input.trim() }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error("Failed to create");
+
+        setInput("");
+        fetchSpecialities(); // Refresh list
+      } catch (err) {
+        console.error(err);
+        setError("Failed to create speciality");
       }
-
-      setInput("");
     }
   };
 
-  const removeSkill = (skillToRemove) => {
-    setSkills(skills.filter((skill) => skill !== skillToRemove));
+  /* ---------------- UPDATE SPECIALITY ---------------- */
+
+  const updateSpeciality = async (id, newName) => {
+    try {
+      const res = await fetch(
+        `${baseURL}/specialities/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(
+              "adminToken"
+            )}`,
+          },
+          body: JSON.stringify({ name: newName }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Update failed");
+
+      fetchSpecialities();
+    } catch (err) {
+      console.error(err);
+      setError("Failed to update speciality");
+    }
   };
+
+  /* ---------------- DELETE (Optional if API exists) ---------------- */
+
+  const removeSkill = async (id) => {
+    try {
+      await fetch(`${baseURL}/specialities/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem(
+            "adminToken"
+          )}`,
+        },
+      });
+
+      fetchSpecialities();
+    } catch (err) {
+      console.error(err);
+      setError("Failed to delete speciality");
+    }
+  };
+
+  /* ---------------- UI ---------------- */
 
   return (
     <div className="p-4">
       <h2 className="mb-4">Speciality</h2>
 
-      <Card className="p-4">
+      {error && <Alert variant="danger">{error}</Alert>}
+
+      <Card className="p-4 shadow-sm">
         <Form.Control
           type="text"
           placeholder="Type speciality and press Enter..."
@@ -50,12 +130,13 @@ export default function Speciality() {
         />
 
         <div className="skill-container">
-          {skills.map((skill, index) => (
-            <div key={index} className="skill-chip">
-              {skill}
+          {skills.map((skill) => (
+            <div key={skill.id} className="skill-chip">
+              {skill.name}
+
               <button
                 className="remove-btn"
-                onClick={() => removeSkill(skill)}
+                onClick={() => removeSkill(skill.id)}
               >
                 ×
               </button>
