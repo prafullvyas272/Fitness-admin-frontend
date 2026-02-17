@@ -132,7 +132,16 @@ const handleView = (customer) => {
   // ASSIGN TRAINER
   const handleAssignOpen = (customer) => {
     setSelectedCustomer(customer);
-    setSelectedTrainer(customer.assignedTrainer || "");
+    if (
+  customer.assignedTrainers &&
+  customer.assignedTrainers.length > 0
+) {
+  setSelectedTrainer(
+    customer.assignedTrainers[0].trainerId
+  );
+} else {
+  setSelectedTrainer("");
+}
     setShowAssign(true);
   };
 
@@ -412,11 +421,15 @@ const totalPages = Math.ceil(
                         </Dropdown.Item>
 
                         <Dropdown.Item
-                          onClick={() => handleAssignOpen(customer)}
-                        >
-                          <i className="fe fe-user-plus me-2 text-secondary"></i>
-                          Assign Trainer
-                        </Dropdown.Item>
+  onClick={() => handleAssignOpen(customer)}
+>
+  <i className="fe fe-user-plus me-2 text-secondary"></i>
+
+  {customer.assignedTrainers &&
+  customer.assignedTrainers.length > 0
+    ? "Change Trainer"
+    : "Assign Trainer"}
+</Dropdown.Item>
 
                         <Dropdown.Item
                           onClick={() => handleEditOpen(customer)}
@@ -538,7 +551,12 @@ const totalPages = Math.ceil(
     {/* ASSIGN TRAINER MODAL (UNCHANGED) */}
     <Modal show={showAssign} onHide={() => setShowAssign(false)}>
       <Modal.Header closeButton>
-        <Modal.Title>Assign Trainer</Modal.Title>
+        <Modal.Title>
+  {selectedCustomer?.assignedTrainers &&
+  selectedCustomer.assignedTrainers.length > 0
+    ? "Change Trainer"
+    : "Assign Trainer"}
+</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form.Select

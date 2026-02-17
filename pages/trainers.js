@@ -282,7 +282,7 @@ const handleAssignCustomers = async () => {
     alert("Select trainers first");
     return;
   }
-
+  
   if (!confirm("Delete selected trainers?")) return;
 
   try {

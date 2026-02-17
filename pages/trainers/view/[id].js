@@ -25,6 +25,13 @@ export default function TrainerProfile() {
   const [selectedTrainerId, setSelectedTrainerId] = useState("");
 
   const [showImageModal, setShowImageModal] = useState(false);
+
+
+
+const [currentMonth, setCurrentMonth] = useState(new Date());
+const [selectedDate, setSelectedDate] = useState(null);
+const [selectedWeekDate, setSelectedWeekDate] = useState(null);
+
   /* ================= LOAD DATA ================= */
   useEffect(() => {
   if (!id) return;
@@ -67,10 +74,27 @@ const assignedCustomers =
   trainer.assignedCustomersAsTrainer || [];
 
 
-const StatusBadge = ({ isActive }) => (
-  <Badge bg={isActive ? "success" : "danger"}>
-    {isActive ? "Active" : "Inactive"}
-  </Badge>
+const StatusPill = ({ isActive }) => (
+  <div
+    className={`status-pill ${
+      isActive ? "status-active" : "status-inactive"
+    }`}
+    style={{ display: "inline-flex", alignItems: "center" }}
+  >
+    <span
+      style={{
+        width: 8,
+        height: 8,
+        borderRadius: "50%",
+        backgroundColor: isActive ? "#22c55e" : "#dc3545",
+        marginRight: 6,
+      }}
+    ></span>
+
+    <span className="fw-semibold">
+      {isActive ? "Active" : "Inactive"}
+    </span>
+  </div>
 );
 
 
@@ -194,6 +218,120 @@ const displayValue = (value) => {
   return value && value !== "" ? value : "N/A";
 };
 
+//New
+
+/* ================= SESSIONS STATE ================= */
+
+/* Demo Slots */
+const demoSlots = [
+  {
+    id: 1,
+    date: "2026-02-16",
+    start: "09:00",
+    end: "10:00",
+    customer: "Jane Smith",
+  },
+  {
+    id: 2,
+    date: "2026-02-16",
+    start: "11:00",
+    end: "12:30",
+    customer: "John Doe",
+  },
+  {
+    id: 3,
+    date: "2026-02-17",
+    start: "15:00",
+    end: "16:00",
+    customer: "Mike Ross",
+  },
+];
+
+/* ===== MONTH NAVIGATION ===== */
+
+const changeMonth = (direction) => {
+  const newMonth = new Date(currentMonth);
+  newMonth.setMonth(newMonth.getMonth() + direction);
+  setCurrentMonth(newMonth);
+};
+
+/* ===== CALENDAR GRID ===== */
+
+const generateCalendarDays = () => {
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  const days = [];
+
+  for (let i = 0; i < firstDay; i++) {
+    days.push(null);
+  }
+
+  for (let i = 1; i <= totalDays; i++) {
+    days.push(new Date(year, month, i));
+  }
+
+  return days;
+};
+
+/* ===== WEEK STRIP ===== */
+
+const generateWeekDays = (date) => {
+  const start = new Date(date);
+  start.setDate(date.getDate() - date.getDay());
+
+  return Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return d;
+  });
+};
+
+/* ===== HOURS CALCULATION ===== */
+
+const calculateDuration = (start, end) => {
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+
+  return (eh + em / 60) - (sh + sm / 60);
+};
+
+const weeklyAssignedHours = demoSlots.reduce(
+  (acc, slot) => acc + calculateDuration(slot.start, slot.end),
+  0
+);
+
+
+// Get week dates (7 days from selected date)
+const getWeekDates = (date) => {
+  const start = new Date(date);
+  start.setDate(start.getDate() - start.getDay());
+
+  return Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return d;
+  });
+};
+
+const formatDate = (date) => {
+  if (!date) return null;
+  return date.toISOString().split("T")[0];
+};
+
+const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
+
+const sessionsForSelectedDay = selectedDate
+  ? demoSlots.filter(
+      (s) =>
+        s.date === formatDate(selectedWeekDate || selectedDate)
+    )
+  : [];
+
+
 
   return (
     <div className="p-4">
@@ -223,6 +361,17 @@ const displayValue = (value) => {
     Customers ({trainer.assignedCustomersAsTrainer?.length || 0})
     </button>
   </li>
+
+  <li className="nav-item">
+  <button
+    className={`nav-link ${
+      activeTab === "sessions" ? "active fw-semibold" : ""
+    }`}
+    onClick={() => setActiveTab("sessions")}
+  >
+    Sessions
+  </button>
+</li>
 
 </ul>
 
@@ -260,7 +409,7 @@ const displayValue = (value) => {
                   {trainer.email}
                 </p>
 
-                <StatusBadge isActive={trainer.isActive} />
+                <StatusPill isActive={trainer.isActive} />
                 <div className="d-flex justify-content-center gap-2 mt-4">
   <Button
     variant="outline-danger"
@@ -336,15 +485,53 @@ const displayValue = (value) => {
                     <th>Name</th>
                     <th>Email</th>
                     <th>Phone</th>
-                    <th>Status</th>
-                    <th>Assigned Trainer</th>
-                    <th className="text-end">Action</th>
+                    <th className="text-center">Status</th>
+    <th classNme="text-center">Assigned Trainer</th>
+    <th className="text-center">Action</th>
                   </tr>
                 </thead>
 
 <tbody>
   {assignedCustomers.map((item) => {
     const customer = item.customer;
+
+    const removeTrainerFromCustomer = async (assignmentId) => {
+  if (!confirm("Remove this trainer from customer?")) return;
+
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    const response = await fetch(
+      `https://fitness-app-seven-beryl.vercel.app/api/assign-customer/${assignmentId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Remove failed");
+    }
+
+    alert("Trainer removed successfully ✅");
+
+    // refresh trainer profile
+    setTrainer((prev) => ({
+  ...prev,
+  assignedCustomersAsTrainer:
+    prev.assignedCustomersAsTrainer.filter(
+      (c) => c.id !== assignmentId
+    ),
+}));
+
+  } catch (error) {
+    alert(error.message);
+  }
+};
 
     return (
       <tr key={customer.id}>
@@ -354,17 +541,39 @@ const displayValue = (value) => {
         <td>{customer.email}</td>
         <td>{customer.phone}</td>
         <td>
-          <StatusBadge isActive={item.isActive} />
+          <StatusPill isActive={item.isActive} />
         </td>
         <td>
-          <span className="badge bg-success">
-            Assigned
-          </span>
+          <div
+  className="status-pill status-active"
+  style={{ display: "inline-flex", alignItems: "center" }}
+>
+  <span
+    style={{
+      width: 8,
+      height: 8,
+      borderRadius: "50%",
+      backgroundColor: "#22c55e",
+      marginRight: 6,
+    }}
+  ></span>
+
+  <span className="fw-semibold">
+    Assigned
+  </span>
+</div>
         </td>
         <td className="text-end">
-          <Button size="sm" variant="outline-primary">
+          {/* <Button size="sm" variant="outline-primary">
             Manage
-          </Button>
+          </Button> */}
+          <Button
+  size="sm"
+  variant="outline-danger"
+  onClick={() => removeTrainerFromCustomer(item.id)}
+>
+  Remove Trainer
+</Button>
         </td>
       </tr>
     );
@@ -373,6 +582,158 @@ const displayValue = (value) => {
               </Table>
             </>
           )}
+
+                    {/* ================= SESSIONS SECTION ================= */}
+          {activeTab === "sessions" && (
+  <>
+    <h5 className="fw-bold mb-4">Trainer Sessions</h5>
+
+    {/* ================= CALENDAR CARD ================= */}
+    <div className="calendar-card">
+
+      {/* Month Header */}
+      <div className="calendar-header">
+        <button
+          className="calendar-nav"
+          onClick={() => changeMonth(-1)}
+        >
+          ‹
+        </button>
+
+        <h6 className="mb-0 fw-semibold">
+          {currentMonth.toLocaleString("default", {
+            month: "long",
+            year: "numeric",
+          })}
+        </h6>
+
+        <button
+          className="calendar-nav"
+          onClick={() => changeMonth(1)}
+        >
+          ›
+        </button>
+      </div>
+
+      {/* Weekday Row */}
+      <div className="calendar-weekdays">
+        {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => (
+          <div key={day}>{day}</div>
+        ))}
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="calendar-grid">
+        {generateCalendarDays().map((date, index) => {
+          if (!date) return <div key={index}></div>;
+
+          const isToday =
+            date.toDateString() === new Date().toDateString();
+
+          const isSelected =
+            selectedDate &&
+            date.toDateString() === selectedDate.toDateString();
+
+          return (
+            <div
+              key={index}
+              className={`calendar-cell 
+                ${isToday ? "today" : ""}
+                ${isSelected ? "selected" : ""}
+              `}
+              onClick={() => {
+                setSelectedDate(date);
+                setSelectedWeekDate(null);
+              }}
+            >
+              {date.getDate()}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Hours Section */}
+      <div className="hours-wrapper">
+        <div className="hours-card">
+          <span>Weekly Available</span>
+          <h4>45 hrs</h4>
+        </div>
+
+        <div className="hours-card">
+          <span>Assigned This Week</span>
+          <h4>{weeklyAssignedHours.toFixed(1)} hrs</h4>
+        </div>
+      </div>
+
+    </div>
+
+    {/* ================= WEEKLY STRIP ================= */}
+    {selectedDate && (
+      <>
+        <div className="weekly-strip">
+          {getWeekDates(selectedDate).map((date, index) => {
+            const isActive =
+              selectedWeekDate
+                ? date.toDateString() ===
+                  selectedWeekDate.toDateString()
+                : date.toDateString() ===
+                  selectedDate.toDateString();
+
+            return (
+              <div
+                key={index}
+                className={`week-box ${isActive ? "active" : ""}`}
+                onClick={() => setSelectedWeekDate(date)}
+              >
+                <small>
+                  {date.toLocaleString("default", {
+                    weekday: "short",
+                  })}
+                </small>
+                <strong>{date.getDate()}</strong>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ================= SESSION CARDS ================= */}
+        <div className="session-wrapper">
+
+          {demoSlots
+            .filter(
+              (s) =>
+                s.date ===
+                formatDate(selectedWeekDate || selectedDate)
+            )
+            .map((slot) => (
+              <div key={slot.id} className="session-card">
+
+                <div>
+                  <h6 className="mb-1">
+                    {slot.customer}
+                  </h6>
+                  <small>
+                    {slot.start} - {slot.end}
+                  </small>
+                </div>
+
+                <div className="session-actions">
+                  <button className="btn-reschedule">
+                    Reschedule
+                  </button>
+                  <button className="btn-cancel">
+                    Cancel
+                  </button>
+                </div>
+
+              </div>
+            ))}
+
+        </div>
+      </>
+    )}
+  </>
+)}
 
         </Card.Body>
       </Card>
