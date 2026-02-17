@@ -495,38 +495,42 @@ const sessionsForSelectedDay = selectedDate
   {assignedCustomers.map((item) => {
     const customer = item.customer;
 
-    const removeTrainerFromCustomer = async (assignmentId) => {
+    const removeTrainerFromCustomer = async (customerId) => {
   if (!confirm("Remove this trainer from customer?")) return;
 
   try {
     const token = localStorage.getItem("adminToken");
 
     const response = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/assign-customer/${assignmentId}`,
+      `https://fitness-app-seven-beryl.vercel.app/api/unassign-customer/${customerId}`,
       {
-        method: "DELETE",
+        method: "POST",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({
+          trainerId: trainer.id, // VERY IMPORTANT
+        }),
       }
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Remove failed");
+      throw new Error(data.message || "Unassign failed");
     }
 
     alert("Trainer removed successfully ✅");
 
-    // refresh trainer profile
+    // Update UI instantly (no refresh)
     setTrainer((prev) => ({
-  ...prev,
-  assignedCustomersAsTrainer:
-    prev.assignedCustomersAsTrainer.filter(
-      (c) => c.id !== assignmentId
-    ),
-}));
+      ...prev,
+      assignedCustomersAsTrainer:
+        prev.assignedCustomersAsTrainer.filter(
+          (item) => item.customer.id !== customerId
+        ),
+    }));
 
   } catch (error) {
     alert(error.message);
@@ -570,7 +574,7 @@ const sessionsForSelectedDay = selectedDate
           <Button
   size="sm"
   variant="outline-danger"
-  onClick={() => removeTrainerFromCustomer(item.id)}
+  onClick={() => removeTrainerFromCustomer(customer.id)}
 >
   Remove Trainer
 </Button>
