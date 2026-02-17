@@ -29,6 +29,8 @@ const [customers, setCustomers] = useState([]);
 const [selectedCustomers, setSelectedCustomers] = useState([]);
 const [customerSearch, setCustomerSearch] = useState("");
 
+const [assignLoading, setAssignLoading] = useState(false);
+
   // ================= PAGINATION =================
 const [currentPage, setCurrentPage] = useState(1);
 const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -209,6 +211,7 @@ const totalPages = Math.ceil(
 const openAssignModal = async (trainerId) => {
   setSelectedTrainerId(trainerId);
   setShowAssignModal(true);
+  setAssignLoading(true);  
 
   try {
     const token = localStorage.getItem("adminToken");
@@ -233,6 +236,8 @@ const openAssignModal = async (trainerId) => {
 }
   } catch (err) {
     console.error(err);
+  } finally {
+    setAssignLoading(false); // 👈 stop loading
   }
 };
 // ASSIGN CUSTOMERS
@@ -672,35 +677,45 @@ const filteredCustomers = customers.filter((customer) => {
 
     {/* CUSTOMER LIST */}
     <div style={{ maxHeight: "250px", overflowY: "auto" }}>
-      {filteredCustomers.length === 0 ? (
-        <p className="text-muted text-center">No customers found</p>
-      ) : (
-        filteredCustomers.map((customer) => (
-          <Form.Check
-            key={customer.id}
-            type="checkbox"
-            label={`${customer.firstName} ${customer.lastName}`}
-            value={customer.id}
-            checked={selectedCustomers.includes(customer.id)}
-            onChange={(e) => {
-              if (e.target.checked) {
-                setSelectedCustomers([
-                  ...selectedCustomers,
-                  customer.id,
-                ]);
-              } else {
-                setSelectedCustomers(
-                  selectedCustomers.filter(
-                    (id) => id !== customer.id
-                  )
-                );
-              }
-            }}
-            className="mb-2"
-          />
-        ))
-      )}
-    </div>
+
+  {assignLoading ? (
+    <p className="text-center text-muted fw-semibold">
+      Loading customers...
+    </p>
+
+  ) : customers.length === 0 ? (
+    <p className="text-center text-muted">
+      No customers found
+    </p>
+
+  ) : (
+    customers.map((customer) => (
+      <Form.Check
+        key={customer.id}
+        type="checkbox"
+        label={`${customer.firstName} ${customer.lastName}`}
+        value={customer.id}
+        checked={selectedCustomers.includes(customer.id)}
+        onChange={(e) => {
+          if (e.target.checked) {
+            setSelectedCustomers([
+              ...selectedCustomers,
+              customer.id,
+            ]);
+          } else {
+            setSelectedCustomers(
+              selectedCustomers.filter(
+                (id) => id !== customer.id
+              )
+            );
+          }
+        }}
+        className="mb-2"
+      />
+    ))
+  )}
+
+</div>
 
   </Modal.Body>
 
