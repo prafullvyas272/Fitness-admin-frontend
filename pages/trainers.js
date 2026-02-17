@@ -9,6 +9,7 @@ import {
   Col,
   Button,
   Form,
+  Modal,
 } from "react-bootstrap";
 
 export default function Trainers() {
@@ -20,6 +21,13 @@ export default function Trainers() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
   const [loading, setLoading] = useState(true);
+
+  //Assign trainer 
+const [showAssignModal, setShowAssignModal] = useState(false);
+const [selectedTrainerId, setSelectedTrainerId] = useState(null);
+const [customers, setCustomers] = useState([]);
+const [selectedCustomers, setSelectedCustomers] = useState([]);
+
   // ================= PAGINATION =================
 const [currentPage, setCurrentPage] = useState(1);
 const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -196,6 +204,79 @@ const totalPages = Math.ceil(
     }
   };
 
+    // OPEN ASSIGN MODAL
+const openAssignModal = async (trainerId) => {
+  setSelectedTrainerId(trainerId);
+  setShowAssignModal(true);
+
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    const res = await fetch(
+      "https://fitness-app-seven-beryl.vercel.app/api/customers",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+
+ if (res.ok) {
+  const unassignedCustomers = (data.data || []).filter(
+    (customer) => !customer.assignedTrainers || customer.assignedTrainers.length === 0
+  );
+
+  setCustomers(unassignedCustomers);
+}
+  } catch (err) {
+    console.error(err);
+  }
+};
+// ASSIGN CUSTOMERS
+const handleAssignCustomers = async () => {
+  if (selectedCustomers.length === 0) {
+    alert("Select customers first");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    // Loop through selected customers
+    for (const customerId of selectedCustomers) {
+      const response = await fetch(
+        "https://fitness-app-seven-beryl.vercel.app/api/assign-customer",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            trainerId: selectedTrainerId,
+            customerId: customerId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Assignment failed for one customer");
+      }
+    }
+
+    alert("Customers assigned successfully ✅");
+
+    setShowAssignModal(false);
+    setSelectedCustomers([]);
+
+  } catch (err) {
+    alert(err.message);
+  }
+};
+
+
   const handleBulkDelete = async () => {
   if (selectedIds.length === 0) {
     alert("Select trainers first");
@@ -220,7 +301,7 @@ const totalPages = Math.ceil(
         )
       )
     );
-
+  
     // remove from UI
     setTrainers((prev) =>
       prev.filter((trainer) => !selectedIds.includes(trainer.id))
@@ -484,6 +565,13 @@ const totalPages = Math.ceil(
                   Edit
                 </Dropdown.Item>
 
+<Dropdown.Item
+  onClick={() => openAssignModal(trainer.id)}
+>
+  <i className="fe fe-users me-2 text-primary"></i>
+  Assign Customers
+</Dropdown.Item>
+
                 <Dropdown.Divider />
 
                 <Dropdown.Item
@@ -558,6 +646,60 @@ const totalPages = Math.ceil(
 </Row>
 
         </Card.Body>
+        
+        <Modal
+  show={showAssignModal}
+  onHide={() => {
+    setShowAssignModal(false);
+    setSelectedCustomers([]);
+  }}
+  centered
+>
+  <Modal.Header closeButton>
+    <Modal.Title>Assign Customers</Modal.Title>
+  </Modal.Header>
+
+  <Modal.Body style={{ maxHeight: "400px", overflowY: "auto" }}>
+    {customers.map((customer) => (
+      <Form.Check
+        key={customer.id}
+        type="checkbox"
+        label={`${customer.firstName} ${customer.lastName}`}
+        checked={selectedCustomers.includes(customer.id)}
+        onChange={() => {
+          if (selectedCustomers.includes(customer.id)) {
+            setSelectedCustomers(
+              selectedCustomers.filter((id) => id !== customer.id)
+            );
+          } else {
+            setSelectedCustomers([
+              ...selectedCustomers,
+              customer.id,
+            ]);
+          }
+        }}
+        className="mb-2"
+      />
+    ))}
+  </Modal.Body>
+
+  <Modal.Footer>
+    <Button
+      variant="secondary"
+      onClick={() => setShowAssignModal(false)}
+    >
+      Cancel
+    </Button>
+
+    <Button
+      variant="primary"
+      onClick={handleAssignCustomers}
+    >
+      Assign Selected
+    </Button>
+  </Modal.Footer>
+</Modal>
+
       </Card>
     </div>
   );
