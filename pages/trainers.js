@@ -27,6 +27,7 @@ const [showAssignModal, setShowAssignModal] = useState(false);
 const [selectedTrainerId, setSelectedTrainerId] = useState(null);
 const [customers, setCustomers] = useState([]);
 const [selectedCustomers, setSelectedCustomers] = useState([]);
+const [customerSearch, setCustomerSearch] = useState("");
 
   // ================= PAGINATION =================
 const [currentPage, setCurrentPage] = useState(1);
@@ -315,6 +316,12 @@ const handleAssignCustomers = async () => {
   }
 };
 
+const filteredCustomers = customers.filter((customer) => {
+  const fullName =
+    `${customer.firstName} ${customer.lastName}`.toLowerCase();
+
+  return fullName.includes(customerSearch.toLowerCase());
+});
 
   return (
     <div className="p-4">
@@ -647,40 +654,54 @@ const handleAssignCustomers = async () => {
 
         </Card.Body>
         
-        <Modal
-  show={showAssignModal}
-  onHide={() => {
-    setShowAssignModal(false);
-    setSelectedCustomers([]);
-  }}
-  centered
->
+        <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)} centered>
   <Modal.Header closeButton>
     <Modal.Title>Assign Customers</Modal.Title>
   </Modal.Header>
 
-  <Modal.Body style={{ maxHeight: "400px", overflowY: "auto" }}>
-    {customers.map((customer) => (
-      <Form.Check
-        key={customer.id}
-        type="checkbox"
-        label={`${customer.firstName} ${customer.lastName}`}
-        checked={selectedCustomers.includes(customer.id)}
-        onChange={() => {
-          if (selectedCustomers.includes(customer.id)) {
-            setSelectedCustomers(
-              selectedCustomers.filter((id) => id !== customer.id)
-            );
-          } else {
-            setSelectedCustomers([
-              ...selectedCustomers,
-              customer.id,
-            ]);
-          }
-        }}
-        className="mb-2"
-      />
-    ))}
+  <Modal.Body>
+
+    {/* 🔎 SEARCH BAR */}
+    <Form.Control
+      type="text"
+      placeholder="Search customers..."
+      className="mb-3"
+      value={customerSearch}
+      onChange={(e) => setCustomerSearch(e.target.value)}
+    />
+
+    {/* CUSTOMER LIST */}
+    <div style={{ maxHeight: "250px", overflowY: "auto" }}>
+      {filteredCustomers.length === 0 ? (
+        <p className="text-muted text-center">No customers found</p>
+      ) : (
+        filteredCustomers.map((customer) => (
+          <Form.Check
+            key={customer.id}
+            type="checkbox"
+            label={`${customer.firstName} ${customer.lastName}`}
+            value={customer.id}
+            checked={selectedCustomers.includes(customer.id)}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setSelectedCustomers([
+                  ...selectedCustomers,
+                  customer.id,
+                ]);
+              } else {
+                setSelectedCustomers(
+                  selectedCustomers.filter(
+                    (id) => id !== customer.id
+                  )
+                );
+              }
+            }}
+            className="mb-2"
+          />
+        ))
+      )}
+    </div>
+
   </Modal.Body>
 
   <Modal.Footer>

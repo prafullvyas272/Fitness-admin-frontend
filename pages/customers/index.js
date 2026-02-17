@@ -17,6 +17,9 @@ export default function AllCustomers() {
   const [selectedTrainer, setSelectedTrainer] = useState("");
   const [loading, setLoading] = useState(true);
 
+  //searc box
+  const [trainerSearch, setTrainerSearch] = useState("");
+
   //pagination logic
   const [currentPage, setCurrentPage] = useState(1);
 const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -245,6 +248,13 @@ const currentCustomers = filteredCustomers.slice(
 const totalPages = Math.ceil(
   filteredCustomers.length / entriesPerPage
 );
+
+const filteredTrainers = trainers.filter((trainer) => {
+  const fullName =
+    `${trainer.firstName} ${trainer.lastName}`.toLowerCase();
+
+  return fullName.includes(trainerSearch.toLowerCase());
+});
 
   return (
   <div className="p-4">
@@ -549,33 +559,69 @@ const totalPages = Math.ceil(
     </Modal>
 
     {/* ASSIGN TRAINER MODAL (UNCHANGED) */}
-    <Modal show={showAssign} onHide={() => setShowAssign(false)}>
-      <Modal.Header closeButton>
-        <Modal.Title>
-  {selectedCustomer?.assignedTrainers &&
-  selectedCustomer.assignedTrainers.length > 0
-    ? "Change Trainer"
-    : "Assign Trainer"}
-</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form.Select
-          value={selectedTrainer}
-          onChange={(e) => setSelectedTrainer(e.target.value)}
-        >
-          <option value="">Select Trainer</option>
-          {trainers.map((trainer) => (
-            <option key={trainer.id} value={trainer.id}>
-              {trainer.firstName} {trainer.lastName}
-            </option>
-          ))}
-        </Form.Select>
+    <Modal show={showAssign} onHide={() => setShowAssign(false)} centered>
+  <Modal.Header closeButton>
+    <Modal.Title>
+      {selectedCustomer?.assignedTrainers &&
+      selectedCustomer.assignedTrainers.length > 0
+        ? "Change Trainer"
+        : "Assign Trainer"}
+    </Modal.Title>
+  </Modal.Header>
 
-        <Button className="mt-3" onClick={handleAssignSave}>
-          Assign
-        </Button>
-      </Modal.Body>
-    </Modal>
+  <Modal.Body>
+
+    {/* 🔎 SEARCH BAR */}
+    <Form.Control
+      type="text"
+      placeholder="Search trainer..."
+      className="mb-3"
+      value={trainerSearch}
+      onChange={(e) => setTrainerSearch(e.target.value)}
+    />
+
+    {/* TRAINER LIST */}
+    <div style={{ maxHeight: "250px", overflowY: "auto" }}>
+      {filteredTrainers.length === 0 ? (
+        <p className="text-muted text-center">No trainers found</p>
+      ) : (
+        filteredTrainers.map((trainer) => (
+          <Form.Check
+            key={trainer.id}
+            type="radio"
+            name="trainerSelect"
+            label={`${trainer.firstName} ${trainer.lastName}`}
+            value={trainer.id}
+            checked={selectedTrainer === trainer.id}
+            onChange={() => setSelectedTrainer(trainer.id)}
+            className="mb-2"
+          />
+        ))
+      )}
+    </div>
+
+  </Modal.Body>
+
+  <Modal.Footer>
+    <Button
+      variant="secondary"
+      onClick={() => setShowAssign(false)}
+    >
+      Cancel
+    </Button>
+
+    <Button
+      variant="primary"
+      onClick={handleAssignSave}
+      disabled={!selectedTrainer}
+    >
+      {selectedCustomer?.assignedTrainers &&
+      selectedCustomer.assignedTrainers.length > 0
+        ? "Change Trainer"
+        : "Assign Trainer"}
+    </Button>
+  </Modal.Footer>
+</Modal>
 
   </div>
 );
