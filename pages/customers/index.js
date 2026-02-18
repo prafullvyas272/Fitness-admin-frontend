@@ -119,18 +119,11 @@ const handleView = (customer) => {
 
 
   // EDIT
-  const handleEditOpen = (customer) => {
-    setEditData(customer);
-    setShowEdit(true);
-  };
+ // EDIT (Redirect to create page in edit mode)
+const handleEditOpen = (customer) => {
+  router.push(`/customers/create?id=${customer.id}`);
+};
 
-  const handleEditSave = () => {
-    const updated = customers.map((c) =>
-      c.id === editData.id ? editData : c
-    );
-    saveCustomers(updated);
-    setShowEdit(false);
-  };
 
   // ASSIGN TRAINER
   const handleAssignOpen = (customer) => {
@@ -524,39 +517,6 @@ const filteredTrainers = trainers.filter((trainer) => {
 
       </Card.Body>
     </Card>
-
-    {/* EDIT MODAL (UNCHANGED) */}
-    <Modal show={showEdit} onHide={() => setShowEdit(false)}>
-      <Modal.Header closeButton>
-        <Modal.Title>Edit Customer</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
-          <Form.Control
-            className="mb-3"
-            value={editData.name || ""}
-            onChange={(e) =>
-              setEditData({ ...editData, name: e.target.value })
-            }
-          />
-          <Form.Control
-            className="mb-3"
-            value={editData.email || ""}
-            onChange={(e) =>
-              setEditData({ ...editData, email: e.target.value })
-            }
-          />
-          <Form.Control
-            className="mb-3"
-            value={editData.phone || ""}
-            onChange={(e) =>
-              setEditData({ ...editData, phone: e.target.value })
-            }
-          />
-          <Button onClick={handleEditSave}>Save Changes</Button>
-        </Form>
-      </Modal.Body>
-    </Modal>
 
     {/* ASSIGN TRAINER MODAL (UNCHANGED) */}
     <Modal show={showAssign} onHide={() => setShowAssign(false)} centered>

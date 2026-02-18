@@ -1,85 +1,139 @@
-import { useState } from "react";
 import { Card, Row, Col, Form, Button, Nav } from "react-bootstrap";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 export default function CreateCustomer() {
   const router = useRouter();
+  const { id } = router.query;
+
   const [activeTab, setActiveTab] = useState("profile");
 
   const [customer, setCustomer] = useState({
-  firstName: "",
-  lastName: "",
-  email: "",
-  phone: "",
-  status: "Active",
-  avatarFile: null,
-  avatarPreview: "",
-});
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    status: "Active",
+    avatarFile: null,
+    avatarPreview: "",
+  });
 
+  /* ===============================
+     FETCH CUSTOMER IF EDIT MODE
+  =============================== */
+  useEffect(() => {
+    if (!id) return;
 
+    const fetchCustomer = async () => {
+      try {
+        const token = localStorage.getItem("adminToken");
 
+        const res = await fetch(
+          `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}/profile`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message);
+
+        setCustomer({
+          firstName: data.data.firstName,
+          lastName: data.data.lastName,
+          email: data.data.email,
+          phone: data.data.phone,
+          status: data.data.isActive ? "Active" : "Inactive",
+          avatarFile: null,
+          avatarPreview:
+            data.data.userProfileDetails?.[0]?.avatarUrl || "",
+        });
+
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchCustomer();
+  }, [id]);
+
+  /* ===============================
+     HANDLE CHANGE
+  =============================== */
   const handleChange = (e) => {
     setCustomer({ ...customer, [e.target.name]: e.target.value });
   };
 
+  /* ===============================
+     SUBMIT (CREATE OR UPDATE)
+  =============================== */
   const handleSubmit = async () => {
-  try {
-    const token = localStorage.getItem("adminToken");
+    try {
+      const token = localStorage.getItem("adminToken");
 
-    if (!token) {
-      alert("Session expired");
-      router.push("/login");
-      return;
-    }
+      if (!token) {
+        alert("Session expired");
+        router.push("/login");
+        return;
+      }
 
-    const formData = new FormData();
+      const formData = new FormData();
 
-formData.append("firstName", customer.firstName);
-formData.append("lastName", customer.lastName);
-formData.append("email", customer.email);
-formData.append("phone", customer.phone);
-formData.append("password", "Customer@123"); // 👈 ADD THIS
+      formData.append("firstName", customer.firstName);
+      formData.append("lastName", customer.lastName);
+      formData.append("email", customer.email);
+      formData.append("phone", customer.phone);
 
-if (customer.avatarFile) {
-  formData.append("avatar", customer.avatarFile);
-}
+      if (!id) {
+        // Only required when creating
+        formData.append("password", "Customer@123");
+      }
 
-    const response = await fetch(
-      "https://fitness-app-seven-beryl.vercel.app/api/customers",
-      {
-        method: "POST",
+      if (customer.avatarFile) {
+        formData.append("avatar", customer.avatarFile);
+      }
+
+      const url = id
+        ? `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}`
+        : "https://fitness-app-seven-beryl.vercel.app/api/customers";
+
+      const method = id ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
-          Authorization: `Bearer ${token}`, // DO NOT SET CONTENT-TYPE
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Operation failed");
       }
-    );
 
-    const data = await response.json();
+      alert(id ? "Customer updated ✅" : "Customer created ✅");
 
-    if (!response.ok) {
-      throw new Error(data.message || "Customer creation failed");
+      router.push("/customers");
+
+    } catch (error) {
+      alert(error.message);
     }
-
-    alert("Customer created successfully ✅");
-    router.push("/customers");
-
-  } catch (error) {
-    alert(error.message);
-  }
-};
-
-
-
+  };
 
   return (
     <div className="create-customer-page p-4">
 
       {/* HEADER */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3>Customers / Create</h3>
+        <h3>
+          Customers / {id ? "Edit" : "Create"}
+        </h3>
+
         <Button variant="primary" onClick={handleSubmit}>
-          Create Customer
+          {id ? "Update Customer" : "Create Customer"}
         </Button>
       </div>
 
@@ -105,135 +159,110 @@ if (customer.avatarFile) {
           {activeTab === "profile" && (
             <Row>
 
-              {/* LEFT AVATAR BLOCK */}
+              {/* AVATAR */}
               <Col md={4}>
-  <div className="avatar-wrapper text-center">
+                <div className="avatar-wrapper text-center">
 
-    <div
-      className="avatar-container"
-      onClick={() => document.getElementById("avatarInput").click()}
-    >
-      <img
-  src={
-    customer.avatarPreview ||
-    "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
-  }
-  alt="avatar"
-  style={{
-    width: 150,
-    height: 150,
-    objectFit: "cover",
-    borderRadius: "50%",
-  }}
-/>
+                  <div
+                    className="avatar-container"
+                    onClick={() =>
+                      document.getElementById("avatarInput").click()
+                    }
+                  >
+                    <img
+                      src={
+                        customer.avatarPreview ||
+                        "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+                      }
+                      alt="avatar"
+                      style={{
+                        width: 150,
+                        height: 150,
+                        objectFit: "cover",
+                        borderRadius: "50%",
+                      }}
+                    />
+                    <div className="avatar-overlay">
+                      <span>Upload Photo</span>
+                    </div>
+                  </div>
 
-      <div className="avatar-overlay">
-        <span>Upload Photo</span>
-      </div>
-    </div>
+                  <input
+                    type="file"
+                    id="avatarInput"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
 
-    <input
-      type="file"
-      id="avatarInput"
-      accept="image/*"
-      hidden
-      onChange={(e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+                      setCustomer({
+                        ...customer,
+                        avatarFile: file,
+                        avatarPreview: URL.createObjectURL(file),
+                      });
+                    }}
+                  />
 
-  setCustomer({
-    ...customer,
-    avatarFile: file,
-    avatarPreview: URL.createObjectURL(file),
-  });
-}}
-    />
+                  <p className="text-muted small mt-3">
+                    Avatar size 150x150 <br />
+                    PNG, JPG (Max 2MB)
+                  </p>
+                </div>
+              </Col>
 
-    <p className="text-muted small mt-3">
-      Avatar size 150x150 <br />
-      PNG, JPG (Max 2MB)
-    </p>
-  </div>
-</Col>
-
-              {/* RIGHT FORM */}
+              {/* FORM */}
               <Col md={8}>
                 <Row>
 
                   <Col md={6} className="mb-3">
-  <Form.Label>First Name</Form.Label>
-  <div className="input-icon">
-    <i className="fe fe-user"></i>
-    <Form.Control
-      name="firstName"
-      placeholder="First name"
-      onChange={handleChange}
-    />
-  </div>
-</Col>
+                    <Form.Label>First Name</Form.Label>
+                    <Form.Control
+                      name="firstName"
+                      value={customer.firstName}
+                      placeholder="First name"
+                      onChange={handleChange}
+                    />
+                  </Col>
 
-<Col md={6} className="mb-3">
-  <Form.Label>Last Name</Form.Label>
-  <div className="input-icon">
-    <i className="fe fe-user"></i>
-    <Form.Control
-      name="lastName"
-      placeholder="Last name"
-      onChange={handleChange}
-    />
-  </div>
-</Col>
-
+                  <Col md={6} className="mb-3">
+                    <Form.Label>Last Name</Form.Label>
+                    <Form.Control
+                      name="lastName"
+                      value={customer.lastName}
+                      placeholder="Last name"
+                      onChange={handleChange}
+                    />
+                  </Col>
 
                   <Col md={6} className="mb-3">
                     <Form.Label>Email</Form.Label>
-                    <div className="input-icon">
-                      <i className="fe fe-mail"></i>
-                      <Form.Control
-                        type="email"
-                        name="email"
-                        placeholder="Email address"
-                        onChange={handleChange}
-                      />
-                    </div>
+                    <Form.Control
+                      type="email"
+                      name="email"
+                      value={customer.email}
+                      placeholder="Email address"
+                      onChange={handleChange}
+                    />
                   </Col>
-
-                  {/* <Col md={6} className="mb-3">
-                    <Form.Label>Username</Form.Label>
-                    <div className="input-icon">
-                      <i className="fe fe-link"></i>
-                      <Form.Control
-                        name="username"
-                        placeholder="Username"
-                        onChange={handleChange}
-                      />
-                    </div>
-                  </Col> */}
 
                   <Col md={6} className="mb-3">
                     <Form.Label>Phone</Form.Label>
-                    <div className="input-icon">
-                      <i className="fe fe-phone"></i>
-                      <Form.Control
-                        name="phone"
-                        placeholder="Phone"
-                        onChange={handleChange}
-                      />
-                    </div>
+                    <Form.Control
+                      name="phone"
+                      value={customer.phone}
+                      placeholder="Phone"
+                      onChange={handleChange}
+                    />
                   </Col>
-
-                  {/* <Col md={6} className="mb-3">
-                    <Form.Label>Membership</Form.Label>
-                    <Form.Select name="membership" onChange={handleChange}>
-                      <option>Basic</option>
-                      <option>Premium</option>
-                      <option>VIP</option>
-                    </Form.Select>
-                  </Col> */}
 
                   <Col md={6} className="mb-3">
                     <Form.Label>Status</Form.Label>
-                    <Form.Select name="status" onChange={handleChange}>
+                    <Form.Select
+                      name="status"
+                      value={customer.status}
+                      onChange={handleChange}
+                    >
                       <option>Active</option>
                       <option>Inactive</option>
                     </Form.Select>
@@ -249,26 +278,9 @@ if (customer.avatarFile) {
           {activeTab === "billing" && (
             <div className="billing-box">
               <h5 className="mb-3">Billing Information</h5>
-
-              <Row>
-                <Col md={6} className="mb-3">
-                  <Form.Label>Plan Type</Form.Label>
-                  <Form.Select>
-                    <option>Basic - ₹999</option>
-                    <option>Premium - ₹1999</option>
-                    <option>VIP - ₹2999</option>
-                  </Form.Select>
-                </Col>
-
-                <Col md={6} className="mb-3">
-                  <Form.Label>Payment Method</Form.Label>
-                  <Form.Select>
-                    <option>Cash</option>
-                    <option>UPI</option>
-                    <option>Card</option>
-                  </Form.Select>
-                </Col>
-              </Row>
+              <p className="text-muted">
+                Billing configuration can be added here.
+              </p>
             </div>
           )}
 

@@ -100,7 +100,8 @@ const NavbarVertical = (props) => {
     <Fragment>
       <SimpleBar style={{ maxHeight: "100vh" }}>
       <div className="navbar-brand custom-brand">
-  Upto
+    <img src="https://res.cloudinary.com/dbazlbkfj/image/upload/v1771390209/Layer_x0020_1_p5f6fs.png" className="logo-text" alt="logo text"
+    />
 </div>
         {/* Dashboard Menu */}
         <Accordion

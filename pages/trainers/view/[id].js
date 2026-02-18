@@ -549,8 +549,7 @@ const sessionsForSelectedDay = selectedDate
         </td>
         <td>
           <div
-  className="status-pill status-active"
-  style={{ display: "inline-flex", alignItems: "center" }}
+  style={{alignItems: "center" }}
 >
   <span
     style={{
@@ -562,9 +561,8 @@ const sessionsForSelectedDay = selectedDate
     }}
   ></span>
 
-  <span className="fw-semibold">
     Assigned
-  </span>
+  
 </div>
         </td>
         <td className="text-end">
