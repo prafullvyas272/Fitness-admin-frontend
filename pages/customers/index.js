@@ -427,16 +427,19 @@ const filteredTrainers = trainers
                           View
                         </Dropdown.Item>
 
-                        <Dropdown.Item
-  onClick={() => handleAssignOpen(customer)}
->
-  <i className="fe fe-user-plus me-2 text-secondary"></i>
+                       {customer.isActive && (
+  <Dropdown.Item
+    onClick={() => handleAssignOpen(customer)}
+  >
+    <i className="fe fe-user-plus me-2 text-secondary"></i>
 
-  {customer.assignedTrainers &&
-  customer.assignedTrainers.length > 0
-    ? "Change Trainer"
-    : "Assign Trainer"}
-</Dropdown.Item>
+    {customer.assignedTrainers &&
+    customer.assignedTrainers.length > 0
+      ? "Change Trainer"
+      : "Assign Trainer"}
+  </Dropdown.Item>
+)}
+
 
                         <Dropdown.Item
                           onClick={() => handleEditOpen(customer)}
