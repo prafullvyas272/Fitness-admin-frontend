@@ -198,96 +198,89 @@ useEffect(() => {
     <div className="customer-detail-page p-4">
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3>Customers / View</h3>
-        <Button variant="primary">Create Customer</Button>
+        <h3>Customers Profile</h3>
+        {/* <Button variant="primary">Create Customer</Button> */}
       </div>
 
-      <Row>
-        {/* LEFT PROFILE BLOCK */}
-        <Col md={4}>
-          <div className="profile-card-custom">
-<div className="profile-avatar-wrapper">
-  <img
-    src={
-      customer?.userProfileDetails?.[0]?.avatarUrl ||
-      "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
-    }
-    alt="avatar"
-    className="customer-avatar-img"
-  />
-</div>
+      <Card className="shadow-sm border-0 rounded-3">
+  <Card.Body>
+    <Row>
 
-<h5 className="customer-name">
-  {customer.firstName} {customer.lastName}
-</h5>
+  {/* LEFT SIDE */}
+  <Col md={4} className="text-center border-end">
 
-<p className="customer-email">
-  {customer.email}
-</p>
+    <img
+      src={
+        customer.avatar ||
+        "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+      }
+      alt="avatar"
+      style={{
+        width: 170,
+        height: 170,
+        objectFit: "cover",
+        borderRadius: "50%",
+        border: "4px solid #e9ecef",
+      }}
+      className="mb-3"
+    />
 
+    <h5 className="fw-bold">
+      {customer.firstName} {customer.lastName}
+    </h5>
 
-{/* <p className="text-muted mb-3">
-  {customer.email}
-</p> */}
-            {/* <div className="profile-stats">
-              <div>
-                <h6>Membership</h6>
-                <span>{customer.membership}</span>
-              </div>
+    <p className="text-muted mb-2">
+      {customer.email}
+    </p>
 
-              <div>
-                <h6>Status</h6>
-                <span
-                  className={
-                    customer.status === "Active"
-                      ? "text-success"
-                      : "text-secondary"
-                  }
-                >
-                  {customer.status}
-                </span>
-              </div>
-            </div> */}
+    {/* SAME StatusPill STYLE */}
+    <div
+      className={`status-pill ${
+        customer.isActive ? "status-active" : "status-inactive"
+      }`}
+      style={{ display: "inline-flex", alignItems: "center" }}
+    >
+      <span
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          backgroundColor: customer.isActive
+            ? "#22c55e"
+            : "#dc3545",
+          marginRight: 6,
+        }}
+      ></span>
 
-            <div className="profile-info">
-              <p>
-                <strong>Phone:</strong> {customer.phone}
-              </p>
-              <p>
-                <strong>Trainer:</strong>{" "}
-                {customer.assignedTrainers?.length > 0
-                  ? "Assigned"
-                  : "Not Assigned"}
-              </p>
+      <span className="fw-semibold">
+        {customer.isActive ? "Active" : "Inactive"}
+      </span>
+    </div>
 
-              <Button
-                size="sm"
-                className="mt-2"
-                onClick={() => setShowAssign(true)}
-              >
-                {customer.assignedTrainers?.length > 0
-                  ? "Change Trainer"
-                  : "Assign Trainer"}
-              </Button>
-            </div>
+    <div className="d-flex justify-content-center gap-2 mt-4">
+      <Button
+        variant="outline-danger"
+        size="sm"
+        onClick={handleDelete}
+        style={{ minWidth: "100px" }}
+      >
+        Delete
+      </Button>
 
-            <div className="profile-buttons">
-              <Button variant="outline-danger" size="sm" onClick={handleDelete}>
-                Delete
-              </Button>
-              <Button
-  variant="primary"
-  size="sm"
-  onClick={() =>
-    router.push(`/customers/create?id=${customer.id}`)
-  }
->
-  Edit Profile
-</Button>
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={() =>
+          router.push(`/customers/create?id=${customer.id}`)
+        }
+        style={{ minWidth: "120px" }}
+      >
+        Edit Profile
+      </Button>
+    </div>
 
-            </div>
-          </div>
-        </Col>
+  </Col>
+
 
         {/* RIGHT CONTENT BLOCK */}
 <Col md={8}>
@@ -364,7 +357,10 @@ useEffect(() => {
     </div>
   </div>
 </Col>
-      </Row>
+          </Row>
+  </Card.Body>
+</Card>
+
       <Modal show={showEdit} onHide={() => setShowEdit(false)}>
   <Modal.Header closeButton>
     <Modal.Title>Edit Customer</Modal.Title>

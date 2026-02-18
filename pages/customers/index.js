@@ -178,26 +178,20 @@ const handleEditOpen = (customer) => {
   }
 };
 
-const updateCustomerStatus = async (id, newStatus) => {
+const updateCustomerStatus = async (id, isActive) => {
   try {
     const token = localStorage.getItem("adminToken");
 
-    const customerToUpdate = customers.find((c) => c.id === id);
-
     const response = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}`,
+      `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}/toggle-active`,
       {
-        method: "PUT",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          firstName: customerToUpdate.firstName,
-          lastName: customerToUpdate.lastName,
-          email: customerToUpdate.email,
-          phone: customerToUpdate.phone,
-          isActive: newStatus === "Active",
+          isActive: isActive,
         }),
       }
     );
@@ -208,9 +202,10 @@ const updateCustomerStatus = async (id, newStatus) => {
       throw new Error(data.message || "Failed to update status");
     }
 
+    // Update UI instantly
     const updated = customers.map((customer) =>
       customer.id === id
-        ? { ...customer, isActive: newStatus === "Active" }
+        ? { ...customer, isActive: isActive }
         : customer
     );
 
@@ -220,6 +215,7 @@ const updateCustomerStatus = async (id, newStatus) => {
     alert(error.message);
   }
 };
+
 
 const filteredCustomers = customers.filter((customer) => {
   const fullName =
@@ -242,12 +238,19 @@ const totalPages = Math.ceil(
   filteredCustomers.length / entriesPerPage
 );
 
-const filteredTrainers = trainers.filter((trainer) => {
-  const fullName =
-    `${trainer.firstName} ${trainer.lastName}`.toLowerCase();
+const filteredTrainers = trainers
+  .filter((trainer) =>
+    `${trainer.firstName} ${trainer.lastName}`
+      .toLowerCase()
+      .includes(trainerSearch.toLowerCase())
+  )
+  .sort((a, b) => {
+    // Move selected trainer to top
+    if (a.id === selectedTrainer) return -1;
+    if (b.id === selectedTrainer) return 1;
+    return 0;
+  });
 
-  return fullName.includes(trainerSearch.toLowerCase());
-});
 
   return (
   <div className="p-4">
@@ -381,22 +384,23 @@ const filteredTrainers = trainers.filter((trainer) => {
 
     <Dropdown.Menu className="shadow border-0 rounded-3">
       <Dropdown.Item
-        onClick={() =>
-          updateCustomerStatus(customer.id, "Active")
-        }
-      >
-        <span className="text-success me-2">●</span>
-        Active
-      </Dropdown.Item>
+  onClick={() =>
+    updateCustomerStatus(customer.id, true)
+  }
+>
+  <span className="text-success me-2">●</span>
+  Active
+</Dropdown.Item>
 
-      <Dropdown.Item
-        onClick={() =>
-          updateCustomerStatus(customer.id, "Inactive")
-        }
-      >
-        <span className="text-danger me-2">●</span>
-        Inactive
-      </Dropdown.Item>
+<Dropdown.Item
+  onClick={() =>
+    updateCustomerStatus(customer.id, false)
+  }
+>
+  <span className="text-danger me-2">●</span>
+  Inactive
+</Dropdown.Item>
+
     </Dropdown.Menu>
   </Dropdown>
 </td>
@@ -541,7 +545,14 @@ const filteredTrainers = trainers.filter((trainer) => {
     />
 
     {/* TRAINER LIST */}
-    <div style={{ maxHeight: "250px", overflowY: "auto" }}>
+    <div
+  style={{
+    maxHeight: "250px",
+    overflowY: "auto",
+    paddingLeft: "4px",
+  }}
+>
+
       {filteredTrainers.length === 0 ? (
         <p className="text-muted text-center">No trainers found</p>
       ) : (

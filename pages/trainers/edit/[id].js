@@ -17,6 +17,7 @@ export default function EditTrainer() {
     firstName: "",
     lastName: "",
     email: "",
+    countryCode: "+91",
     phone: "",
     hostGymName: "",
     hostGymAddress: "",
@@ -25,6 +26,7 @@ export default function EditTrainer() {
     status: "Active",
     avatar: "",
   });
+  const [originalTrainer, setOriginalTrainer] = useState(null); // for back alert
 
   /* ================= LOAD TRAINER DATA ================= */
 useEffect(() => {
@@ -52,11 +54,17 @@ useEffect(() => {
       const profile = data.data;
 const details = profile.userProfileDetails?.[0] || {};
 
+const fullPhone = profile.phone || "";
+const countryMatch = fullPhone.match(/^\+\d{1,4}/);
+const extractedCode = countryMatch ? countryMatch[0] : "+91";
+const extractedNumber = fullPhone.replace(extractedCode, "");
+
 setTrainer({
   firstName: profile.firstName || "",
   lastName: profile.lastName || "",
   email: profile.email || "",
-  phone: profile.phone || "",
+  countryCode: extractedCode,
+  phone: extractedNumber,
   hostGymName: details.hostGymName || "",
   hostGymAddress: details.hostGymAddress || "",
   address: details.address || "",
@@ -64,6 +72,20 @@ setTrainer({
   status: profile.isActive ? "Active" : "Inactive",
   avatar: details.avatarUrl || "",
 });
+
+setOriginalTrainer({
+  firstName: profile.firstName || "",
+  lastName: profile.lastName || "",
+  email: profile.email || "",
+  countryCode: extractedCode,
+  phone: extractedNumber,
+  hostGymName: details.hostGymName || "",
+  hostGymAddress: details.hostGymAddress || "",
+  address: details.address || "",
+  bio: details.bio || "",
+  status: profile.isActive ? "Active" : "Inactive",
+});
+
 
 
     } catch (error) {
@@ -114,7 +136,7 @@ setTrainer({
           firstName: trainer.firstName,
           lastName: trainer.lastName,
           email: trainer.email,
-          phone: trainer.phone,
+          phone: trainer.countryCode + trainer.phone,
           isActive: trainer.status === "Active",
           hostGymName: trainer.hostGymName,
           hostGymAddress: trainer.hostGymAddress,
@@ -138,12 +160,42 @@ setTrainer({
   }
 };
 
+const countryOptions = [
+  { code: "+91", label: "🇮🇳 +91" },
+  { code: "+1", label: "🇺🇸 +1" },
+  { code: "+44", label: "🇬🇧 +44" },
+  { code: "+61", label: "🇦🇺 +61" },
+  { code: "+971", label: "🇦🇪 +971" },
+];
+
 
 
 
   return (
     <div className="p-4">
-      <h3 className="fw-bold mb-4">Edit Trainer</h3>
+      {/* <h3 className="fw-bold mb-4">Edit Trainer</h3> */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+  <h3 className="fw-bold mb-0">Edit Trainer</h3>
+
+  <Button
+    variant="outline-secondary"
+    onClick={() => {
+      if (
+        originalTrainer &&
+        JSON.stringify(trainer) !== JSON.stringify(originalTrainer)
+      ) {
+        const confirmLeave = window.confirm(
+          "You have unsaved changes. Do you want to go back?"
+        );
+        if (!confirmLeave) return;
+      }
+      router.push("/trainers");
+    }}
+  >
+    ← Back
+  </Button>
+</div>
+
 
       <Card className="shadow-sm border-0 rounded-3">
         <Card.Body className="p-4">
@@ -240,37 +292,55 @@ setTrainer({
                     <i className="fe fe-mail"></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="email"
-                    name="email"
-                    value={trainer.email}
-                    onChange={handleChange}
-                    className="bg-light border-0 custom-input"
-                    required
-                  />
+  type="email"
+  name="email"
+  value={trainer.email}
+  onChange={handleChange}
+  pattern="^[^\s@]+@[^\s@]+\.(com|in|org|net)$"
+  title="Email must end with .com, .in, .org or .net"
+  className="bg-light border-0 custom-input"
+  required
+/>
+
                 </InputGroup>
               </Col>
             </Row>
 
             {/* PHONE */}
-            <Row className="mb-4 align-items-center">
-              <Col md={3} className="fw-semibold">
-                Phone No:
-              </Col>
-              <Col md={9}>
-                <InputGroup>
-                  <InputGroup.Text className="bg-light border-0">
-                    <i className="fe fe-phone"></i>
-                  </InputGroup.Text>
-                  <Form.Control
-                    type="text"
-                    name="phone"
-                    value={trainer.phone}
-                    onChange={handleChange}
-                    className="bg-light border-0 custom-input"
-                  />
-                </InputGroup>
-              </Col>
-            </Row>
+           {/* PHONE */}
+<Row className="mb-4 align-items-center">
+  <Col md={3} className="fw-semibold">Phone No:</Col>
+  <Col md={9}>
+    <InputGroup>
+
+      <Form.Select
+        name="countryCode"
+        value={trainer.countryCode}
+        onChange={handleChange}
+        style={{ maxWidth: "140px" }}
+      >
+        {countryOptions.map((c) => (
+          <option key={c.code} value={c.code}>
+            {c.label}
+          </option>
+        ))}
+      </Form.Select>
+
+      <Form.Control
+        type="tel"
+        name="phone"
+        value={trainer.phone}
+        onChange={(e) => {
+          const onlyNumbers = e.target.value.replace(/\D/g, "");
+          setTrainer({ ...trainer, phone: onlyNumbers });
+        }}
+        className="custom-input"
+        required
+      />
+
+    </InputGroup>
+  </Col>
+</Row>
 
             {/* HOST GYM NAME */}
             <Row className="mb-4 align-items-center">

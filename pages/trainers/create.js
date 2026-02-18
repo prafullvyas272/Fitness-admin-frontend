@@ -17,6 +17,7 @@ export default function CreateTrainer() {
     lastName: "",
     email: "",
     phone: "",
+    countryCode: "+91",
     hostGymName: "",
     hostGymAddress: "",
     address: "",
@@ -60,10 +61,13 @@ export default function CreateTrainer() {
 
     const formData = new FormData();
 
+    const fullPhone = trainer.countryCode + trainer.phone;
+
     formData.append("firstName", trainer.firstName);
     formData.append("lastName", trainer.lastName);
     formData.append("email", trainer.email);
-    formData.append("phone", trainer.phone);
+    formData.append("phone", fullPhone);
+
     formData.append("password", "Trainer@123");
     // formData.append("isActive", trainer.status === "Active" ? "true" : "false");
     formData.append("hostGymName", trainer.hostGymName);
@@ -75,6 +79,16 @@ export default function CreateTrainer() {
     if (trainer.avatarFile) {
       formData.append("avatar", trainer.avatarFile);
     }
+    if (trainer.phone.length < 10) {
+  alert("Phone number must be 10 digits");
+  return;
+}
+
+if (!trainer.email.endsWith(".com")) {
+  alert("Email must end with .com");
+  return;
+}
+
 
     const response = await fetch(
       "https://fitness-app-seven-beryl.vercel.app/api/trainers",
@@ -101,12 +115,50 @@ export default function CreateTrainer() {
   }
 };
 
-
+const countryOptions = [
+  { code: "+91", label: "🇮🇳 +91" },
+  { code: "+1", label: "🇺🇸 +1" },
+  { code: "+44", label: "🇬🇧 +44" },
+  { code: "+61", label: "🇦🇺 +61" },
+  { code: "+971", label: "🇦🇪 +971" },
+  { code: "+49", label: "🇩🇪 +49" },
+  { code: "+51", label: "🇵🇪 +51" },
+];
 
 
   return (
     <div className="p-4">
-      <h3 className="fw-bold mb-4">Create Trainer</h3>
+<div className="d-flex justify-content-between align-items-center mb-4">
+  <h3 className="fw-bold mb-0">Create Trainer</h3>
+
+  <Button
+    variant="outline-secondary"
+    className="px-3 rounded-3"
+    onClick={() => {
+      const isFormFilled =
+        trainer.firstName.trim() !== "" ||
+        trainer.lastName.trim() !== "" ||
+        trainer.email.trim() !== "" ||
+        trainer.phone.trim() !== "" ||
+        trainer.hostGymName.trim() !== "" ||
+        trainer.hostGymAddress.trim() !== "" ||
+        trainer.address.trim() !== "" ||
+        trainer.bio.trim() !== "" ||
+        trainer.avatarFile;
+
+      if (isFormFilled) {
+        const confirmLeave = window.confirm(
+          "You have unsaved changes. Do you want to go back?"
+        );
+        if (!confirmLeave) return;
+      }
+
+      router.push("/trainers");
+    }}
+  >
+    ← Back
+  </Button>
+</div>
 
       <Card className="shadow-sm border-0 rounded-3">
         <Card.Body className="p-4">
@@ -198,38 +250,63 @@ export default function CreateTrainer() {
                   <InputGroup.Text className="bg-light border-0">
                     <i className="fe fe-mail"></i>
                   </InputGroup.Text>
-                  <Form.Control
-                    type="email"
-                    name="email"
-                    placeholder="Enter email"
-                    value={trainer.email}
-                    onChange={handleChange}
-                    className="bg-light border-0 custom-input"
-                    required
-                  />
+                 <Form.Control
+  type="email"
+  name="email"
+  placeholder="Enter email"
+  value={trainer.email}
+  onChange={handleChange}
+  pattern="^[^\s@]+@[^\s@]+\.com$"
+  title="Email must end with .com"
+  className="bg-light border-0 custom-input"
+  required
+/>
+
                 </InputGroup>
               </Col>
             </Row>
 
             {/* PHONE */}
-            <Row className="mb-4 align-items-center">
-              <Col md={3} className="fw-semibold">Phone No:</Col>
-              <Col md={9}>
-                <InputGroup>
-                  <InputGroup.Text className="bg-light border-0">
-                    <i className="fe fe-phone"></i>
-                  </InputGroup.Text>
-                  <Form.Control
-                    type="text"
-                    name="phone"
-                    placeholder="Enter phone number"
-                    value={trainer.phone}
-                    onChange={handleChange}
-                    className="bg-light border-0 custom-input"
-                  />
-                </InputGroup>
-              </Col>
-            </Row>
+           {/* PHONE */}
+<Row className="mb-4 align-items-center">
+  <Col md={3} className="fw-semibold">Phone No:</Col>
+  <Col md={9}>
+    <InputGroup>
+
+      {/* Country Code Dropdown */}
+      <Form.Select
+        name="countryCode"
+        value={trainer.countryCode}
+        onChange={handleChange}
+        className="country-code-select"
+        style={{ maxWidth: "140px" }}
+      >
+        {countryOptions.map((c) => (
+          <option key={c.code} value={c.code}>
+            {c.label}
+          </option>
+        ))}
+      </Form.Select>
+
+      {/* Phone Number Input */}
+      <Form.Control
+        type="tel"
+        name="phone"
+        placeholder="Enter phone number"
+        value={trainer.phone}
+        onChange={(e) => {
+          const onlyNumbers = e.target.value.replace(/\D/g, "");
+          setTrainer({ ...trainer, phone: onlyNumbers });
+        }}
+        className="custom-input"
+        required
+      />
+
+    </InputGroup>
+  </Col>
+</Row>
+
+
 
             {/* HOST GYM NAME */}
             <Row className="mb-4 align-items-center">
@@ -242,7 +319,7 @@ export default function CreateTrainer() {
                   <Form.Control
                     type="text"
                     name="hostGymName"
-                    placeholder="Enter gym name"
+                    placeholder="Enter Host gym name"
                     value={trainer.hostGymName}
                     onChange={handleChange}
                     className="bg-light border-0 custom-input"
@@ -262,7 +339,7 @@ export default function CreateTrainer() {
                   <Form.Control
                     type="text"
                     name="hostGymAddress"
-                    placeholder="Enter gym address"
+                    placeholder="Enter Host gym address"
                     value={trainer.hostGymAddress}
                     onChange={handleChange}
                     className="bg-light border-0 custom-input"

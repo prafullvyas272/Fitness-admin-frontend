@@ -857,3 +857,147 @@ img:hover {
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
   border-color: #6366f1;
 }
+
+//speciality page
+/* ===== PAGE BACKGROUND ===== */
+.speciality-page {
+  background: #f8f9fb;
+}
+
+/* ===== TITLE ===== */
+.speciality-title {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* ===== CARD STYLE (FIGMA DARK LOOK) ===== */
+.speciality-card {
+  background: linear-gradient(145deg, #0f1115, #141821);
+  border-radius: 18px;
+  padding: 30px;
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* ===== INPUT ===== */
+.speciality-input {
+  background: #12161f !important;
+  border: 1px solid rgba(255, 215, 0, 0.35) !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  padding: 12px 16px !important;
+  margin-bottom: 25px;
+}
+
+.speciality-input::placeholder {
+  color: #8c8f96;
+}
+
+.speciality-input:focus {
+  border-color: #f5c518 !important;
+  box-shadow: 0 0 0 2px rgba(245, 197, 24, 0.25) !important;
+}
+
+/* ===== CHIP CONTAINER ===== */
+.speciality-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ===== CHIP STYLE ===== */
+.speciality-chip {
+  background: #1a1f29;
+  color: #f5c518;
+  padding: 8px 18px;
+  border-radius: 50px;
+  border: 1px solid rgba(245, 197, 24, 0.4);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: 0.2s ease;
+}
+
+/* Hover effect like Figma */
+.speciality-chip:hover {
+  background: #222734;
+  border-color: #f5c518;
+}
+
+/* ===== CLOSE BUTTON ===== */
+.chip-close {
+  cursor: pointer;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+.chip-close:hover {
+  color: #ff4d4d;
+}
+
+
+//phone
+.country-code-select {
+  background: #f8f9fa;
+  border: none;
+  font-weight: 500;
+}
+
+.country-code-select:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+//customer left side //
+/* Avatar Styling Same As Trainer */
+.profile-avatar-wrapper {
+  width: 140px;
+  height: 140px;
+  margin: auto;
+  border-radius: 50%;
+  padding: 6px;
+  background: #f1f3f5;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Status Pill Same as Trainer */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #f8f9fa;
+}
+
+.status-active {
+  color: #22c55e;
+  border: 1px solid #bbf7d0;
+}
+
+.status-inactive {
+  color: #dc3545;
+  border: 1px solid #fecaca;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+//aacordion 
+.accordion-body {
+  background: #f9fafc;
+}

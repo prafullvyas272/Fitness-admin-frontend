@@ -13,6 +13,7 @@ export default function CreateCustomer() {
     lastName: "",
     email: "",
     phone: "",
+    countryCode: "+91", 
     status: "Active",
     avatarFile: null,
     avatarPreview: "",
@@ -68,6 +69,20 @@ export default function CreateCustomer() {
   /* ===============================
      SUBMIT (CREATE OR UPDATE)
   =============================== */
+
+  //validation for mail
+  const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.(com)$/i;
+  return emailRegex.test(email);
+};
+
+const validatePhone = (phone) => {
+  const phoneRegex = /^[0-9]{7,12}$/;
+  return phoneRegex.test(phone);
+};
+
+
+
   const handleSubmit = async () => {
     try {
       const token = localStorage.getItem("adminToken");
@@ -78,12 +93,27 @@ export default function CreateCustomer() {
         return;
       }
 
+      if (!validateEmail(customer.email)) {
+  alert("Email must be valid and end with .com");
+  return;
+}
+
+if (!validatePhone(customer.phone)) {
+  alert("Phone number must contain only digits (7–12 numbers)");
+  return;
+}
+
+
       const formData = new FormData();
 
       formData.append("firstName", customer.firstName);
       formData.append("lastName", customer.lastName);
       formData.append("email", customer.email);
-      formData.append("phone", customer.phone);
+      fformData.append(
+  "phone",
+  `${customer.countryCode}${customer.phone}`
+);
+
 
       if (!id) {
         // Only required when creating
@@ -123,19 +153,54 @@ export default function CreateCustomer() {
     }
   };
 
+  const hasUnsavedChanges = () => {
+  return (
+    customer.firstName ||
+    customer.lastName ||
+    customer.email ||
+    customer.phone ||
+    customer.avatarFile
+  );
+};
+
+
   return (
     <div className="create-customer-page p-4">
 
       {/* HEADER */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3>
-          Customers / {id ? "Edit" : "Create"}
-        </h3>
 
-        <Button variant="primary" onClick={handleSubmit}>
-          {id ? "Update Customer" : "Create Customer"}
-        </Button>
-      </div>
+  <div className="d-flex align-items-center gap-3">
+    
+    {/* Back Button */}
+   <Button
+  variant="light"
+  className="border"
+  onClick={() => {
+    if (hasUnsavedChanges()) {
+      const confirmLeave = confirm(
+        "You have unsaved changes. Are you sure you want to go back?"
+      );
+      if (!confirmLeave) return;
+    }
+
+    router.push("/customers");
+  }}
+>
+  ← Back
+</Button>
+
+
+
+  </div>
+
+  {/* Submit Button */}
+  <Button variant="primary" onClick={handleSubmit}>
+    {id ? "Update Customer" : "Create Customer"}
+  </Button>
+
+</div>
+
 
       <Card className="shadow-sm border-0">
         <Card.Body>
@@ -246,15 +311,38 @@ export default function CreateCustomer() {
                     />
                   </Col>
 
-                  <Col md={6} className="mb-3">
-                    <Form.Label>Phone</Form.Label>
-                    <Form.Control
-                      name="phone"
-                      value={customer.phone}
-                      placeholder="Phone"
-                      onChange={handleChange}
-                    />
-                  </Col>
+<Col md={6} className="mb-3">
+  <Form.Label>Phone</Form.Label>
+
+  <div className="d-flex">
+
+    {/* Country Code */}
+    <Form.Select
+      name="countryCode"
+      value={customer.countryCode}
+      onChange={handleChange}
+      style={{ maxWidth: "120px", marginRight: "8px" }}
+    >
+      <option value="+91">🇮🇳 +91</option>
+      <option value="+1">🇺🇸 +1</option>
+      <option value="+44">🇬🇧 +44</option>
+      <option value="+971">🇦🇪 +971</option>
+      <option value="+61">🇦🇺 +61</option>
+    </Form.Select>
+
+    {/* Phone Number */}
+    <Form.Control
+      name="phone"
+      value={customer.phone}
+      placeholder="Enter phone number"
+      onChange={(e) => {
+        const value = e.target.value.replace(/\D/g, "");
+        setCustomer({ ...customer, phone: value });
+      }}
+    />
+  </div>
+</Col>
+
 
                   <Col md={6} className="mb-3">
                     <Form.Label>Status</Form.Label>

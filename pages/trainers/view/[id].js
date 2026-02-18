@@ -16,7 +16,6 @@ export default function TrainerProfile() {
   const { id } = router.query;
 
   const [trainer, setTrainer] = useState(null);
-  // const [customers, setCustomers] = useState([]);
   const [allTrainers, setAllTrainers] = useState([]);
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -491,7 +490,7 @@ const sessionsForSelectedDay = selectedDate
                     <th>Email</th>
                     <th>Phone</th>
                     <th className="text-center">Status</th>
-    <th classNme="text-center">Assigned Trainer</th>
+    <th className="text-center">Assigned Trainer</th>
     <th className="text-center">Action</th>
                   </tr>
                 </thead>
@@ -740,7 +739,14 @@ const sessionsForSelectedDay = selectedDate
               </div>
 
               <div className="booking-info">
-                <span>📅 {slot.date}</span>
+                <span>
+  📅 {new Date(slot.date).toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "2-digit",
+  })}
+</span>
+
                 <span>⏰ {slot.start} - {slot.end}</span>
                 <span>📍 Body care Gym</span>
               </div>
@@ -748,11 +754,11 @@ const sessionsForSelectedDay = selectedDate
           </div>
 
           {/* RIGHT SECTION */}
-          <div className="booking-actions">
+          {/* <div className="booking-actions">
   <button className="btn-cancel">
     Cancel
-  </button>
-</div>
+  </button> */}
+{/* </div> */}
 
 
         </div>

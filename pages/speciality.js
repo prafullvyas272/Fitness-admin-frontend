@@ -114,36 +114,37 @@ export default function Speciality() {
   /* ---------------- UI ---------------- */
 
   return (
-    <div className="p-4">
-      <h2 className="mb-4">Speciality</h2>
+  <div className="speciality-page p-4">
+    <h2 className="speciality-title mb-4">Speciality</h2>
 
-      {error && <Alert variant="danger">{error}</Alert>}
+    {error && <Alert variant="danger">{error}</Alert>}
 
-      <Card className="p-4 shadow-sm">
-        <Form.Control
-          type="text"
-          placeholder="Type speciality and press Enter..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="mb-4"
-        />
+    <Card className="speciality-card">
+      <Form.Control
+        type="text"
+        placeholder="Type speciality and press Enter..."
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="speciality-input"
+      />
 
-        <div className="skill-container">
-          {skills.map((skill) => (
-            <div key={skill.id} className="skill-chip">
-              {skill.name}
+      <div className="speciality-chips">
+        {skills.map((skill) => (
+          <div key={skill.id} className="speciality-chip">
+            {skill.name}
 
-              <button
-                className="remove-btn"
-                onClick={() => removeSkill(skill.id)}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      </Card>
-    </div>
-  );
+            <span
+              className="chip-close"
+              onClick={() => removeSkill(skill.id)}
+            >
+              ×
+            </span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  </div>
+);
+
 }

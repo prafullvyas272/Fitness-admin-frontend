@@ -30,7 +30,7 @@ export default function AvailabilitySlots() {
   const [success, setSuccess] = useState("");
   const [totalMinutes, setTotalMinutes] = useState(0);
 
-  const requiredMinutes = 2700;
+  // const requiredMinutes = 2700;
 
   /* -------- Initialize Week -------- */
 
@@ -120,19 +120,29 @@ export default function AvailabilitySlots() {
   };
 
   const updateSlot = (day, index, field, value) => {
-    setWeekData((prev) => {
-      const updatedSlots = [...prev[day].slots];
-      updatedSlots[index][field] = value;
+  setWeekData((prev) => {
+    const updatedSlots = [...prev[day].slots];
 
-      return {
-        ...prev,
-        [day]: {
-          ...prev[day],
-          slots: updatedSlots,
-        },
-      };
-    });
-  };
+    updatedSlots[index][field] = value;
+
+    // If startTime changed, reset endTime if invalid
+    if (field === "startTime") {
+      const end = updatedSlots[index].endTime;
+      if (end && end <= value) {
+        updatedSlots[index].endTime = "";
+      }
+    }
+
+    return {
+      ...prev,
+      [day]: {
+        ...prev[day],
+        slots: updatedSlots,
+      },
+    };
+  });
+};
+
 
  const removeSlot = async (day, index) => {
   const slot = weekData[day].slots[index];
@@ -197,10 +207,10 @@ const handleSubmit = async () => {
     return;
   }
 
-  if (totalMinutes < requiredMinutes) {
-    alert("Minimum 45 hours required per week.");
-    return;
-  }
+  // if (totalMinutes < requiredMinutes) {
+  //   alert("Minimum 45 hours required per week.");
+  //   return;
+  // }
 
   try {
     for (const day of Object.keys(weekData)) {
@@ -323,6 +333,16 @@ const formatTime = (isoString) => {
   return date.toISOString().substring(11, 16);
 };
 
+
+const formatToUS = (dateString) => {
+  if (!dateString) return "";
+  return new Date(dateString).toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  });
+};
+
   /* -------- UI -------- */
 
   return (
@@ -336,19 +356,23 @@ const formatTime = (isoString) => {
       <Card className="shadow-sm border-0 mb-4">
         <Card.Body>
           <Form.Label>Select Week Start (Monday)</Form.Label>
-          <Form.Control
-            type="date"
-            value={weekStart}
-            onChange={(e) => {
-              setWeekStart(e.target.value);
-              initializeWeek(e.target.value);
-            }}
-          />
+         <Form.Control
+  type="date"
+  value={weekStart}
+  onClick={(e) => e.target.showPicker()}
+  onChange={(e) => {
+    setWeekStart(e.target.value);
+    initializeWeek(e.target.value);
+  }}
+  style={{ cursor: "pointer" }}
+/>
+
+
         </Card.Body>
       </Card>
 
       {/* Hours UI */}
-      <Card className="shadow-sm border-0 mb-4">
+      {/* <Card className="shadow-sm border-0 mb-4">
         <Card.Body>
           <Row className="align-items-center">
             <Col md={8}>
@@ -379,7 +403,7 @@ const formatTime = (isoString) => {
             Minimum 45 hours required per week.
           </div>
         </Card.Body>
-      </Card>
+      </Card> */}
 
       {/* Options */}
       <Card className="shadow-sm border-0 mb-4">
@@ -408,43 +432,76 @@ const formatTime = (isoString) => {
         {Object.keys(weekData).map((day, idx) => (
           <Accordion.Item eventKey={idx.toString()} key={day}>
             <Accordion.Header>
-              {day} ({weekData[day].date})
+              {day} ({formatToUS(weekData[day].date)})
             </Accordion.Header>
 
             <Accordion.Body>
               {weekData[day].slots.map((slot, index) => (
-                <Row key={index} className="mb-3">
-                  <Col md={5}>
-                    <Form.Control
-                      type="time"
-                      value={slot.startTime}
-                      onChange={(e) =>
-                        updateSlot(day, index, "startTime", e.target.value)
-                      }
-                    />
-                  </Col>
+                <div
+  key={index}
+  className="d-flex align-items-center gap-3 mb-3 flex-wrap"
+>
+  <div style={{ flex: "1 1 200px" }}>
+    <Form.Control
+      type="time"
+      value={slot.startTime}
+      onChange={(e) => {
+  const newStart = e.target.value;
 
-                  <Col md={5}>
-                    <Form.Control
-                      type="time"
-                      value={slot.endTime}
-                      onChange={(e) =>
-                        updateSlot(day, index, "endTime", e.target.value)
-                      }
-                    />
-                  </Col>
+  setWeekData((prev) => {
+    const updatedSlots = [...prev[day].slots];
 
-                  <Col md={2}>
-                    <Button
-                      variant="outline-danger"
-                      onClick={() =>
-                        removeSlot(day, index)
-                      }
-                    >
-                      Remove
-                    </Button>
-                  </Col>
-                </Row>
+    updatedSlots[index].startTime = newStart;
+
+    // If end time is now invalid → reset it
+    if (
+      updatedSlots[index].endTime &&
+      updatedSlots[index].endTime <= newStart
+    ) {
+      updatedSlots[index].endTime = "";
+    }
+
+    return {
+      ...prev,
+      [day]: {
+        ...prev[day],
+        slots: updatedSlots,
+      },
+    };
+  });
+}}
+
+    />
+  </div>
+
+  <div style={{ flex: "1 1 200px" }}>
+    <Form.Control
+      type="time"
+      value={slot.endTime}
+      min={slot.startTime || undefined}
+      onChange={(e) => {
+  const newEnd = e.target.value;
+  const start = slot.startTime;
+
+  if (start && newEnd <= start) {
+    alert("End time must be greater than start time");
+    return;
+  }
+
+  updateSlot(day, index, "endTime", newEnd);
+}}
+
+    />
+  </div>
+
+  <Button
+    variant="outline-danger"
+    onClick={() => removeSlot(day, index)}
+  >
+    Remove
+  </Button>
+</div>
+
               ))}
 
               <Button
@@ -463,7 +520,7 @@ const formatTime = (isoString) => {
           size="lg"
           variant="primary"
           onClick={handleSubmit}
-          disabled={totalMinutes < requiredMinutes}
+          // disabled={totalMinutes < requiredMinutes}
         >
           Save Time Slots
         </Button>
