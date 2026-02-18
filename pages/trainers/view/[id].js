@@ -29,8 +29,13 @@ export default function TrainerProfile() {
 
 
 const [currentMonth, setCurrentMonth] = useState(new Date());
-const [selectedDate, setSelectedDate] = useState(null);
+const [selectedDate, setSelectedDate] = useState(new Date());
 const [selectedWeekDate, setSelectedWeekDate] = useState(null);
+
+// Demo status data (UI only)
+const bookedDates = ["2026-02-16", "2026-02-18"];
+const holidayDates = ["2026-02-22"];
+
 
   /* ================= LOAD DATA ================= */
   useEffect(() => {
@@ -369,7 +374,7 @@ const sessionsForSelectedDay = selectedDate
     }`}
     onClick={() => setActiveTab("sessions")}
   >
-    Sessions
+    Session Management
   </button>
 </li>
 
@@ -588,7 +593,7 @@ const sessionsForSelectedDay = selectedDate
                     {/* ================= SESSIONS SECTION ================= */}
           {activeTab === "sessions" && (
   <>
-    <h5 className="fw-bold mb-4">Trainer Sessions</h5>
+    {/* <h5 className="fw-bold mb-4">Trainer Sessions</h5> */}
 
     {/* ================= CALENDAR CARD ================= */}
     <div className="calendar-card">
@@ -625,113 +630,137 @@ const sessionsForSelectedDay = selectedDate
       </div>
 
       {/* Calendar Grid */}
-      <div className="calendar-grid">
-        {generateCalendarDays().map((date, index) => {
-          if (!date) return <div key={index}></div>;
+{/* Calendar Grid */}
+<div className="calendar-grid">
+  {generateCalendarDays().map((date, index) => {
+    if (!date) return <div key={index}></div>;
 
-          const isToday =
-            date.toDateString() === new Date().toDateString();
+    const formatted = formatDate(date);
 
-          const isSelected =
-            selectedDate &&
-            date.toDateString() === selectedDate.toDateString();
+    const isBooked = bookedDates.includes(formatted);
+    const isHoliday = holidayDates.includes(formatted);
+    const isToday =
+      date.toDateString() === new Date().toDateString();
 
-          return (
-            <div
-              key={index}
-              className={`calendar-cell 
-                ${isToday ? "today" : ""}
-                ${isSelected ? "selected" : ""}
-              `}
-              onClick={() => {
-                setSelectedDate(date);
-                setSelectedWeekDate(null);
-              }}
-            >
-              {date.getDate()}
-            </div>
-          );
-        })}
+    const isSelected =
+      selectedDate &&
+      date.toDateString() === selectedDate.toDateString();
+
+    let statusClass = "available";
+    if (isBooked) statusClass = "booked";
+    if (isHoliday) statusClass = "holiday";
+
+    return (
+      <div
+        key={index}
+        className={`calendar-cell 
+          ${statusClass}
+          ${isSelected ? "selected" : ""}
+        `}
+        onClick={() => setSelectedDate(date)}
+      >
+        {date.getDate()}
       </div>
+    );
+  })}
+</div>
+
+{/* Legend */}
+<div className="calendar-legend">
+  <span className="legend-item booked-dot">Booked</span>
+  <span className="legend-item available-dot">Available</span>
+  <span className="legend-item holiday-dot">Holiday</span>
+</div>
+
 
       {/* Hours Section */}
-      <div className="hours-wrapper">
-        <div className="hours-card">
-          <span>Weekly Available</span>
-          <h4>45 hrs</h4>
-        </div>
+      <div className="stats-wrapper">
 
-        <div className="hours-card">
-          <span>Assigned This Week</span>
-          <h4>{weeklyAssignedHours.toFixed(1)} hrs</h4>
-        </div>
-      </div>
+  <div className="stats-card">
+    <p className="stats-label">
+      Hours remaining for this week
+    </p>
+    <h2 className="stats-value">
+      45
+    </h2>
+  </div>
+
+  <div className="stats-card">
+    <p className="stats-label">
+      Total Booking hours for this week
+    </p>
+    <h2 className="stats-value">
+      {weeklyAssignedHours.toFixed(1)}
+    </h2>
+  </div>
+
+</div>
+
 
     </div>
 
     {/* ================= WEEKLY STRIP ================= */}
     {selectedDate && (
       <>
-        <div className="weekly-strip">
-          {getWeekDates(selectedDate).map((date, index) => {
-            const isActive =
-              selectedWeekDate
-                ? date.toDateString() ===
-                  selectedWeekDate.toDateString()
-                : date.toDateString() ===
-                  selectedDate.toDateString();
-
-            return (
-              <div
-                key={index}
-                className={`week-box ${isActive ? "active" : ""}`}
-                onClick={() => setSelectedWeekDate(date)}
-              >
-                <small>
-                  {date.toLocaleString("default", {
-                    weekday: "short",
-                  })}
-                </small>
-                <strong>{date.getDate()}</strong>
-              </div>
-            );
-          })}
-        </div>
-
+        
         {/* ================= SESSION CARDS ================= */}
-        <div className="session-wrapper">
+        <div className="booking-wrapper">
 
-          {demoSlots
-            .filter(
-              (s) =>
-                s.date ===
-                formatDate(selectedWeekDate || selectedDate)
-            )
-            .map((slot) => (
-              <div key={slot.id} className="session-card">
+  {demoSlots
+    .filter(
+      (s) =>
+        s.date ===
+        formatDate(selectedWeekDate || selectedDate)
+    )
+    .map((slot) => {
 
-                <div>
-                  <h6 className="mb-1">
-                    {slot.customer}
-                  </h6>
-                  <small>
-                    {slot.start} - {slot.end}
-                  </small>
-                </div>
+      const isPremium = slot.customer === "John Doe"; // demo logic
 
-                <div className="session-actions">
-                  <button className="btn-reschedule">
-                    Reschedule
-                  </button>
-                  <button className="btn-cancel">
-                    Cancel
-                  </button>
-                </div>
+      return (
+        <div key={slot.id} className="booking-card">
 
+          {/* LEFT SECTION */}
+          <div className="booking-left">
+
+            <img
+              src="https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+              className="booking-avatar"
+              alt="avatar"
+            />
+
+            <div>
+              <div className="booking-name-row">
+                <h6 className="booking-name">
+                  {slot.customer}
+                </h6>
+
+                {isPremium && (
+                  <span className="crown">👑</span>
+                )}
               </div>
-            ))}
+
+              <div className="booking-info">
+                <span>📅 {slot.date}</span>
+                <span>⏰ {slot.start} - {slot.end}</span>
+                <span>📍 Body care Gym</span>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT SECTION */}
+          <div className="booking-actions">
+  <button className="btn-cancel">
+    Cancel
+  </button>
+</div>
+
 
         </div>
+      );
+    })}
+
+</div>
+
       </>
     )}
   </>

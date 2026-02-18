@@ -99,10 +99,15 @@ const NavbarVertical = (props) => {
   return (
     <Fragment>
       <SimpleBar style={{ maxHeight: "100vh" }}>
-      <div className="navbar-brand custom-brand">
-    <img src="https://res.cloudinary.com/dbazlbkfj/image/upload/v1771390209/Layer_x0020_1_p5f6fs.png" className="logo-text" alt="logo text"
-    />
-</div>
+
+      {/* LOGO */}
+      <Link href="/dashboard" className="navbar-brand custom-brand">
+        <img
+          src="https://res.cloudinary.com/dbazlbkfj/image/upload/v1771390209/Layer_x0020_1_p5f6fs.png"
+          className="logo-text"
+          alt="logo text"
+        />
+      </Link>
         {/* Dashboard Menu */}
         <Accordion
           defaultActiveKey="0"

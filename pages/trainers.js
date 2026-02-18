@@ -97,21 +97,15 @@ const updateTrainerStatus = async (id, newStatus) => {
   try {
     const token = localStorage.getItem("adminToken");
 
-    const trainerToUpdate = trainers.find((t) => t.id === id);
-
     const response = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}`,
+      `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}/toggle-active`,
       {
-        method: "PUT",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          firstName: trainerToUpdate.firstName,
-          lastName: trainerToUpdate.lastName,
-          email: trainerToUpdate.email,
-          phone: trainerToUpdate.phone,
           isActive: newStatus === "Active",
         }),
       }
@@ -120,23 +114,24 @@ const updateTrainerStatus = async (id, newStatus) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Failed to update status");
+      throw new Error(data.message || "Status update failed");
     }
 
-    // Update UI instantly after success
-    const updated = trainers.map((trainer) =>
-      trainer.id === id
-        ? { ...trainer, isActive: newStatus === "Active" }
-        : trainer
+    // 🔥 Update UI instantly
+    setTrainers((prev) =>
+      prev.map((trainer) =>
+        trainer.id === id
+          ? { ...trainer, isActive: newStatus === "Active" }
+          : trainer
+      )
     );
 
-    setTrainers(updated);
-
   } catch (error) {
-    console.error("Status Update Error:", error.message);
+    console.error("Toggle Error:", error.message);
     alert(error.message);
   }
 };
+
 
 
 
@@ -577,12 +572,15 @@ const filteredCustomers = customers.filter((customer) => {
                   Edit
                 </Dropdown.Item>
 
-<Dropdown.Item
-  onClick={() => openAssignModal(trainer.id)}
->
-  <i className="fe fe-users me-2 text-primary"></i>
-  Assign Customers
-</Dropdown.Item>
+{trainer.isActive && (
+  <Dropdown.Item
+    onClick={() => openAssignModal(trainer.id)}
+  >
+    <i className="fe fe-users me-2 text-primary"></i>
+    Assign Customers
+  </Dropdown.Item>
+)}
+
 
                 <Dropdown.Divider />
 
