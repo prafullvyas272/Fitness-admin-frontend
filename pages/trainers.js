@@ -58,8 +58,13 @@ useEffect(() => {
     return;
   }
 
-  dispatch(fetchTrainers());
-}, [dispatch]);
+  // ✅ Only fetch if trainers not already in Redux
+  if (trainers.length === 0) {
+    dispatch(fetchTrainers());
+  }
+
+}, [dispatch, trainers.length]);
+
 
 
 
@@ -353,9 +358,13 @@ const filteredCustomers = customers.filter((customer) => {
 
           {/* CREATE BUTTON */}
           <Link href="/trainers/create">
-            <Button variant="primary" className="px-4">
-              + Create Trainer
-            </Button>
+            <Button
+  variant="primary"
+  className="px-4 py-2 rounded-3 fw-semibold"
+>
+  + Create Trainer
+</Button>
+
           </Link>
         </Col>
       </Row>
@@ -656,41 +665,40 @@ const filteredCustomers = customers.filter((customer) => {
     <div style={{ maxHeight: "250px", overflowY: "auto" }}>
 
   {assignLoading ? (
-    <p className="text-center text-muted fw-semibold">
-      Loading customers...
-    </p>
+  <p className="text-center text-muted fw-semibold">
+    Loading customers...
+  </p>
+) : filteredCustomers.length === 0 ? (
+  <p className="text-center text-muted fw-semibold">
+    No customers found
+  </p>
+) : (
+  filteredCustomers.map((customer) => (
+    <Form.Check
+      key={customer.id}
+      type="checkbox"
+      label={`${customer.firstName} ${customer.lastName}`}
+      value={customer.id}
+      checked={selectedCustomers.includes(customer.id)}
+      onChange={(e) => {
+        if (e.target.checked) {
+          setSelectedCustomers([
+            ...selectedCustomers,
+            customer.id,
+          ]);
+        } else {
+          setSelectedCustomers(
+            selectedCustomers.filter(
+              (id) => id !== customer.id
+            )
+          );
+        }
+      }}
+      className="mb-2"
+    />
+  ))
+)}
 
-  ) : customers.length === 0 ? (
-    <p className="text-center text-muted">
-      No customers found
-    </p>
-
-  ) : (
-    customers.map((customer) => (
-      <Form.Check
-        key={customer.id}
-        type="checkbox"
-        label={`${customer.firstName} ${customer.lastName}`}
-        value={customer.id}
-        checked={selectedCustomers.includes(customer.id)}
-        onChange={(e) => {
-          if (e.target.checked) {
-            setSelectedCustomers([
-              ...selectedCustomers,
-              customer.id,
-            ]);
-          } else {
-            setSelectedCustomers(
-              selectedCustomers.filter(
-                (id) => id !== customer.id
-              )
-            );
-          }
-        }}
-        className="mb-2"
-      />
-    ))
-  )}
 
 </div>
 

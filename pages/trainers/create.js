@@ -449,18 +449,73 @@ const countryOptions = [
               <Col md={3} className="fw-semibold">Status:</Col>
               <Col md={9}>
                 <InputGroup>
-                  <InputGroup.Text className="bg-light border-0">
-                    <i className="fe fe-activity"></i>
-                  </InputGroup.Text>
-                  <Form.Select
-                    name="status"
-                    value={trainer.status}
-                    onChange={handleChange}
-                    className="bg-light border-0 custom-input"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </Form.Select>
+              
+                  <Dropdown>
+  <Dropdown.Toggle
+    variant="light"
+    className="bg-light border-0 custom-input d-flex align-items-center"
+    style={{ width: "100%", justifyContent: "space-between" }}
+  >
+    <div className="d-flex align-items-center">
+      <span
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          backgroundColor:
+            trainer.status === "Active" ? "#22c55e" : "#dc3545",
+          marginRight: 8,
+        }}
+      ></span>
+
+      <span className="fw-semibold">
+        {trainer.status}
+      </span>
+    </div>
+  </Dropdown.Toggle>
+
+  <Dropdown.Menu className="shadow border-0 rounded-3">
+
+    <Dropdown.Item
+      onClick={() =>
+        setTrainer({ ...trainer, status: "Active" })
+      }
+    >
+      <span
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          backgroundColor: "#22c55e",
+          display: "inline-block",
+          marginRight: 8,
+        }}
+      ></span>
+      Active
+    </Dropdown.Item>
+
+    <Dropdown.Item
+      onClick={() =>
+        setTrainer({ ...trainer, status: "Inactive" })
+      }
+    >
+      <span
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          backgroundColor: "#dc3545",
+          display: "inline-block",
+          marginRight: 8,
+        }}
+      ></span>
+      Inactive
+    </Dropdown.Item>
+
+  </Dropdown.Menu>
+</Dropdown>
+
+
                 </InputGroup>
               </Col>
             </Row>

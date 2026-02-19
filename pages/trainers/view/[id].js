@@ -16,20 +16,71 @@ import { fetchTrainerById } from "../../../redux/slices/trainerSlice";
 import { removeCustomerFromTrainer } from "../../../redux/slices/trainerSlice";
 
 import { fetchTrainerSessions } from "../../../redux/slices/sessionSlice";
-
+import { 
+  setSelectedTrainer 
+} from "../../../redux/slices/trainerSlice";
 
 
 export default function TrainerProfile() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const { sessions, loading: sessionLoading } = useSelector(
+ const { sessions: reduxSessions, loading: sessionLoading } = useSelector(
   (state) => state.sessions
 );
 
-const { selectedTrainer: trainer, loading } = useSelector(
+// 🔥 Demo sessions (temporary UI testing)
+const demoSessions = [
+  {
+    id: 1,
+    customer: "Aman Sharma",
+    date: "2026-02-19",
+    start: "09:00",
+    end: "10:00",
+  },
+  {
+    id: 2,
+    customer: "Riya Patel",
+    date: "2026-02-19",
+    start: "11:00",
+    end: "12:30",
+  },
+  {
+    id: 3,
+    customer: "John Doe",
+    date: "2026-02-19",
+    start: "15:00",
+    end: "16:00",
+  },
+  {
+    id: 4,
+    customer: "Neha Verma",
+    date: "2026-02-20",
+    start: "08:00",
+    end: "09:00",
+  },
+  {
+    id: 5,
+    customer: "Rahul Mehta",
+    date: "2026-02-21",
+    start: "17:00",
+    end: "18:00",
+  },
+];
+
+// Use demo if redux empty
+const sessions =
+  reduxSessions && reduxSessions.length > 0
+    ? reduxSessions
+    : demoSessions;
+
+
+const { trainers, selectedTrainer, loading } = useSelector(
   (state) => state.trainers
 );
+
+const trainer = selectedTrainer;
+
 
   const { id } = router.query;
 
@@ -39,6 +90,7 @@ const { selectedTrainer: trainer, loading } = useSelector(
   const [showModal, setShowModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedTrainerId, setSelectedTrainerId] = useState("");
+  
 
   const [showImageModal, setShowImageModal] = useState(false);
 
@@ -56,16 +108,25 @@ const holidayDates = ["2026-02-22"];
  /* ================= LOAD DATA ================= */
 
 useEffect(() => {
-  if (id) {
+  if (!id) return;
+
+  const existingTrainer = trainers.find(
+    (t) => String(t.id) === String(id)
+  );
+
+  if (
+    existingTrainer &&
+    existingTrainer.userProfileDetails &&
+    existingTrainer.userProfileDetails.length > 0
+  ) {
+    dispatch(setSelectedTrainer(existingTrainer));
+  } else {
     dispatch(fetchTrainerById(id));
   }
-}, [id, dispatch]);
 
-useEffect(() => {
-  if (trainer?.id) {
-    dispatch(fetchTrainerSessions(trainer.id));
-  }
-}, [trainer?.id, dispatch]);
+}, [id, trainers, dispatch]);
+
+
 
 
 
@@ -305,8 +366,14 @@ const getWeekDates = (date) => {
 
 const formatDate = (date) => {
   if (!date) return null;
-  return date.toISOString().split("T")[0];
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 };
+
 
 const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
 
@@ -315,7 +382,21 @@ const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
 
   return (
     <div className="p-4">
-      <h3 className="fw-bold mb-4">Trainer Profile</h3>
+  {/* BACK BUTTON */}
+<div className="mb-3">
+  <Button
+    variant="outline-secondary"
+    className="px-3 rounded-3"
+    onClick={() => router.push("/trainers")}
+  >
+    ← Back
+  </Button>
+</div>
+
+{/* PAGE TITLE */}
+<h3 className="fw-bold mb-4">Trainer Profile</h3>
+
+
 
       <Card className="shadow-sm border-0 rounded-3">
         <Card.Body>
@@ -577,12 +658,12 @@ const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
           ‹
         </button>
 
-        <h6 className="mb-0 fw-semibold">
+        <h4 className="mb-0 fw-semibold">
           {currentMonth.toLocaleString("default", {
             month: "long",
             year: "numeric",
           })}
-        </h6>
+        </h4>
 
         <button
           className="calendar-nav"
@@ -693,37 +774,32 @@ const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
           {/* LEFT SECTION */}
           <div className="booking-left">
 
-            <img
-              src="https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
-              className="booking-avatar"
-              alt="avatar"
-            />
+  <div className="avatar-wrapper">
+    <img
+      src="https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
+      className="booking-avatar"
+      alt="avatar"
+    />
 
-            <div>
-              <div className="booking-name-row">
-                <h6 className="booking-name">
-                  {slot.customer}
-                </h6>
+    {isPremium && (
+      <span className="premium-badge">👑</span>
+    )}
+  </div>
 
-                {isPremium && (
-                  <span className="crown">👑</span>
-                )}
-              </div>
+  <div className="booking-content">
+    <h6 className="booking-name">
+      {slot.customer}
+    </h6>
 
-              <div className="booking-info">
-                <span>
-  📅 {new Date(slot.date).toLocaleDateString("en-US", {
-    month: "2-digit",
-    day: "2-digit",
-    year: "2-digit",
-  })}
-</span>
+    <div className="booking-meta">
+      <span>📅 {new Date(slot.date).toLocaleDateString()}</span>
+      <span>⏰ {slot.start} - {slot.end}</span>
+      <span>📍 Body care Gym</span>
+    </div>
+  </div>
 
-                <span>⏰ {slot.start} - {slot.end}</span>
-                <span>📍 Body care Gym</span>
-              </div>
-            </div>
-          </div>
+</div>
+
 
           {/* RIGHT SECTION */}
           {/* <div className="booking-actions">

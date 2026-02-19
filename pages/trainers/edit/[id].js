@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchTrainerById, updateTrainerAsync } from "../../../redux/slices/trainerSlice";
+import { 
+  fetchTrainerById, 
+  updateTrainerAsync,
+  setSelectedTrainer
+} from "../../../redux/slices/trainerSlice";
+
 import {
   Card,
   Form,
@@ -17,9 +22,10 @@ import Dropdown from "react-bootstrap/Dropdown";
 export default function EditTrainer() {
   const router = useRouter();
   const dispatch = useDispatch();
-const { selectedTrainer, loading } = useSelector(
+const { trainers, selectedTrainer, loading } = useSelector(
   (state) => state.trainers
 );
+
 
   const { id } = router.query;
 
@@ -42,10 +48,25 @@ const { selectedTrainer, loading } = useSelector(
 
   /* ================= LOAD TRAINER DATA ================= */
 useEffect(() => {
-  if (id) {
+  if (!id) return;
+
+  const existingTrainer = trainers.find(
+    (t) => String(t.id) === String(id)
+  );
+
+  if (
+    existingTrainer &&
+    existingTrainer.userProfileDetails &&
+    existingTrainer.userProfileDetails.length > 0
+  ) {
+    dispatch(setSelectedTrainer(existingTrainer));
+  } else {
     dispatch(fetchTrainerById(id));
   }
-}, [id, dispatch]);
+
+}, [id, trainers, dispatch]);
+
+
 
 useEffect(() => {
   if (selectedTrainer) {
@@ -453,27 +474,76 @@ if (loading || !trainer) {
             </Row>
 
             {/* STATUS */}
-            <Row className="mb-4 align-items-center">
-              <Col md={3} className="fw-semibold">
-                Status:
-              </Col>
-              <Col md={9}>
-                <InputGroup>
-                  <InputGroup.Text className="bg-light border-0">
-                    <i className="fe fe-activity"></i>
-                  </InputGroup.Text>
-                  <Form.Select
-                    name="status"
-                    value={trainer.status}
-                    onChange={handleChange}
-                    className="bg-light border-0 custom-input"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </Form.Select>
-                </InputGroup>
-              </Col>
-            </Row>
+            {/* STATUS */}
+<Row className="mb-4 align-items-center">
+  <Col md={3} className="fw-semibold">Status:</Col>
+
+  <Col md={9}>
+    <Dropdown>
+      <Dropdown.Toggle
+        variant="light"
+        className="bg-light border-0 custom-input d-flex align-items-center"
+        style={{ width: "100%", justifyContent: "space-between" }}
+      >
+        <div className="d-flex align-items-center">
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              backgroundColor:
+                trainer.status === "Active" ? "#22c55e" : "#dc3545",
+              marginRight: 8,
+            }}
+          ></span>
+
+          <span className="fw-semibold">
+            {trainer.status}
+          </span>
+        </div>
+      </Dropdown.Toggle>
+
+      <Dropdown.Menu className="shadow border-0 rounded-3">
+        <Dropdown.Item
+          onClick={() =>
+            setTrainer({ ...trainer, status: "Active" })
+          }
+        >
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              backgroundColor: "#22c55e",
+              display: "inline-block",
+              marginRight: 8,
+            }}
+          ></span>
+          Active
+        </Dropdown.Item>
+
+        <Dropdown.Item
+          onClick={() =>
+            setTrainer({ ...trainer, status: "Inactive" })
+          }
+        >
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              backgroundColor: "#dc3545",
+              display: "inline-block",
+              marginRight: 8,
+            }}
+          ></span>
+          Inactive
+        </Dropdown.Item>
+      </Dropdown.Menu>
+    </Dropdown>
+  </Col>
+</Row>
+
 
             {/* BUTTON */}
             
