@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   Card,
   Row,
@@ -22,7 +24,7 @@ const daysOfWeek = [
 ];
 
 export default function AvailabilitySlots() {
-  const [weekStart, setWeekStart] = useState("");
+  const [weekStart, setWeekStart] = useState(null);
   const [weekData, setWeekData] = useState({});
   const [applyToAll, setApplyToAll] = useState(false);
   const [repeatMonth, setRepeatMonth] = useState(false);
@@ -336,12 +338,16 @@ const formatTime = (isoString) => {
 
 const formatToUS = (dateString) => {
   if (!dateString) return "";
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  });
+
+  const date = new Date(dateString);
+
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const year = String(date.getFullYear()).slice(-2);
+
+  return `${month}/${day}/${year}`;
 };
+
 
   /* -------- UI -------- */
 
@@ -355,17 +361,26 @@ const formatToUS = (dateString) => {
       {/* Week Start */}
       <Card className="shadow-sm border-0 mb-4">
         <Card.Body>
-          <Form.Label>Select Week Start (Monday)</Form.Label>
-         <Form.Control
-  type="date"
-  value={weekStart}
-  onClick={(e) => e.target.showPicker()}
-  onChange={(e) => {
-    setWeekStart(e.target.value);
-    initializeWeek(e.target.value);
+       <Form.Label>Select Week Start (Monday)</Form.Label>
+
+<div style={{ position: "relative" }}>
+  <DatePicker
+  selected={weekStart}
+  onChange={(date) => {
+    setWeekStart(date);
+
+    const isoDate = date.toISOString().split("T")[0];
+    initializeWeek(isoDate);
   }}
-  style={{ cursor: "pointer" }}
+  dateFormat="MM/dd/yy"
+  placeholderText="MM/DD/YY"
+  className="form-control"
+  calendarStartDay={1}
+  filterDate={(date) => date.getDay() === 1}
+  wrapperClassName="w-100"
 />
+</div>
+
 
 
         </Card.Body>
@@ -437,72 +452,81 @@ const formatToUS = (dateString) => {
 
             <Accordion.Body>
               {weekData[day].slots.map((slot, index) => (
-                <div
-  key={index}
-  className="d-flex align-items-center gap-3 mb-3 flex-wrap"
->
-  <div style={{ flex: "1 1 200px" }}>
-    <Form.Control
-      type="time"
-      value={slot.startTime}
-      onChange={(e) => {
-  const newStart = e.target.value;
-
-  setWeekData((prev) => {
-    const updatedSlots = [...prev[day].slots];
-
-    updatedSlots[index].startTime = newStart;
-
-    // If end time is now invalid → reset it
-    if (
-      updatedSlots[index].endTime &&
-      updatedSlots[index].endTime <= newStart
-    ) {
-      updatedSlots[index].endTime = "";
-    }
-
-    return {
-      ...prev,
-      [day]: {
-        ...prev[day],
-        slots: updatedSlots,
-      },
-    };
-  });
-}}
-
-    />
-  </div>
-
-  <div style={{ flex: "1 1 200px" }}>
-    <Form.Control
-      type="time"
-      value={slot.endTime}
-      min={slot.startTime || undefined}
-      onChange={(e) => {
-  const newEnd = e.target.value;
-  const start = slot.startTime;
-
-  if (start && newEnd <= start) {
-    alert("End time must be greater than start time");
-    return;
-  }
-
-  updateSlot(day, index, "endTime", newEnd);
-}}
-
-    />
-  </div>
-
-  <Button
-    variant="outline-danger"
-    onClick={() => removeSlot(day, index)}
+  <div
+    key={index}
+    className="d-flex align-items-center gap-3 mb-3 flex-wrap"
   >
-    Remove
-  </Button>
-</div>
 
-              ))}
+    {/* START TIME */}
+    <div style={{ flex: "1 1 200px" }}>
+      <DatePicker
+        selected={
+          slot.startTime
+            ? new Date(`1970-01-01T${slot.startTime}`)
+            : null
+        }
+        onChange={(date) => {
+          const formatted = date
+            .toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })
+            .substring(0, 5);
+
+          updateSlot(day, index, "startTime", formatted);
+        }}
+        showTimeSelect
+        showTimeSelectOnly
+        timeIntervals={15}
+        dateFormat="hh:mm aa"
+        placeholderText="Start time"
+        className="form-control custom-time-input"
+      />
+    </div>
+
+    {/* END TIME */}
+    <div style={{ flex: "1 1 200px" }}>
+      <DatePicker
+        selected={
+          slot.endTime
+            ? new Date(`1970-01-01T${slot.endTime}`)
+            : null
+        }
+        onChange={(date) => {
+          const formatted = date
+            .toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })
+            .substring(0, 5);
+
+          if (slot.startTime && formatted <= slot.startTime) {
+            alert("End time must be greater than start time");
+            return;
+          }
+
+          updateSlot(day, index, "endTime", formatted);
+        }}
+        showTimeSelect
+        showTimeSelectOnly
+        timeIntervals={15}
+        dateFormat="hh:mm aa"
+        placeholderText="End time"
+        className="form-control custom-time-input"
+      />
+    </div>
+
+    <Button
+      variant="outline-danger"
+      onClick={() => removeSlot(day, index)}
+    >
+      Remove
+    </Button>
+
+  </div>
+))}
 
               <Button
                 variant="outline-primary"

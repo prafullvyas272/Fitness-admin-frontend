@@ -114,8 +114,13 @@ export default function Speciality() {
   /* ---------------- UI ---------------- */
 
   return (
-  <div className="speciality-page p-4">
-    <h2 className="speciality-title mb-4">Speciality</h2>
+  <div className="speciality-page">
+    <div className="page-header">
+      <h2>Speciality</h2>
+      <p className="text-muted">
+        Manage trainer specialities here.
+      </p>
+    </div>
 
     {error && <Alert variant="danger">{error}</Alert>}
 
@@ -133,7 +138,6 @@ export default function Speciality() {
         {skills.map((skill) => (
           <div key={skill.id} className="speciality-chip">
             {skill.name}
-
             <span
               className="chip-close"
               onClick={() => removeSkill(skill.id)}
@@ -146,5 +150,6 @@ export default function Speciality() {
     </Card>
   </div>
 );
+
 
 }
