@@ -715,11 +715,20 @@ const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
     </div>
 
     {/* ================= WEEKLY STRIP ================= */}
-    {selectedDate && (
-      <>
-        
-        {/* ================= SESSION CARDS ================= */}
-        <div className="booking-wrapper">
+   {selectedDate && (
+  <>
+    {/* Show heading only if slots exist */}
+    {sessions.filter(
+      (s) =>
+        s.date === formatDate(selectedWeekDate || selectedDate)
+    ).length > 0 && (
+      <h5 className="fw-semibold mt-4 mb-3 booked-heading">
+        Booked Slots
+      </h5>
+    )}
+
+    <div className="booking-wrapper">
+
 
   {sessions
   .filter(
