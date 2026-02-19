@@ -101,7 +101,13 @@ const [selectedDate, setSelectedDate] = useState(new Date());
 const [selectedWeekDate, setSelectedWeekDate] = useState(null);
 
 // Demo status data (UI only)
-const bookedDates = ["2026-02-16", "2026-02-18"];
+const bookedDates = [
+  "2026-02-16",
+  "2026-02-18",
+  "2026-02-19",
+  "2026-02-20",
+];
+
 const holidayDates = ["2026-02-22"];
 
 
@@ -557,90 +563,44 @@ const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
                 </thead>
 
 <tbody>
-  {assignedCustomers.map((item) => {
-    const customer = item.customer;
+  {assignedCustomers.length === 0 ? (
+    <tr>
+      <td colSpan="6" className="text-center py-4 text-muted">
+        No customers assigned
+      </td>
+    </tr>
+  ) : (
+    assignedCustomers.map((item) => {
+      const customer = item.customer;
 
-    const removeTrainerFromCustomer = async (customerId) => {
-  if (!confirm("Remove this trainer from customer?")) return;
-
-  try {
-    const token = localStorage.getItem("adminToken");
-
-    const response = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/unassign-customer/${customerId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          trainerId: trainer.id,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Unassign failed");
-    }
-
-    // ✅ UPDATE REDUX INSTANTLY
-    dispatch(removeCustomerFromTrainer(customerId));
-
-    alert("Trainer removed successfully ✅");
-
-  } catch (error) {
-    alert(error.message);
-  }
-};
-
-
-    return (
-      <tr key={customer.id}>
-        <td className="fw-semibold">
-          {customer.firstName} {customer.lastName}
-        </td>
-        <td>{customer.email}</td>
-        <td>{customer.phone}</td>
-        <td>
-          <StatusPill isActive={item.isActive} />
-        </td>
-        <td>
-          <div
-  style={{alignItems: "center" }}
->
-  <span
-    style={{
-      width: 8,
-      height: 8,
-      borderRadius: "50%",
-      backgroundColor: "#22c55e",
-      marginRight: 6,
-    }}
-  ></span>
-
-    Assigned
-  
-</div>
-        </td>
-        <td className="text-end">
-          {/* <Button size="sm" variant="outline-primary">
-            Manage
-          </Button> */}
-          <Button
-  size="sm"
-  variant="outline-danger"
-  onClick={() => removeTrainerFromCustomer(customer.id)}
->
-  Remove Trainer
-</Button>
-        </td>
-      </tr>
-    );
-  })}
+      return (
+        <tr key={customer.id}>
+          <td className="fw-semibold">
+            {customer.firstName} {customer.lastName}
+          </td>
+          <td>{customer.email}</td>
+          <td>{customer.phone}</td>
+          <td>
+            <StatusPill isActive={item.isActive} />
+          </td>
+          <td>Assigned</td>
+          <td className="text-end">
+            <Button
+              size="sm"
+              variant="outline-danger"
+              onClick={() =>
+                removeTrainerFromCustomer(customer.id)
+              }
+            >
+              Remove Trainer
+            </Button>
+          </td>
+        </tr>
+      );
+    })
+  )}
 </tbody>
+
               </Table>
             </>
           )}

@@ -627,8 +627,8 @@ img:hover {
 }
 
 .calendar-weekdays div {
-  font-size: 13px;
-  color: #ac3b3b;
+  font-size: 18px;
+  color: blue;
 }
 
 .calendar-cell {
@@ -640,19 +640,23 @@ img:hover {
 }
 
 /* Available = Green */
+/* Available = Slate Gray */
 .calendar-cell.available {
-  color: #000;
+  color: #64748b;
 }
 
-/* Booked = Red */
+/* Booked = Green */
 .calendar-cell.booked {
-  color: #ef4444;
+  color: #22c55e;   /* modern green */
+  font-weight: 600;
 }
 
-/* Holiday = Yellow */
+/* Holiday = Red */
 .calendar-cell.holiday {
-  color: #facc15;
+  color: #ef4444;   /* clean red */
+  font-weight: 600;
 }
+
 
 /* Selected Date */
 .calendar-cell.selected {
@@ -681,16 +685,17 @@ img:hover {
 }
 
 .booked-dot::before {
-  background: #ef4444;
+  background: #22c55e;
 }
 
 .available-dot::before {
-  background: #000;
+  background: #64748b;
 }
 
 .holiday-dot::before {
-  background: #facc15;
+  background: #ef4444;
 }
+
 
 
 /* ================= HOURS ================= */
@@ -706,26 +711,46 @@ img:hover {
 /* ===== Stats Card ===== */
 .stats-wrapper {
   display: flex;
+  min-width: 260px;
+  // justify-content: flex-end;
   gap: 24px;
   margin-top: 30px;
   flex-wrap: wrap;
 }
 
+// .stats-card {
+//   flex: 1;
+//   min-width: 260px;
+//   background: #ffffff;
+//   border-radius: 16px;
+//   padding: 28px;
+//   box-shadow: none;
+//   // border-left: 5px solid #3b82f6; /* Blue Accent */
+//   transition: all 0.25s ease;
+// }
+
 .stats-card {
-  flex: 1;
-  min-width: 260px;
   background: #ffffff;
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-  border-left: 5px solid #3b82f6; /* Blue Accent */
-  transition: all 0.25s ease;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;   /* soft border */
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);  /* subtle shadow */
+  transition: 0.2s ease;
 }
 
-.stats-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-}
+// .stats-card {
+//   background: #ffffff;
+//   padding: 20px;
+//   border-radius: 12px;
+//   border: 1px solid #e5e7eb;
+//   box-shadow: none;
+// }
+
+
+// .stats-card:hover {
+//   transform: translateY(-4px);
+//   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+// }
 
 .stats-label {
   font-size: 14px;
@@ -765,7 +790,7 @@ img:hover {
   box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
 
   /* Blue accent left border */
-  border-left: 5px solid #2563eb;
+  // border-left: 5px solid #2563eb;
 
   transition: all 0.25s ease;
 }
@@ -1175,3 +1200,88 @@ img:hover {
   background-color: #2563eb !important;
   color: #ffffff !important;
 }
+
+//try
+/* ===== SIDEBAR BACKGROUND ===== */
+.navbar-vertical {
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%) !important;
+  border-right: 1px solid #1e293b;
+}
+
+/* ===== LOGO AREA ===== */
+.navbar-vertical .navbar-brand {
+  padding: 20px 20px;
+}
+
+/* ===== GROUP TITLE ===== */
+.navbar-heading {
+  color: #94a3b8 !important;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 15px 20px 5px;
+}
+
+/* ===== NAV LINKS ===== */
+.navbar-vertical .nav-link {
+  color: #cbd5e1 !important;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin: 4px 10px;
+  transition: all 0.25s ease;
+}
+
+/* ===== HOVER ===== */
+.navbar-vertical .nav-link:hover {
+  background-color: rgba(37, 99, 235, 0.15);
+  color: #ffffff !important;
+}
+
+/* ===== ACTIVE LINK ===== */
+.navbar-vertical .nav-link.active {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+/* ===== ICONS ===== */
+.navbar-vertical .nav-icon {
+  color: #94a3b8;
+}
+
+.navbar-vertical .nav-link.active .nav-icon {
+  color: #ffffff;
+}
+
+//delete icon
+.delete-toggle-btn {
+  transition: all 0.2s ease;
+}
+
+/* When selected */
+.active-delete {
+  background-color: #e2e7f0 !important;  /* nice grey */
+  border: 1px solid #b7bdc6 !important;
+}
+
+/* Optional hover polish */
+.delete-toggle-btn:hover {
+  background-color: #f3f4f6;
+}
+
+//
+
+/* Remove bootstrap default arrow */
+.dropdown-toggle::after {
+  display: none !important;
+}
+
+/* Remove space-between */
+.status-toggle-left {
+  display: flex !important;
+  align-items: center;
+  width: 100%;
+  padding: 10px 15px;
+}
+

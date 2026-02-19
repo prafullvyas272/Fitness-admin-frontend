@@ -110,6 +110,7 @@ const updateTrainerStatus = async (id, newStatus) => {
 };
 
 
+const [isDeleteSelected, setIsDeleteSelected] = useState(false);
 
 
 const handleDelete = async (id) => {
@@ -344,17 +345,23 @@ const filteredCustomers = customers.filter((customer) => {
 
           </Dropdown>
 
-          {/* DELETE BUTTON (same style) */}
           <Button
-            className="btn btn-light border d-flex align-items-center justify-content-center"
-            style={{ width: 42, height: 42 }}
-            onClick={() => {
-              setSelectionMode(!selectionMode);
-              setSelectedIds([]);
-            }}
-          >
-            <i className="fe fe-trash text-secondary"></i>
-          </Button>
+  className={`btn d-flex align-items-center justify-content-center delete-toggle-btn ${
+    selectionMode ? "active-delete" : "btn-light border"
+  }`}
+  style={{ width: 42, height: 42 }}
+  onClick={() => {
+    setSelectionMode(!selectionMode);
+    setSelectedIds([]);
+  }}
+>
+  <i
+    className={`fe fe-trash ${
+      selectionMode ? "text-dark" : "text-secondary"
+    }`}
+  ></i>
+</Button>
+
 
           {/* CREATE BUTTON */}
           <Link href="/trainers/create">

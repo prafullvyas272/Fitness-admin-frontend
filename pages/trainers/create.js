@@ -451,28 +451,38 @@ const countryOptions = [
                 <InputGroup>
               
                   <Dropdown>
-  <Dropdown.Toggle
-    variant="light"
-    className="bg-light border-0 custom-input d-flex align-items-center"
-    style={{ width: "100%", justifyContent: "space-between" }}
-  >
-    <div className="d-flex align-items-center">
-      <span
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: "50%",
-          backgroundColor:
-            trainer.status === "Active" ? "#22c55e" : "#dc3545",
-          marginRight: 8,
-        }}
-      ></span>
+<Dropdown.Toggle
+  variant="light"
+  className="bg-light border-0 custom-input status-toggle-left"
+>
+  <div className="d-flex align-items-center gap-2">
 
-      <span className="fw-semibold">
-        {trainer.status}
-      </span>
-    </div>
-  </Dropdown.Toggle>
+    {/* Arrow FIRST */}
+    <i className="fe fe-chevron-down small text-muted"></i>
+
+    {/* Status Dot */}
+    <span
+      style={{
+        width: 8,
+        height: 8,
+        borderRadius: "50%",
+        backgroundColor:
+          trainer.status === "Active" ? "#22c55e" : "#dc3545",
+      }}
+    ></span>
+
+    {/* Status Text */}
+    <span className="fw-semibold">
+      {trainer.status}
+    </span>
+
+  </div>
+</Dropdown.Toggle>
+
+
+
+
+
 
   <Dropdown.Menu className="shadow border-0 rounded-3">
 

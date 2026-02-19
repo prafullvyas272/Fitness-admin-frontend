@@ -127,7 +127,7 @@ export default function Speciality() {
     <Card className="speciality-card">
       <Form.Control
         type="text"
-        placeholder="Type speciality and press Enter..."
+        placeholder="Type speciality and press enter"
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
