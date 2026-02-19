@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { createTrainer } from "../../redux/slices/trainerSlice";
 import {
   Card,
   Form,
@@ -8,24 +10,33 @@ import {
   InputGroup,
 } from "react-bootstrap";
 import { useRouter } from "next/router";
+import ReactCountryFlag from "react-country-flag";
+import Dropdown from "react-bootstrap/Dropdown";
+
 
 export default function CreateTrainer() {
   const router = useRouter();
 
-  const [trainer, setTrainer] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    countryCode: "+91",
-    hostGymName: "",
-    hostGymAddress: "",
-    address: "",
-    bio: "",
-    status: "Active",
-    avatarFile: null,
-    avatarPreview: "",
-  });
+const dispatch = useDispatch();
+const { loading } = useSelector((state) => state.trainers);
+
+const [trainer, setTrainer] = useState({
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  countryCode: "+91",
+  country: "IN",   // 🔥 IMPORTANT
+  hostGymName: "",
+  hostGymAddress: "",
+  address: "",
+  bio: "",
+  status: "Active",
+  avatarFile: null,
+  avatarPreview: "",
+});
+
+
 
   const handleChange = (e) => {
     setTrainer({
@@ -59,78 +70,85 @@ export default function CreateTrainer() {
       return;
     }
 
-    const formData = new FormData();
+    /* ================= VALIDATIONS ================= */
 
+    if (trainer.phone.length < 10) {
+      alert("Phone number must be 10 digits");
+      return;
+    }
+
+    if (!trainer.email.endsWith(".com")) {
+      alert("Email must end with .com");
+      return;
+    }
+
+    if (trainer.avatarFile) {
+      const allowedTypes = ["image/png", "image/jpeg"];
+      if (!allowedTypes.includes(trainer.avatarFile.type)) {
+        alert("Avatar must be PNG or JPG");
+        return;
+      }
+
+      if (trainer.avatarFile.size > 2 * 1024 * 1024) {
+        alert("Avatar must be less than 2MB");
+        return;
+      }
+    }
+
+    /* ================= FORM DATA ================= */
+
+    const formData = new FormData();
     const fullPhone = trainer.countryCode + trainer.phone;
 
     formData.append("firstName", trainer.firstName);
     formData.append("lastName", trainer.lastName);
     formData.append("email", trainer.email);
     formData.append("phone", fullPhone);
-
     formData.append("password", "Trainer@123");
-    // formData.append("isActive", trainer.status === "Active" ? "true" : "false");
     formData.append("hostGymName", trainer.hostGymName);
     formData.append("hostGymAddress", trainer.hostGymAddress);
     formData.append("address", trainer.address);
     formData.append("bio", trainer.bio);
 
-    // 🔥 THIS IS THE IMPORTANT PART
     if (trainer.avatarFile) {
       formData.append("avatar", trainer.avatarFile);
     }
-    if (trainer.phone.length < 10) {
-  alert("Phone number must be 10 digits");
-  return;
-}
 
-if (!trainer.email.endsWith(".com")) {
-  alert("Email must end with .com");
-  return;
-}
+    /* ================= REDUX DISPATCH ================= */
 
+    const resultAction = await dispatch(createTrainer(formData));
 
-    const response = await fetch(
-      "https://fitness-app-seven-beryl.vercel.app/api/trainers",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`, // ❌ DO NOT SET Content-Type
-        },
-        body: formData,
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to create trainer");
+    if (createTrainer.fulfilled.match(resultAction)) {
+      alert("Trainer created successfully ✅");
+      router.push("/trainers");
+    } else {
+      alert(resultAction.payload || "Failed to create trainer");
     }
-
-    alert("Trainer created successfully ✅");
-    router.push("/trainers");
 
   } catch (error) {
     alert(error.message);
   }
 };
 
+
 const countryOptions = [
-  { code: "+91", label: "🇮🇳 +91" },
-  { code: "+1", label: "🇺🇸 +1" },
-  { code: "+44", label: "🇬🇧 +44" },
-  { code: "+61", label: "🇦🇺 +61" },
-  { code: "+971", label: "🇦🇪 +971" },
-  { code: "+49", label: "🇩🇪 +49" },
-  { code: "+51", label: "🇵🇪 +51" },
+  { code: "+91", country: "IN" },
+  { code: "+1", country: "US" },
+  { code: "+44", country: "GB" },
+  { code: "+61", country: "AU" },
+  { code: "+971", country: "AE" },
+  { code: "+49", country: "DE" },
+  { code: "+51", country: "PE" },
 ];
+
+
 
 
   return (
     <div className="p-4">
 <div className="d-flex justify-content-between align-items-center mb-4">
-  <h3 className="fw-bold mb-0">Create Trainer</h3>
 
+  {/* LEFT SIDE BACK BUTTON */}
   <Button
     variant="outline-secondary"
     className="px-3 rounded-3"
@@ -158,12 +176,24 @@ const countryOptions = [
   >
     ← Back
   </Button>
+
+  {/* RIGHT SIDE CREATE BUTTON */}
+  <Button
+    type="submit"
+    variant="primary"
+    className="px-4 py-2 rounded-3"
+    disabled={loading}
+    form="createTrainerForm"
+  >
+    {loading ? "Creating..." : "Create Trainer"}
+  </Button>
+
 </div>
 
       <Card className="shadow-sm border-0 rounded-3">
         <Card.Body className="p-4">
 
-          <Form onSubmit={handleSubmit}>
+          <Form id="createTrainerForm" onSubmit={handleSubmit}>
 
             {/* AVATAR */}
 {/* AVATAR */}
@@ -273,20 +303,43 @@ const countryOptions = [
   <Col md={9}>
     <InputGroup>
 
-      {/* Country Code Dropdown */}
-      <Form.Select
-        name="countryCode"
-        value={trainer.countryCode}
-        onChange={handleChange}
-        className="country-code-select"
-        style={{ maxWidth: "140px" }}
-      >
-        {countryOptions.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.label}
-          </option>
-        ))}
-      </Form.Select>
+      {/* 🔥 NEW FLAG DROPDOWN */}
+      <Dropdown>
+        <Dropdown.Toggle
+          variant="light"
+          style={{ minWidth: "120px" }}
+          className="d-flex align-items-center justify-content-center"
+        >
+          <ReactCountryFlag
+            countryCode={trainer.country}
+            svg
+            style={{ width: "20px", marginRight: "8px" }}
+          />
+          {trainer.countryCode}
+        </Dropdown.Toggle>
+
+        <Dropdown.Menu>
+          {countryOptions.map((c) => (
+            <Dropdown.Item
+              key={c.code}
+              onClick={() =>
+                setTrainer({
+                  ...trainer,
+                  countryCode: c.code,
+                  country: c.country,
+                })
+              }
+            >
+              <ReactCountryFlag
+                countryCode={c.country}
+                svg
+                style={{ width: "20px", marginRight: "10px" }}
+              />
+              {c.code}
+            </Dropdown.Item>
+          ))}
+        </Dropdown.Menu>
+      </Dropdown>
 
       {/* Phone Number Input */}
       <Form.Control
@@ -305,6 +358,7 @@ const countryOptions = [
     </InputGroup>
   </Col>
 </Row>
+
 
 
 
@@ -412,17 +466,7 @@ const countryOptions = [
             </Row>
 
             {/* BUTTON */}
-            <Row>
-              <Col md={{ span: 9, offset: 3 }}>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="px-4 py-2 rounded-3"
-                >
-                  Create Trainer
-                </Button>
-              </Col>
-            </Row>
+            
 
           </Form>
 

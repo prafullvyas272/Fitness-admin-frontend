@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchTrainerById, updateTrainerAsync } from "../../../redux/slices/trainerSlice";
 import {
   Card,
   Form,
@@ -8,93 +10,83 @@ import {
   InputGroup,
 } from "react-bootstrap";
 import { useRouter } from "next/router";
+import ReactCountryFlag from "react-country-flag";
+import Dropdown from "react-bootstrap/Dropdown";
+
 
 export default function EditTrainer() {
   const router = useRouter();
+  const dispatch = useDispatch();
+const { selectedTrainer, loading } = useSelector(
+  (state) => state.trainers
+);
+
   const { id } = router.query;
 
   const [trainer, setTrainer] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    countryCode: "+91",
-    phone: "",
-    hostGymName: "",
-    hostGymAddress: "",
-    address: "",
-    bio: "",
-    status: "Active",
-    avatar: "",
-  });
+  firstName: "",
+  lastName: "",
+  email: "",
+  countryCode: "+91",
+  country: "IN",   // 🔥 ADD THIS
+  phone: "",
+  hostGymName: "",
+  hostGymAddress: "",
+  address: "",
+  bio: "",
+  status: "Active",
+  avatar: "",
+});
+
   const [originalTrainer, setOriginalTrainer] = useState(null); // for back alert
 
   /* ================= LOAD TRAINER DATA ================= */
 useEffect(() => {
-  if (!id) return;
+  if (id) {
+    dispatch(fetchTrainerById(id));
+  }
+}, [id, dispatch]);
 
-  const fetchTrainer = async () => {
-    try {
-      const token = localStorage.getItem("adminToken");
+useEffect(() => {
+  if (selectedTrainer) {
+    const details = selectedTrainer.userProfileDetails?.[0] || {};
 
-      const res = await fetch(
-        `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}/profile`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    const fullPhone = selectedTrainer.phone || "";
+    const countryMatch = fullPhone.match(/^\+\d{1,4}/);
+    const extractedCode = countryMatch ? countryMatch[0] : "+91";
+    const extractedNumber = fullPhone.replace(extractedCode, "");
 
-      const data = await res.json();
+    const countryMap = {
+  "+91": "IN",
+  "+1": "US",
+  "+44": "GB",
+  "+61": "AU",
+  "+971": "AE",
+  "+49": "DE",
+  "+51": "PE",
+};
 
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to fetch trainer");
-      }
-
-      const profile = data.data;
-const details = profile.userProfileDetails?.[0] || {};
-
-const fullPhone = profile.phone || "";
-const countryMatch = fullPhone.match(/^\+\d{1,4}/);
-const extractedCode = countryMatch ? countryMatch[0] : "+91";
-const extractedNumber = fullPhone.replace(extractedCode, "");
-
-setTrainer({
-  firstName: profile.firstName || "",
-  lastName: profile.lastName || "",
-  email: profile.email || "",
+const formattedTrainer = {
+  firstName: selectedTrainer.firstName || "",
+  lastName: selectedTrainer.lastName || "",
+  email: selectedTrainer.email || "",
   countryCode: extractedCode,
+  country: countryMap[extractedCode] || "IN", // 🔥 IMPORTANT
   phone: extractedNumber,
   hostGymName: details.hostGymName || "",
   hostGymAddress: details.hostGymAddress || "",
   address: details.address || "",
   bio: details.bio || "",
-  status: profile.isActive ? "Active" : "Inactive",
+  status: selectedTrainer.isActive ? "Active" : "Inactive",
   avatar: details.avatarUrl || "",
-});
-
-setOriginalTrainer({
-  firstName: profile.firstName || "",
-  lastName: profile.lastName || "",
-  email: profile.email || "",
-  countryCode: extractedCode,
-  phone: extractedNumber,
-  hostGymName: details.hostGymName || "",
-  hostGymAddress: details.hostGymAddress || "",
-  address: details.address || "",
-  bio: details.bio || "",
-  status: profile.isActive ? "Active" : "Inactive",
-});
+};
 
 
+    setTrainer(formattedTrainer);
+    setOriginalTrainer(formattedTrainer);
+  }
+}, [selectedTrainer]);
 
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
-  fetchTrainer();
-}, [id]);
 
 
 
@@ -121,64 +113,57 @@ setOriginalTrainer({
   const handleSubmit = async (e) => {
   e.preventDefault();
 
-  try {
-    const token = localStorage.getItem("adminToken");
+  const formData = {
+    firstName: trainer.firstName,
+    lastName: trainer.lastName,
+    email: trainer.email,
+    phone: trainer.countryCode + trainer.phone,
+    isActive: trainer.status === "Active",
+    hostGymName: trainer.hostGymName,
+    hostGymAddress: trainer.hostGymAddress,
+    address: trainer.address,
+    bio: trainer.bio,
+  };
 
-    const response = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          firstName: trainer.firstName,
-          lastName: trainer.lastName,
-          email: trainer.email,
-          phone: trainer.countryCode + trainer.phone,
-          isActive: trainer.status === "Active",
-          hostGymName: trainer.hostGymName,
-          hostGymAddress: trainer.hostGymAddress,
-          address: trainer.address,
-          bio: trainer.bio,
-        }),
-      }
-    );
+  const resultAction = await dispatch(
+    updateTrainerAsync({ id, formData })
+  );
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Update failed");
-    }
-
+  if (updateTrainerAsync.fulfilled.match(resultAction)) {
     alert("Trainer updated successfully ✅");
-    router.push(`/trainers/view/${id}`);
-
-  } catch (error) {
-    alert(error.message);
+    router.replace(`/trainers/view/${id}`);
+  } else {
+    alert(resultAction.payload || "Update failed");
   }
 };
 
+
 const countryOptions = [
-  { code: "+91", label: "🇮🇳 +91" },
-  { code: "+1", label: "🇺🇸 +1" },
-  { code: "+44", label: "🇬🇧 +44" },
-  { code: "+61", label: "🇦🇺 +61" },
-  { code: "+971", label: "🇦🇪 +971" },
+  { code: "+91", country: "IN" },
+  { code: "+1", country: "US" },
+  { code: "+44", country: "GB" },
+  { code: "+61", country: "AU" },
+  { code: "+971", country: "AE" },
+  { code: "+49", country: "DE" },
+  { code: "+51", country: "PE" },
 ];
 
+
+if (loading || !trainer) {
+  return <div className="p-4">Loading trainer...</div>;
+}
 
 
 
   return (
     <div className="p-4">
       {/* <h3 className="fw-bold mb-4">Edit Trainer</h3> */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-  <h3 className="fw-bold mb-0">Edit Trainer</h3>
+<div className="d-flex justify-content-between align-items-center mb-4">
 
+  {/* LEFT SIDE BACK BUTTON */}
   <Button
     variant="outline-secondary"
+    className="px-3 rounded-3"
     onClick={() => {
       if (
         originalTrainer &&
@@ -194,12 +179,26 @@ const countryOptions = [
   >
     ← Back
   </Button>
+
+  {/* RIGHT SIDE UPDATE BUTTON */}
+  <Button
+    type="submit"
+    variant="primary"
+    className="px-4 py-2 rounded-3"
+    disabled={loading}
+    form="editTrainerForm"
+  >
+    {loading ? "Updating..." : "Update Trainer"}
+  </Button>
+
 </div>
+
 
 
       <Card className="shadow-sm border-0 rounded-3">
         <Card.Body className="p-4">
-          <Form onSubmit={handleSubmit}>
+          <Form id="editTrainerForm" onSubmit={handleSubmit}>
+
 
             {/* AVATAR */}
             {/* AVATAR */}
@@ -313,18 +312,43 @@ const countryOptions = [
   <Col md={9}>
     <InputGroup>
 
-      <Form.Select
-        name="countryCode"
-        value={trainer.countryCode}
-        onChange={handleChange}
-        style={{ maxWidth: "140px" }}
+      <Dropdown>
+  <Dropdown.Toggle
+    variant="light"
+    style={{ minWidth: "120px" }}
+    className="d-flex align-items-center justify-content-center"
+  >
+    <ReactCountryFlag
+      countryCode={trainer.country}
+      svg
+      style={{ width: "20px", marginRight: "8px" }}
+    />
+    {trainer.countryCode}
+  </Dropdown.Toggle>
+
+  <Dropdown.Menu>
+    {countryOptions.map((c) => (
+      <Dropdown.Item
+        key={c.code}
+        onClick={() =>
+          setTrainer({
+            ...trainer,
+            countryCode: c.code,
+            country: c.country,
+          })
+        }
       >
-        {countryOptions.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.label}
-          </option>
-        ))}
-      </Form.Select>
+        <ReactCountryFlag
+          countryCode={c.country}
+          svg
+          style={{ width: "20px", marginRight: "10px" }}
+        />
+        {c.code}
+      </Dropdown.Item>
+    ))}
+  </Dropdown.Menu>
+</Dropdown>
+
 
       <Form.Control
         type="tel"
@@ -452,17 +476,7 @@ const countryOptions = [
             </Row>
 
             {/* BUTTON */}
-            <Row>
-              <Col md={{ span: 9, offset: 3 }}>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="px-4 py-2 rounded-3"
-                >
-                  Update Trainer
-                </Button>
-              </Col>
-            </Row>
+            
 
           </Form>
         </Card.Body>

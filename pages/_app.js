@@ -5,6 +5,11 @@ import { NextSeo } from 'next-seo';
 import SSRProvider from 'react-bootstrap/SSRProvider';
 import { Analytics } from '@vercel/analytics/react';
 
+//redux
+import { Provider } from "react-redux";
+import store from "../redux/store";
+
+
 // import theme style scss file
 import 'styles/theme.scss';
 
@@ -24,7 +29,8 @@ const Layout = noLayoutPages.includes(router.pathname)
   ? ({ children }) => <>{children}</>
   : DefaultDashboardLayout;
 
-  return (
+return (
+  <Provider store={store}>
     <SSRProvider>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -43,7 +49,8 @@ const Layout = noLayoutPages.includes(router.pathname)
         <Analytics />
       </Layout>
     </SSRProvider>
-  );
+  </Provider>
+);
 }
 
 export default MyApp

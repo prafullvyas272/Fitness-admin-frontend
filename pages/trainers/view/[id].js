@@ -10,12 +10,29 @@ import {
   Form,
   Modal,
 } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchTrainerById } from "../../../redux/slices/trainerSlice";
+
+import { removeCustomerFromTrainer } from "../../../redux/slices/trainerSlice";
+
+import { fetchTrainerSessions } from "../../../redux/slices/sessionSlice";
+
+
 
 export default function TrainerProfile() {
   const router = useRouter();
+  const dispatch = useDispatch();
+
+  const { sessions, loading: sessionLoading } = useSelector(
+  (state) => state.sessions
+);
+
+const { selectedTrainer: trainer, loading } = useSelector(
+  (state) => state.trainers
+);
+
   const { id } = router.query;
 
-  const [trainer, setTrainer] = useState(null);
   const [allTrainers, setAllTrainers] = useState([]);
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -36,44 +53,32 @@ const bookedDates = ["2026-02-16", "2026-02-18"];
 const holidayDates = ["2026-02-22"];
 
 
-  /* ================= LOAD DATA ================= */
-  useEffect(() => {
-  if (!id) return;
+ /* ================= LOAD DATA ================= */
 
-  const fetchTrainerProfile = async () => {
-    try {
-      const token = localStorage.getItem("adminToken");
+useEffect(() => {
+  if (id) {
+    dispatch(fetchTrainerById(id));
+  }
+}, [id, dispatch]);
 
-      const res = await fetch(
-        `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}/profile`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to fetch trainer");
-      }
-
-      setTrainer(data.data);
-
-    } catch (error) {
-      console.error("Profile Fetch Error:", error.message);
-      alert(error.message);
-    }
-  };
-
-  fetchTrainerProfile();
-}, [id]);
+useEffect(() => {
+  if (trainer?.id) {
+    dispatch(fetchTrainerSessions(trainer.id));
+  }
+}, [trainer?.id, dispatch]);
 
 
-  if (!trainer) {
+
+
+  if (loading) {
   return <div className="p-4">Loading trainer data...</div>;
 }
+
+if (!trainer) {
+  return <div className="p-4 text-danger">Trainer not found</div>;
+}
+
+
 const assignedCustomers =
   trainer.assignedCustomersAsTrainer || [];
 
@@ -183,6 +188,7 @@ if (customerRes.ok) {
       : "Not Assigned";
   };
 
+
   /* ================= EDIT & DELETE ================= */
 
 const handleEditTrainer = () => {
@@ -225,31 +231,6 @@ const displayValue = (value) => {
 //New
 
 /* ================= SESSIONS STATE ================= */
-
-/* Demo Slots */
-const demoSlots = [
-  {
-    id: 1,
-    date: "2026-02-16",
-    start: "09:00",
-    end: "10:00",
-    customer: "Jane Smith",
-  },
-  {
-    id: 2,
-    date: "2026-02-16",
-    start: "11:00",
-    end: "12:30",
-    customer: "John Doe",
-  },
-  {
-    id: 3,
-    date: "2026-02-17",
-    start: "15:00",
-    end: "16:00",
-    customer: "Mike Ross",
-  },
-];
 
 /* ===== MONTH NAVIGATION ===== */
 
@@ -303,8 +284,9 @@ const calculateDuration = (start, end) => {
   return (eh + em / 60) - (sh + sm / 60);
 };
 
-const weeklyAssignedHours = demoSlots.reduce(
-  (acc, slot) => acc + calculateDuration(slot.start, slot.end),
+const weeklyAssignedHours = sessions.reduce(
+  (acc, slot) =>
+    acc + calculateDuration(slot.start, slot.end),
   0
 );
 
@@ -328,12 +310,6 @@ const formatDate = (date) => {
 
 const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
 
-const sessionsForSelectedDay = selectedDate
-  ? demoSlots.filter(
-      (s) =>
-        s.date === formatDate(selectedWeekDate || selectedDate)
-    )
-  : [];
 
 
 
@@ -514,7 +490,7 @@ const sessionsForSelectedDay = selectedDate
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          trainerId: trainer.id, // VERY IMPORTANT
+          trainerId: trainer.id,
         }),
       }
     );
@@ -525,21 +501,16 @@ const sessionsForSelectedDay = selectedDate
       throw new Error(data.message || "Unassign failed");
     }
 
-    alert("Trainer removed successfully ✅");
+    // ✅ UPDATE REDUX INSTANTLY
+    dispatch(removeCustomerFromTrainer(customerId));
 
-    // Update UI instantly (no refresh)
-    setTrainer((prev) => ({
-      ...prev,
-      assignedCustomersAsTrainer:
-        prev.assignedCustomersAsTrainer.filter(
-          (item) => item.customer.id !== customerId
-        ),
-    }));
+    alert("Trainer removed successfully ✅");
 
   } catch (error) {
     alert(error.message);
   }
 };
+
 
     return (
       <tr key={customer.id}>
@@ -705,13 +676,14 @@ const sessionsForSelectedDay = selectedDate
         {/* ================= SESSION CARDS ================= */}
         <div className="booking-wrapper">
 
-  {demoSlots
-    .filter(
-      (s) =>
-        s.date ===
-        formatDate(selectedWeekDate || selectedDate)
-    )
-    .map((slot) => {
+  {sessions
+  .filter(
+    (s) =>
+      s.date ===
+      formatDate(selectedWeekDate || selectedDate)
+  )
+  .map((slot) => {
+
 
       const isPremium = slot.customer === "John Doe"; // demo logic
 

@@ -11,16 +11,30 @@ import {
   Form,
   Modal,
 } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchTrainers,
+  removeTrainer,
+  updateTrainerStatusRedux,
+} from "../redux/slices/trainerSlice";
+
+
 
 export default function Trainers() {
   const router = useRouter();
 
-  const [trainers, setTrainers] = useState([]);
+  const dispatch = useDispatch();
+
+const { trainers, loading } = useSelector(
+  (state) => state.trainers
+);
+
+
   const [search, setSearch] = useState("");
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
-  const [loading, setLoading] = useState(true);
+
 
   //Assign trainer 
 const [showAssignModal, setShowAssignModal] = useState(false);
@@ -37,59 +51,17 @@ const [entriesPerPage, setEntriesPerPage] = useState(10);
 
 
 useEffect(() => {
-  const fetchTrainers = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("adminToken");
+  const token = localStorage.getItem("adminToken");
 
-      if (!token) {
-        router.push("/login");
-        return;
-      }
+  if (!token) {
+    router.push("/login");
+    return;
+  }
 
-      const response = await fetch(
-        "https://fitness-app-seven-beryl.vercel.app/api/trainers",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  dispatch(fetchTrainers());
+}, [dispatch]);
 
-      const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch trainers");
-      }
-
-      // 🔥 Format backend response
-      const formatted = (data.data || []).map((trainer) => ({
-        id: trainer.id,
-        firstName: trainer.firstName,
-        lastName: trainer.lastName,
-        email: trainer.email,
-        phone: trainer.phone,
-        isActive: trainer.isActive,
-        createdAt: trainer.createdAt,
-      }));
-
-      setTrainers(
-  formatted.sort(
-    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-  )
-);
-      setLoading(false);
-
-        } catch (error) {
-      console.error("Fetch Error:", error.message);
-      alert(error.message);
-      setLoading(false);
-    }
-  };
-
-  fetchTrainers();
-}, []);
 
 
 
@@ -118,13 +90,13 @@ const updateTrainerStatus = async (id, newStatus) => {
     }
 
     // 🔥 Update UI instantly
-    setTrainers((prev) =>
-      prev.map((trainer) =>
-        trainer.id === id
-          ? { ...trainer, isActive: newStatus === "Active" }
-          : trainer
-      )
-    );
+   dispatch(
+  updateTrainerStatusRedux({
+    id,
+    isActive: newStatus === "Active",
+  })
+);
+
 
   } catch (error) {
     console.error("Toggle Error:", error.message);
@@ -157,7 +129,7 @@ const handleDelete = async (id) => {
       throw new Error(data.message || "Delete failed");
     }
 
-    setTrainers((prev) => prev.filter((t) => t.id !== id));
+    dispatch(removeTrainer(id));
 
   } catch (error) {
     alert(error.message);
@@ -304,9 +276,10 @@ const handleAssignCustomers = async () => {
     );
   
     // remove from UI
-    setTrainers((prev) =>
-      prev.filter((trainer) => !selectedIds.includes(trainer.id))
-    );
+    selectedIds.forEach((id) =>
+  dispatch(removeTrainer(id))
+);
+
 
     setSelectedIds([]);
     alert("Deleted successfully ✅");
@@ -346,18 +319,24 @@ const filteredCustomers = customers.filter((customer) => {
             </Dropdown.Toggle>
 
             <Dropdown.Menu className="shadow border-0 rounded-3 p-2">
-              <Dropdown.Item onClick={() => setFilterStatus("All")}>
-                <i className="fe fe-eye me-2 text-secondary"></i> All
-              </Dropdown.Item>
 
-              <Dropdown.Item onClick={() => setFilterStatus("Active")}>
-                <span className="text-success me-2">●</span> Active
-              </Dropdown.Item>
+  <Dropdown.Item onClick={() => setFilterStatus("All")}>
+    <span className="filter-dot filter-all me-2"></span>
+    All
+  </Dropdown.Item>
 
-              <Dropdown.Item onClick={() => setFilterStatus("Inactive")}>
-                <span className="text-danger me-2">●</span> Inactive
-              </Dropdown.Item>
-            </Dropdown.Menu>
+  <Dropdown.Item onClick={() => setFilterStatus("Active")}>
+    <span className="filter-dot filter-active me-2"></span>
+    Active
+  </Dropdown.Item>
+
+  <Dropdown.Item onClick={() => setFilterStatus("Inactive")}>
+    <span className="filter-dot filter-inactive me-2"></span>
+    Inactive
+  </Dropdown.Item>
+
+</Dropdown.Menu>
+
           </Dropdown>
 
           {/* DELETE BUTTON (same style) */}
