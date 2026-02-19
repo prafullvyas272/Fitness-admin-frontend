@@ -110,10 +110,9 @@ const holidayDates = ["2026-02-22"];
 useEffect(() => {
   if (!id) return;
 
-  const existingTrainer = trainers.find(
-    (t) => String(t.id) === String(id)
-  );
+  const existingTrainer = trainers.find((t) => t.id === id);
 
+  // ✅ If trainer exists AND has full details
   if (
     existingTrainer &&
     existingTrainer.userProfileDetails &&
@@ -121,19 +120,23 @@ useEffect(() => {
   ) {
     dispatch(setSelectedTrainer(existingTrainer));
   } else {
+    // ❗ Fetch full trainer details
     dispatch(fetchTrainerById(id));
   }
 
-}, [id, trainers, dispatch]);
+}, [id]);
 
 
 
 
 
 
-  if (loading) {
+
+
+  if (!trainer && loading) {
   return <div className="p-4">Loading trainer data...</div>;
 }
+
 
 if (!trainer) {
   return <div className="p-4 text-danger">Trainer not found</div>;
@@ -253,7 +256,8 @@ if (customerRes.ok) {
   /* ================= EDIT & DELETE ================= */
 
 const handleEditTrainer = () => {
-  router.push(`/trainers/edit/${trainer.id}`);
+  dispatch(setSelectedTrainer(trainer));
+router.push(`/trainers/view/${trainer.id}`);
 };
 
 const handleDeleteTrainer = async () => {

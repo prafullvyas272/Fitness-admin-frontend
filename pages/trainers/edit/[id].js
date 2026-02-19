@@ -50,10 +50,9 @@ const { trainers, selectedTrainer, loading } = useSelector(
 useEffect(() => {
   if (!id) return;
 
-  const existingTrainer = trainers.find(
-    (t) => String(t.id) === String(id)
-  );
+  const existingTrainer = trainers.find((t) => t.id === id);
 
+  // ✅ Only use trainer if FULL details exist
   if (
     existingTrainer &&
     existingTrainer.userProfileDetails &&
@@ -61,10 +60,12 @@ useEffect(() => {
   ) {
     dispatch(setSelectedTrainer(existingTrainer));
   } else {
+    // 🔥 Fetch full trainer details
     dispatch(fetchTrainerById(id));
   }
 
-}, [id, trainers, dispatch]);
+}, [id]);
+
 
 
 
