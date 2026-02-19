@@ -52,7 +52,6 @@ useEffect(() => {
 
   const existingTrainer = trainers.find((t) => t.id === id);
 
-  // ✅ Only use trainer if FULL details exist
   if (
     existingTrainer &&
     existingTrainer.userProfileDetails &&
@@ -60,11 +59,11 @@ useEffect(() => {
   ) {
     dispatch(setSelectedTrainer(existingTrainer));
   } else {
-    // 🔥 Fetch full trainer details
     dispatch(fetchTrainerById(id));
   }
 
 }, [id]);
+
 
 
 
@@ -171,9 +170,10 @@ const countryOptions = [
 ];
 
 
-if (loading || !trainer) {
+if (!selectedTrainer && loading) {
   return <div className="p-4">Loading trainer...</div>;
 }
+
 
 
 
