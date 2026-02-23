@@ -1291,3 +1291,15 @@ img:hover {
   letter-spacing: 0.3px;
 }
 
+.dropdown-menu .dropdown-item:hover {
+  background-color: #f8f9fa;
+  border-radius: 6px;
+}
+
+.filter-premium {
+  background-color: #a855f7;   /* purple */
+}
+
+.filter-free {
+  background-color: #6b7280;   /* gray */
+}

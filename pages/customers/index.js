@@ -15,6 +15,8 @@ export default function AllCustomers() {
 
   const [trainers, setTrainers] = useState([]);
 
+  const [filterType, setFilterType] = useState("All");
+
   const [showView, setShowView] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showAssign, setShowAssign] = useState(false);
@@ -111,15 +113,35 @@ const handleEditOpen = (customer) => {
 };
 
 
-const filteredCustomers = customers.filter((customer) => {
-  const fullName =
-    `${customer.firstName} ${customer.lastName}`.toLowerCase();
+const filteredCustomers = customers
+  .filter((customer) => {
+    const fullName =
+      `${customer.firstName} ${customer.lastName}`.toLowerCase();
 
-  return (
-    fullName.includes(search.toLowerCase()) ||
-    customer.email.toLowerCase().includes(search.toLowerCase())
-  );
-});
+    const matchesSearch =
+      fullName.includes(search.toLowerCase()) ||
+      customer.email.toLowerCase().includes(search.toLowerCase());
+
+    let matchesFilter = true;
+
+    if (filterType === "Active") {
+      matchesFilter = customer.isActive === true;
+    }
+
+    if (filterType === "Inactive") {
+      matchesFilter = customer.isActive === false;
+    }
+
+    if (filterType === "Premium") {
+      matchesFilter = customer.plan === "Premium"; // adjust if needed
+    }
+
+    if (filterType === "Free") {
+      matchesFilter = customer.plan === "Free"; // adjust if needed
+    }
+
+    return matchesSearch && matchesFilter;
+  });
 const indexOfLastCustomer = currentPage * entriesPerPage;
 const indexOfFirstCustomer = indexOfLastCustomer - entriesPerPage;
 
@@ -156,15 +178,66 @@ const filteredTrainers = trainers
     <small className="text-muted">Manage all customers</small>
   </Col>
 
-  <Col className="text-end">
-    <Button
-      variant="primary"
-      className="px-4"
-      onClick={() => router.push("/customers/create")}
-    >
-      + Create Customer
-    </Button>
-  </Col>
+  <Col className="text-end d-flex justify-content-end align-items-center gap-2">
+
+  {/* FILTER DROPDOWN */}
+  <Dropdown align="end">
+  <Dropdown.Toggle
+    as="button"
+    className="btn btn-light border-0 shadow-sm d-flex align-items-center justify-content-center"
+    style={{
+      width: 38,
+      height: 38,
+      borderRadius: 8,
+    }}
+  >
+    <i className="fe fe-filter text-secondary"></i>
+  </Dropdown.Toggle>
+
+    <Dropdown.Menu
+  align="end"
+  className="shadow border-0 rounded-3 py-2"
+  style={{ width: 180 }}
+>
+
+      <Dropdown.Item onClick={() => setFilterType("All")}>
+  <span className="filter-dot filter-all me-2"></span>
+  All
+</Dropdown.Item>
+
+<Dropdown.Item onClick={() => setFilterType("Active")}>
+  <span className="filter-dot filter-active me-2"></span>
+  Active
+</Dropdown.Item>
+
+<Dropdown.Item onClick={() => setFilterType("Inactive")}>
+  <span className="filter-dot filter-inactive me-2"></span>
+  Inactive
+</Dropdown.Item>
+
+<Dropdown.Item onClick={() => setFilterType("Premium")}>
+  <span className="filter-dot filter-premium me-2"></span>
+  Premium
+</Dropdown.Item>
+
+<Dropdown.Item onClick={() => setFilterType("Free")}>
+  <span className="filter-dot filter-free me-2"></span>
+  Free
+</Dropdown.Item>
+
+    </Dropdown.Menu>
+  </Dropdown>
+
+  {/* CREATE BUTTON */}
+  <Button
+    variant="primary"
+    className="px-4"
+    onClick={() => router.push("/customers/create")}
+  >
+    + Create Customer
+  </Button>
+
+</Col>
 </Row>
 
     {/* CARD */}

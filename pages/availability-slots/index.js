@@ -32,6 +32,9 @@ export default function AvailabilitySlots() {
   const [success, setSuccess] = useState("");
   const [totalMinutes, setTotalMinutes] = useState(0);
 
+  const [loading, setLoading] = useState(false);
+const [saving, setSaving] = useState(false);
+
   // const requiredMinutes = 2700;
 
   /* -------- Initialize Week -------- */
@@ -61,51 +64,59 @@ const initializeWeek = async (startDate) => {
   });
 
   // 🔥 RESET FIRST
-  setWeekData({});
-
-  await loadWeekSlots(newWeek);
+ await loadWeekSlots(newWeek);
 };
   const loadWeekSlots = async (weekObject) => {
+  setLoading(true);
+
   const updatedWeek = JSON.parse(JSON.stringify(weekObject));
 
-  for (const day of Object.keys(updatedWeek)) {
-    const date = updatedWeek[day].date;
+  try {
+    await Promise.all(
+      Object.keys(updatedWeek).map(async (day) => {
+        const date = updatedWeek[day].date;
 
-    try {
-      const res = await fetch(
-        `https://fitness-app-seven-beryl.vercel.app/api/time-slots?date=${date}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
-        }
-      );
+        const res = await fetch(
+          `https://fitness-app-seven-beryl.vercel.app/api/time-slots?date=${date}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+            },
+          }
+        );
 
-      const data = await res.json();
+        const data = await res.json();
+        const backendSlots = data?.data?.slots || [];
 
-      const backendSlots = data?.data?.slots || [];
-      const formatTimeToLocal = (isoString) => {
-  const date = new Date(isoString);
+        updatedWeek[day].slots = backendSlots.map((slot) => {
+          const start = new Date(slot.startTime);
+          const end = new Date(slot.endTime);
 
-  return date.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-};
+          const startUTC =
+            String(start.getUTCHours()).padStart(2, "0") +
+            ":" +
+            String(start.getUTCMinutes()).padStart(2, "0");
 
-      updatedWeek[day].slots = backendSlots.map((slot) => ({
-  id: slot.id,
-  startTime: formatTimeToLocal(slot.startTime),
-  endTime: formatTimeToLocal(slot.endTime),
-}));
+          const endUTC =
+            String(end.getUTCHours()).padStart(2, "0") +
+            ":" +
+            String(end.getUTCMinutes()).padStart(2, "0");
 
-    } catch (err) {
-      console.error("Load slots error:", err);
-    }
+          return {
+            id: slot.id,
+            startTime: startUTC,
+            endTime: endUTC,
+          };
+        });
+      })
+    );
+
+    setWeekData(updatedWeek);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
   }
-
-  setWeekData(updatedWeek);
 };
   /* -------- Time Calculation -------- */
 
@@ -222,118 +233,86 @@ const initializeWeek = async (startDate) => {
 
   /* -------- Submit -------- */
 const handleSubmit = async () => {
-  setError("");
-  setSuccess("");
-
   if (!weekStart) {
     alert("Please select week start date.");
     return;
   }
 
-  // if (totalMinutes < requiredMinutes) {
-  //   alert("Minimum 45 hours required per week.");
-  //   return;
-  // }
+  setSaving(true);
 
   try {
-    for (const day of Object.keys(weekData)) {
+    const requests = [];
+
+    Object.keys(weekData).forEach((day) => {
       const date = weekData[day].date;
 
-      // 🔹 1. Fetch existing backend slots for this date
-      const existingRes = await fetch(
-        `https://fitness-app-seven-beryl.vercel.app/api/time-slots?date=${date}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
-        }
-      );
+      weekData[day].slots.forEach((slot) => {
+        if (!slot.startTime || !slot.endTime) return;
 
-      const existingData = await existingRes.json();
-      const existingSlots = existingData?.data?.slots || [];
+        const utcStart = new Date(`${date}T${slot.startTime}:00`);
+        const utcEnd = new Date(`${date}T${slot.endTime}:00`);
 
-      const uiSlots = weekData[day].slots;
-
-      // 🔹 2. UPDATE or CREATE
-      for (const slot of uiSlots) {
-        if (!slot.startTime || !slot.endTime) continue;
-
-        // If slot has id → PATCH
         if (slot.id) {
-          await fetch(
-  `https://fitness-app-seven-beryl.vercel.app/api/time-slots/${slot.id}`,
-  {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-    },
-    body: JSON.stringify({
-  date: weekData[day].date,
-  startTime: new Date(
-    weekData[day].date + "T" + slot.startTime + ":00Z"
-  ).toISOString(),
-  endTime: new Date(
-    weekData[day].date + "T" + slot.endTime + ":00Z"
-  ).toISOString(),
-}),
-  }
-);
+          requests.push(
+            fetch(
+              `https://fitness-app-seven-beryl.vercel.app/api/time-slots/${slot.id}`,
+              {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+                },
+                body: JSON.stringify({
+                  date,
+                  startTime: utcStart.toISOString(),
+                  endTime: utcEnd.toISOString(),
+                }),
+              }
+            )
+          );
         } else {
-          // No id → CREATE
-          await fetch(
-            "https://fitness-app-seven-beryl.vercel.app/api/time-slots",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-              },
-              body: JSON.stringify({
-                date,
-                peakSlots: [
-                  {
-                    start: slot.startTime,
-                    end: slot.endTime,
-                  },
-                ],
-              }),
-            }
+          requests.push(
+            fetch(
+              `https://fitness-app-seven-beryl.vercel.app/api/time-slots`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+                },
+                body: JSON.stringify({
+                  date,
+                  peakSlots: [
+                    {
+                      start: slot.startTime,
+                      end: slot.endTime,
+                    },
+                  ],
+                }),
+              }
+            )
           );
         }
-      }
+      });
+    });
 
-      // 🔹 3. DELETE removed slots
-      for (const existing of existingSlots) {
-        const stillExists = uiSlots.some((slot) => {
-  const existingStart = new Date(existing.startTime)
-    .toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
+    await Promise.all(requests);
 
-  const existingEnd = new Date(existing.endTime)
-    .toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
+    alert("Time slots saved successfully ✅");
 
-  return slot.startTime === existingStart &&
-         slot.endTime === existingEnd;
-});
+    const isoDate =
+      weekStart.getFullYear() +
+      "-" +
+      String(weekStart.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(weekStart.getDate()).padStart(2, "0");
 
-        if (!stillExists) {
-          await fetch(
-            `https://fitness-app-seven-beryl.vercel.app/api/time-slots/${existing.id}`,
-            {
-              method: "DELETE",
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-              },
-            }
-          );
-        }
-      }
-    }
-
-    alert("Time slots synced successfully ✅");
+    await initializeWeek(isoDate);
   } catch (err) {
     console.error(err);
     alert("Something went wrong ❌");
+  } finally {
+    setSaving(false);
   }
 };
 
@@ -382,7 +361,7 @@ const formatToUS = (dateString) => {
 
   return (
     <div className="p-4">
-      <h2 className="mb-4 fw-semibold">Weekly Time Slots</h2>
+      <h2 className="mb-4 fw-semibold">Peak Time Slots</h2>
 
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
@@ -476,6 +455,12 @@ const formatToUS = (dateString) => {
         </Card.Body>
       </Card>
 
+{loading && (
+  <div className="text-center my-4">
+    <div className="spinner-border text-primary" />
+  </div>
+)}
+
       {/* 7 Days */}
       <Accordion alwaysOpen>
         {Object.keys(weekData).map((day, idx) => (
@@ -492,65 +477,65 @@ const formatToUS = (dateString) => {
   >
 
     {/* START TIME */}
-    <div style={{ flex: "1 1 200px" }}>
-      <DatePicker
-        selected={
-          slot.startTime
-            ? new Date(`1970-01-01T${slot.startTime}`)
-            : null
-        }
-        onChange={(date) => {
-          const formatted = date
-            .toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })
-            .substring(0, 5);
+<div style={{ flex: "1 1 200px" }}>
+  <DatePicker
+    selected={
+      slot.startTime
+        ? new Date(`1970-01-01T${slot.startTime}:00`)
+        : null
+    }
+    onChange={(date) => {
+      const formatted = date
+        .toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+        .substring(0, 5);
 
-          updateSlot(day, index, "startTime", formatted);
-        }}
-        showTimeSelect
-        showTimeSelectOnly
-        timeIntervals={15}
-        dateFormat="hh:mm aa"
-        placeholderText="Start time"
-        className="form-control custom-time-input"
-      />
-    </div>
+      updateSlot(day, index, "startTime", formatted);
+    }}
+    showTimeSelect
+    showTimeSelectOnly
+    timeIntervals={15}
+    dateFormat="hh:mm aa"
+    placeholderText="Start time"
+    className="form-control custom-time-input"
+  />
+</div>
 
     {/* END TIME */}
-    <div style={{ flex: "1 1 200px" }}>
-      <DatePicker
-        selected={
-          slot.endTime
-            ? new Date(`1970-01-01T${slot.endTime}`)
-            : null
-        }
-        onChange={(date) => {
-          const formatted = date
-            .toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })
-            .substring(0, 5);
+<div style={{ flex: "1 1 200px" }}>
+  <DatePicker
+    selected={
+      slot.endTime
+        ? new Date(`1970-01-01T${slot.endTime}:00`)
+        : null
+    }
+    onChange={(date) => {
+      const formatted = date
+        .toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+        .substring(0, 5);
 
-          if (slot.startTime && formatted <= slot.startTime) {
-            alert("End time must be greater than start time");
-            return;
-          }
+      if (slot.startTime && formatted <= slot.startTime) {
+        alert("End time must be greater than start time");
+        return;
+      }
 
-          updateSlot(day, index, "endTime", formatted);
-        }}
-        showTimeSelect
-        showTimeSelectOnly
-        timeIntervals={15}
-        dateFormat="hh:mm aa"
-        placeholderText="End time"
-        className="form-control custom-time-input"
-      />
-    </div>
+      updateSlot(day, index, "endTime", formatted);
+    }}
+    showTimeSelect
+    showTimeSelectOnly
+    timeIntervals={15}
+    dateFormat="hh:mm aa"
+    placeholderText="End time"
+    className="form-control custom-time-input"
+  />
+</div>
 
     <Button
       variant="outline-danger"
@@ -575,13 +560,13 @@ const formatToUS = (dateString) => {
 
       <div className="text-end mt-4">
         <Button
-          size="lg"
-          variant="primary"
-          onClick={handleSubmit}
-          // disabled={totalMinutes < requiredMinutes}
-        >
-          Save Time Slots
-        </Button>
+  size="lg"
+  variant="primary"
+  onClick={handleSubmit}
+  disabled={saving}
+>
+  {saving ? "Saving..." : "Save Time Slots"}
+</Button>
       </div>
     </div>
   );
