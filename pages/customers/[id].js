@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Row, Col, Card, Nav, Button, Modal, Form } from "react-bootstrap";
+import { fetchTrainers } from "../../redux/slices/trainerSlice";
 
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -26,9 +27,13 @@ const { selectedCustomer: customer, loading } = useSelector(
 const [showAssign, setShowAssign] = useState(false);
 
 const [editData, setEditData] = useState({});
-const [trainers, setTrainers] = useState([]);
+// const [trainers, setTrainers] = useState([]);
 const [selectedTrainer, setSelectedTrainer] = useState("");
 const [trainerSearch, setTrainerSearch] = useState("");
+
+const { trainers: reduxTrainers } = useSelector(
+  (state) => state.trainers
+);
 
 useEffect(() => {
   if (id) {
@@ -36,7 +41,11 @@ useEffect(() => {
   }
 }, [id, dispatch]);
 
-  if (!customer) return <div className="p-4">Loading...</div>;
+useEffect(() => {
+  dispatch(fetchTrainers());
+}, [dispatch]);
+
+  
 
   useEffect(() => {
   if (customer) {
@@ -64,10 +73,18 @@ useEffect(() => {
      EDIT SAVE
   =============================== */
   const handleEditSave = async () => {
+  const formData = new FormData();
+
+  formData.append("firstName", editData.firstName);
+  formData.append("lastName", editData.lastName);
+  formData.append("email", editData.email);
+  formData.append("phone", editData.phone);
+  formData.append("isActive", editData.isActive);
+
   await dispatch(
     updateCustomer({
       id: customer.id,
-      payload: editData,
+      formData,
     })
   );
 
@@ -88,19 +105,37 @@ useEffect(() => {
   setShowAssign(false);
 };
 
-  const filteredTrainers = trainers.filter((trainer) =>
-    `${trainer.firstName} ${trainer.lastName}`
-      .toLowerCase()
-      .includes(trainerSearch.toLowerCase())
-  );
+  const filteredTrainers = reduxTrainers.filter((trainer) =>
+  `${trainer.firstName} ${trainer.lastName}`
+    .toLowerCase()
+    .includes(trainerSearch.toLowerCase())
+);
+
+if (loading || !customer) {
+  return <div className="p-4">Loading customer...</div>;
+}
 
   return (
     <div className="customer-detail-page p-4">
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3>Customers Profile</h3>
-        {/* <Button variant="primary">Create Customer</Button> */}
-      </div>
+      <div className="d-flex align-items-center gap-3 mb-4">
+
+  {/* Back Button */}
+  <Button
+    variant="light"
+    className="border"
+    onClick={() => router.push("/customers")}
+  >
+    ← Back
+  </Button>
+
+  {/* Title */}
+  <div>
+    <h3 className="fw-bold mb-0">Customer Profile</h3>
+    <small className="text-muted">View customer details</small>
+  </div>
+
+</div>
 
       <Card className="shadow-sm border-0 rounded-3">
   <Card.Body>

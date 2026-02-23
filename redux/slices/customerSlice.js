@@ -121,7 +121,7 @@ export const assignTrainer = createAsyncThunk(
         throw new Error(data.message);
       }
 
-      return customerId;
+      return { customerId, trainerId };
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message);
     }
@@ -161,15 +161,21 @@ export const updateCustomer = createAsyncThunk(
     try {
       const token = localStorage.getItem("adminToken");
 
+      const isFormData = payload instanceof FormData;
+
       const response = await fetch(
         `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
+          headers: isFormData
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+          body: isFormData ? payload : JSON.stringify(payload),
         }
       );
 
@@ -189,25 +195,35 @@ export const updateCustomer = createAsyncThunk(
 
 export const createCustomer = createAsyncThunk(
   "customers/createCustomer",
-  async (formData, thunkAPI) => {
+  async (data, thunkAPI) => {
     try {
       const token = localStorage.getItem("adminToken");
+
+      const isFormData = data instanceof FormData;
 
       const response = await fetch(
         "https://fitness-app-seven-beryl.vercel.app/api/customers",
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
+          headers: isFormData
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+          body: isFormData ? data : JSON.stringify(data),
         }
       );
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message);
+      const resData = await response.json();
 
-      return data.data;
+      if (!response.ok) {
+        throw new Error(resData.message);
+      }
+
+      return resData.data;
 
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message);
@@ -259,6 +275,25 @@ const customerSlice = createSlice({
 
 .addCase(updateCustomer.fulfilled, (state, action) => {
   state.selectedCustomer = action.payload;
+})
+.addCase(assignTrainer.fulfilled, (state, action) => {
+  const { customerId, trainerId } = action.payload;
+
+  const customer = state.customers.find(
+    (c) => c.id === customerId
+  );
+
+  if (customer) {
+    customer.assignedTrainers = [
+      { trainerId }
+    ];
+  }
+
+  if (state.selectedCustomer?.id === customerId) {
+    state.selectedCustomer.assignedTrainers = [
+      { trainerId }
+    ];
+  }
 })
   },
 });

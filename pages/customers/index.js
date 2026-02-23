@@ -41,9 +41,12 @@ const [search, setSearch] = useState("");
   const router = useRouter();
 
   // Load customers + trainers
+
 useEffect(() => {
-  dispatch(fetchCustomers());
-}, [dispatch]);
+  if (!customers || customers.length === 0) {
+    dispatch(fetchCustomers());
+  }
+}, [dispatch, customers]);
 
 useEffect(() => {
   const fetchTrainers = async () => {

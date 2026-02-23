@@ -91,37 +91,44 @@ const validatePhone = (phone) => {
       return;
     }
 
-    const formData = new FormData();
-
-    formData.append("firstName", customer.firstName);
-    formData.append("lastName", customer.lastName);
-    formData.append("email", customer.email);
-    formData.append(
-      "phone",
-      `${customer.countryCode}${customer.phone}`
-    );
-
-    formData.append(
-      "isActive",
-      customer.status === "Active"
-    );
+    const payload = {
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      email: customer.email,
+      phone: `${customer.countryCode}${customer.phone}`,
+      isActive: customer.status === "Active", // REAL BOOLEAN
+    };
 
     if (!id) {
-      formData.append("password", "Customer@123");
+      payload.password = "Customer@123";
     }
 
     if (customer.avatarFile) {
+      // If avatar exists → use FormData
+      const formData = new FormData();
+
+      Object.keys(payload).forEach((key) => {
+        formData.append(key, payload[key]);
+      });
+
       formData.append("avatar", customer.avatarFile);
-    }
 
-    if (id) {
-      await dispatch(updateCustomer({ id, formData }));
-      alert("Customer updated ✅");
+      if (id) {
+        await dispatch(updateCustomer({ id, formData }));
+      } else {
+        await dispatch(createCustomer(formData));
+      }
+
     } else {
-      await dispatch(createCustomer(formData));
-      alert("Customer created ✅");
+      // No avatar → send JSON
+      if (id) {
+        await dispatch(updateCustomer({ id, payload }));
+      } else {
+        await dispatch(createCustomer(payload));
+      }
     }
 
+    alert(id ? "Customer updated ✅" : "Customer created ✅");
     router.push("/customers");
 
   } catch (error) {
