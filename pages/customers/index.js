@@ -2,10 +2,17 @@ import { useState, useEffect } from "react";
 import { Table, Modal, Badge, Dropdown, Form, Button } from "react-bootstrap";
 import { useRouter } from "next/router";
 import { Card, Row, Col } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchCustomers,
+  deleteCustomer,
+  toggleCustomerStatus,
+  assignTrainer,
+} from "../../redux/slices/customerSlice";
 
 
 export default function AllCustomers() {
-  const [customers, setCustomers] = useState([]);
+
   const [trainers, setTrainers] = useState([]);
 
   const [showView, setShowView] = useState(false);
@@ -15,7 +22,13 @@ export default function AllCustomers() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [editData, setEditData] = useState({});
   const [selectedTrainer, setSelectedTrainer] = useState("");
-  const [loading, setLoading] = useState(true);
+  
+  //redux
+  const dispatch = useDispatch();
+
+const { customers, loading } = useSelector(
+  (state) => state.customers
+);
 
   //searc box
   const [trainerSearch, setTrainerSearch] = useState("");
@@ -29,87 +42,29 @@ const [search, setSearch] = useState("");
 
   // Load customers + trainers
 useEffect(() => {
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("adminToken");
+  dispatch(fetchCustomers());
+}, [dispatch]);
 
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      // Fetch Customers
-      const customerRes = await fetch(
-        "https://fitness-app-seven-beryl.vercel.app/api/customers",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const customerData = await customerRes.json();
-
-      if (customerRes.ok) {
-  const sortedCustomers = [...(customerData.data || [])].reverse();
-  setCustomers(sortedCustomers);
-}
-
-      // Fetch Trainers
-      const trainerRes = await fetch(
-        "https://fitness-app-seven-beryl.vercel.app/api/trainers",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-setLoading(false);
-      const trainerData = await trainerRes.json();
-
-      if (trainerRes.ok) {
-        setTrainers(trainerData.data);
-      }
-
-    } catch (error) {
-  console.error(error.message);
-  setLoading(false);
-}
-  };
-
-  fetchData();
-}, []);
-
-
-  // Save customers
-  const saveCustomers = (updated) => {
-    setCustomers(updated);
-    localStorage.setItem("gymCustomers", JSON.stringify(updated));
-  };
-
-  // DELETE
-  const deleteCustomer = async (id) => {
-  try {
+useEffect(() => {
+  const fetchTrainers = async () => {
     const token = localStorage.getItem("adminToken");
 
     const response = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}`,
+      "https://fitness-app-seven-beryl.vercel.app/api/trainers",
       {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       }
     );
 
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Delete failed");
+    if (response.ok) {
+      setTrainers(data.data);
     }
+  };
 
-    setCustomers(customers.filter((c) => c.id !== id));
-  } catch (error) {
-    alert(error.message);
-  }
-};
+  fetchTrainers();
+}, []);
 
 
   // VIEW
@@ -142,78 +97,14 @@ const handleEditOpen = (customer) => {
   };
 
  const handleAssignSave = async () => {
-  try {
-    const token = localStorage.getItem("adminToken");
+  await dispatch(
+    assignTrainer({
+      trainerId: selectedTrainer,
+      customerId: selectedCustomer.id,
+    })
+  );
 
-    const response = await fetch(
-      "https://fitness-app-seven-beryl.vercel.app/api/assign-customer",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          trainerId: selectedTrainer,
-          customerId: selectedCustomer.id,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Assign failed");
-    }
-
-    alert("Trainer Assigned ✅");
-
-    setShowAssign(false);
-
-    // Refresh customers list
-    window.location.reload();
-
-  } catch (error) {
-    alert(error.message);
-  }
-};
-
-const updateCustomerStatus = async (id, isActive) => {
-  try {
-    const token = localStorage.getItem("adminToken");
-
-    const response = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}/toggle-active`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          isActive: isActive,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to update status");
-    }
-
-    // Update UI instantly
-    const updated = customers.map((customer) =>
-      customer.id === id
-        ? { ...customer, isActive: isActive }
-        : customer
-    );
-
-    setCustomers(updated);
-
-  } catch (error) {
-    alert(error.message);
-  }
+  setShowAssign(false);
 };
 
 
@@ -385,7 +276,7 @@ const filteredTrainers = trainers
     <Dropdown.Menu className="shadow border-0 rounded-3">
       <Dropdown.Item
   onClick={() =>
-    updateCustomerStatus(customer.id, true)
+    dispatch(toggleCustomerStatus({ id: customer.id, isActive: true }))
   }
 >
   <span className="text-success me-2">●</span>
@@ -394,7 +285,7 @@ const filteredTrainers = trainers
 
 <Dropdown.Item
   onClick={() =>
-    updateCustomerStatus(customer.id, false)
+    dispatch(toggleCustomerStatus({ id: customer.id, isActive: false }))
   }
 >
   <span className="text-danger me-2">●</span>
@@ -452,7 +343,7 @@ const filteredTrainers = trainers
 
                         <Dropdown.Item
                           className="text-dark"
-                          onClick={() => deleteCustomer(customer.id)}
+                          onClick={() => dispatch(deleteCustomer(customer.id))}
                         >
                           <i className="fe fe-trash me-2"></i>
                           Delete

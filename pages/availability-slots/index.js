@@ -36,25 +36,37 @@ export default function AvailabilitySlots() {
 
   /* -------- Initialize Week -------- */
 
- const initializeWeek = async (startDate) => {
-  const start = new Date(startDate);
+const initializeWeek = async (startDate) => {
+  const [year, month, day] = startDate.split("-");
+
+  const start = new Date(Number(year), Number(month) - 1, Number(day));
+
   const newWeek = {};
 
-  daysOfWeek.forEach((day, index) => {
+  daysOfWeek.forEach((dayName, index) => {
     const current = new Date(start);
     current.setDate(start.getDate() + index);
 
-    newWeek[day] = {
-      date: current.toISOString().split("T")[0],
+    const formattedDate =
+      current.getFullYear() +
+      "-" +
+      String(current.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(current.getDate()).padStart(2, "0");
+
+    newWeek[dayName] = {
+      date: formattedDate,
       slots: [],
     };
   });
 
+  // 🔥 RESET FIRST
+  setWeekData({});
+
   await loadWeekSlots(newWeek);
 };
-
   const loadWeekSlots = async (weekObject) => {
-  const updatedWeek = { ...weekObject };
+  const updatedWeek = JSON.parse(JSON.stringify(weekObject));
 
   for (const day of Object.keys(updatedWeek)) {
     const date = updatedWeek[day].date;
@@ -72,12 +84,21 @@ export default function AvailabilitySlots() {
       const data = await res.json();
 
       const backendSlots = data?.data?.slots || [];
+      const formatTimeToLocal = (isoString) => {
+  const date = new Date(isoString);
+
+  return date.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+};
 
       updatedWeek[day].slots = backendSlots.map((slot) => ({
-        id: slot.id,
-        startTime: slot.startTime.substring(11, 16),
-        endTime: slot.endTime.substring(11, 16),
-      }));
+  id: slot.id,
+  startTime: formatTimeToLocal(slot.startTime),
+  endTime: formatTimeToLocal(slot.endTime),
+}));
 
     } catch (err) {
       console.error("Load slots error:", err);
@@ -240,19 +261,24 @@ const handleSubmit = async () => {
         // If slot has id → PATCH
         if (slot.id) {
           await fetch(
-            `https://fitness-app-seven-beryl.vercel.app/api/time-slots/${slot.id}`,
-            {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-              },
-              body: JSON.stringify({
-                start: slot.startTime,
-                end: slot.endTime,
-              }),
-            }
-          );
+  `https://fitness-app-seven-beryl.vercel.app/api/time-slots/${slot.id}`,
+  {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+    },
+    body: JSON.stringify({
+  date: weekData[day].date,
+  startTime: new Date(
+    weekData[day].date + "T" + slot.startTime + ":00Z"
+  ).toISOString(),
+  endTime: new Date(
+    weekData[day].date + "T" + slot.endTime + ":00Z"
+  ).toISOString(),
+}),
+  }
+);
         } else {
           // No id → CREATE
           await fetch(
@@ -279,13 +305,16 @@ const handleSubmit = async () => {
 
       // 🔹 3. DELETE removed slots
       for (const existing of existingSlots) {
-        const stillExists = uiSlots.some(
-          (slot) =>
-            slot.startTime ===
-              existing.startTime.substring(11, 16) &&
-            slot.endTime ===
-              existing.endTime.substring(11, 16)
-        );
+        const stillExists = uiSlots.some((slot) => {
+  const existingStart = new Date(existing.startTime)
+    .toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
+
+  const existingEnd = new Date(existing.endTime)
+    .toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
+
+  return slot.startTime === existingStart &&
+         slot.endTime === existingEnd;
+});
 
         if (!stillExists) {
           await fetch(
@@ -369,7 +398,12 @@ const formatToUS = (dateString) => {
   onChange={(date) => {
     setWeekStart(date);
 
-    const isoDate = date.toISOString().split("T")[0];
+    const isoDate =
+  date.getFullYear() +
+  "-" +
+  String(date.getMonth() + 1).padStart(2, "0") +
+  "-" +
+  String(date.getDate()).padStart(2, "0");
     initializeWeek(isoDate);
   }}
   dateFormat="MM/dd/yy"

@@ -15,7 +15,7 @@ import { fetchTrainerById } from "../../../redux/slices/trainerSlice";
 
 import { removeCustomerFromTrainer } from "../../../redux/slices/trainerSlice";
 
-import { fetchTrainerSessions } from "../../../redux/slices/sessionSlice";
+import { fetchTrainerBookings }  from "../../../redux/slices/sessionSlice";
 import { 
   setSelectedTrainer 
 } from "../../../redux/slices/trainerSlice";
@@ -29,51 +29,26 @@ export default function TrainerProfile() {
   (state) => state.sessions
 );
 
-// 🔥 Demo sessions (temporary UI testing)
-const demoSessions = [
-  {
-    id: 1,
-    customer: "Aman Sharma",
-    date: "2026-02-19",
-    start: "09:00",
-    end: "10:00",
-  },
-  {
-    id: 2,
-    customer: "Riya Patel",
-    date: "2026-02-19",
-    start: "11:00",
-    end: "12:30",
-  },
-  {
-    id: 3,
-    customer: "John Doe",
-    date: "2026-02-19",
-    start: "15:00",
-    end: "16:00",
-  },
-  {
-    id: 4,
-    customer: "Neha Verma",
-    date: "2026-02-20",
-    start: "08:00",
-    end: "09:00",
-  },
-  {
-    id: 5,
-    customer: "Rahul Mehta",
-    date: "2026-02-21",
-    start: "17:00",
-    end: "18:00",
-  },
-];
+const formatDate = (date) => {
+  if (!date) return null;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
 
 // Use demo if redux empty
-const sessions =
-  reduxSessions && reduxSessions.length > 0
-    ? reduxSessions
-    : demoSessions;
+const sessions = reduxSessions || [];
+console.log("Redux Sessions:", reduxSessions);
 
+const bookedDates = sessions
+  .filter((b) => !b.isCancelled)
+  .map((b) =>
+    formatDate(new Date(b.timeSlot.startTime))
+  );
 
 const { trainers, selectedTrainer, loading } = useSelector(
   (state) => state.trainers
@@ -100,13 +75,6 @@ const [currentMonth, setCurrentMonth] = useState(new Date());
 const [selectedDate, setSelectedDate] = useState(new Date());
 const [selectedWeekDate, setSelectedWeekDate] = useState(null);
 
-// Demo status data (UI only)
-const bookedDates = [
-  "2026-02-16",
-  "2026-02-18",
-  "2026-02-19",
-  "2026-02-20",
-];
 
 const holidayDates = ["2026-02-22"];
 
@@ -131,6 +99,13 @@ useEffect(() => {
   }
 
 }, [id]);
+
+useEffect(() => {
+  if (!trainer?.id) return;
+
+  dispatch(fetchTrainerBookings(trainer.id));
+
+}, [trainer]);
 
 
 
@@ -355,11 +330,14 @@ const calculateDuration = (start, end) => {
   return (eh + em / 60) - (sh + sm / 60);
 };
 
-const weeklyAssignedHours = sessions.reduce(
-  (acc, slot) =>
-    acc + calculateDuration(slot.start, slot.end),
-  0
-);
+const weeklyAssignedHours = sessions
+  .filter((b) => !b.isCancelled)
+  .reduce((acc, booking) => {
+    const start = new Date(booking.timeSlot.startTime);
+    const end = new Date(booking.timeSlot.endTime);
+
+    return acc + (end - start) / (1000 * 60 * 60);
+  }, 0);
 
 
 // Get week dates (7 days from selected date)
@@ -374,15 +352,6 @@ const getWeekDates = (date) => {
   });
 };
 
-const formatDate = (date) => {
-  if (!date) return null;
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-};
 
 
 const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
@@ -718,10 +687,15 @@ const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
    {selectedDate && (
   <>
     {/* Show heading only if slots exist */}
-    {sessions.filter(
-      (s) =>
-        s.date === formatDate(selectedWeekDate || selectedDate)
-    ).length > 0 && (
+    {sessions.filter((booking) => {
+  const bookingDate =
+  booking.timeSlot.startTime.split("T")[0];
+
+  return (
+    bookingDate === formatDate(selectedDate) &&
+    !booking.isCancelled
+  );
+}).length > 0 && (
       <h5 className="fw-semibold mt-4 mb-3 booked-heading">
         Booked Slots
       </h5>
@@ -731,18 +705,21 @@ const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
 
 
   {sessions
-  .filter(
-    (s) =>
-      s.date ===
-      formatDate(selectedWeekDate || selectedDate)
-  )
-  .map((slot) => {
+  .filter((booking) => {
+    const bookingDate = formatDate(
+      new Date(booking.timeSlot.startTime)
+    );
 
+    return (
+      bookingDate === formatDate(selectedDate) &&
+      !booking.isCancelled
+    );
+  })
+  .map((booking) => {
 
-      const isPremium = slot.customer === "John Doe"; // demo logic
 
       return (
-        <div key={slot.id} className="booking-card">
+        <div key={booking.id} className="booking-card">
 
           {/* LEFT SECTION */}
           <div className="booking-left">
@@ -754,21 +731,28 @@ const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
       alt="avatar"
     />
 
-    {isPremium && (
-      <span className="premium-badge">👑</span>
-    )}
   </div>
 
   <div className="booking-content">
     <h6 className="booking-name">
-      {slot.customer}
-    </h6>
+  {booking.customer.firstName} {booking.customer.lastName}
+</h6>
 
-    <div className="booking-meta">
-      <span>📅 {new Date(slot.date).toLocaleDateString()}</span>
-      <span>⏰ {slot.start} - {slot.end}</span>
-      <span>📍 Body care Gym</span>
-    </div>
+<div className="booking-meta">
+  <span>
+    📅 {new Date(booking.timeSlot.startTime).toLocaleDateString()}
+  </span>
+
+  <span>
+    ⏰ {new Date(booking.timeSlot.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+     -
+    {new Date(booking.timeSlot.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+  </span>
+
+  <span>
+    📍 {booking.trainer.userProfileDetails?.[0]?.hostGymName || "Gym"}
+  </span>
+</div>
   </div>
 
 </div>

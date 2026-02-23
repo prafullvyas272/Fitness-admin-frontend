@@ -1,21 +1,31 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-/* ================= FETCH SESSIONS ================= */
+export const fetchTrainerBookings = createAsyncThunk(
+  "sessions/fetchTrainerBookings",
+  async (trainerId, thunkAPI) => {
+    try {
+      const token = localStorage.getItem("adminToken");
 
-export const fetchTrainerSessions = createAsyncThunk(
-  "sessions/fetchTrainerSessions",
-  async (trainerId) => {
-    const token = localStorage.getItem("adminToken");
+      const response = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/trainers/${trainerId}/bookings`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    const res = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/trainers/${trainerId}/sessions`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message);
       }
-    );
 
-    const data = await res.json();
-    return data.data || [];
+      return data.data.bookings;
+
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
   }
 );
 
@@ -29,15 +39,16 @@ const sessionSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchTrainerSessions.pending, (state) => {
+      .addCase(fetchTrainerBookings.pending, (state) => {
         state.loading = true;
       })
-      .addCase(fetchTrainerSessions.fulfilled, (state, action) => {
+      .addCase(fetchTrainerBookings.fulfilled, (state, action) => {
         state.loading = false;
         state.sessions = action.payload;
       })
-      .addCase(fetchTrainerSessions.rejected, (state) => {
+      .addCase(fetchTrainerBookings.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
       });
   },
 });

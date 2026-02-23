@@ -2,11 +2,24 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Row, Col, Card, Nav, Button, Modal, Form } from "react-bootstrap";
 
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchCustomerById,
+  deleteCustomer,
+  updateCustomer,
+  assignTrainer
+} from "../../redux/slices/customerSlice";
+
 export default function CustomerDetail() {
   const router = useRouter();
   const { id } = router.query;
 
-  const [customer, setCustomer] = useState(null);
+  const dispatch = useDispatch();
+
+const { selectedCustomer: customer, loading } = useSelector(
+  (state) => state.customers
+);
+
   const [activeTab, setActiveTab] = useState("overview");
 
   const [showEdit, setShowEdit] = useState(false);
@@ -17,176 +30,63 @@ const [trainers, setTrainers] = useState([]);
 const [selectedTrainer, setSelectedTrainer] = useState("");
 const [trainerSearch, setTrainerSearch] = useState("");
 
-
 useEffect(() => {
-    if (!id) return;
-
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("adminToken");
-
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
-        // Fetch Customer
-        const customerRes = await fetch(
-          `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}/profile`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        const customerData = await customerRes.json();
-
-        if (!customerRes.ok) {
-          throw new Error(customerData.message);
-        }
-
-        setCustomer(customerData.data);
-
-        // Preselect trainer if assigned
-        if (
-          customerData.data.assignedTrainers &&
-          customerData.data.assignedTrainers.length > 0
-        ) {
-          setSelectedTrainer(
-            customerData.data.assignedTrainers[0].trainerId
-          );
-        }
-
-        // Fetch Trainers
-        const trainerRes = await fetch(
-          "https://fitness-app-seven-beryl.vercel.app/api/trainers",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        const trainerData = await trainerRes.json();
-
-        if (trainerRes.ok) {
-          setTrainers(trainerData.data);
-        }
-
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchData();
-  }, [id]);
+  if (id) {
+    dispatch(fetchCustomerById(id));
+  }
+}, [id, dispatch]);
 
   if (!customer) return <div className="p-4">Loading...</div>;
+
+  useEffect(() => {
+  if (customer) {
+    setEditData({
+      firstName: customer.firstName || "",
+      lastName: customer.lastName || "",
+      email: customer.email || "",
+      phone: customer.phone || "",
+      isActive: customer.isActive,
+    });
+  }
+}, [customer]);
 
   /* ===============================
      DELETE CUSTOMER
   =============================== */
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this customer?")) return;
+  if (!confirm("Are you sure?")) return;
 
-    try {
-      const token = localStorage.getItem("adminToken");
-
-      const response = await fetch(
-        `https://fitness-app-seven-beryl.vercel.app/api/customers/${customer.id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Delete failed");
-      }
-
-      alert("Customer deleted ✅");
-      router.push("/customers");
-
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+  await dispatch(deleteCustomer(customer.id));
+  router.push("/customers");
+};
 
   /* ===============================
      EDIT SAVE
   =============================== */
   const handleEditSave = async () => {
-    try {
-      const token = localStorage.getItem("adminToken");
+  await dispatch(
+    updateCustomer({
+      id: customer.id,
+      payload: editData,
+    })
+  );
 
-      const response = await fetch(
-        `https://fitness-app-seven-beryl.vercel.app/api/customers/${customer.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            firstName: editData.firstName,
-            lastName: editData.lastName,
-            email: editData.email,
-            phone: editData.phone,
-            isActive: editData.isActive,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message);
-      }
-
-      alert("Updated successfully ✅");
-      setShowEdit(false);
-      router.reload();
-
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+  setShowEdit(false);
+};
 
   /* ===============================
      ASSIGN TRAINER SAVE
   =============================== */
   const handleAssignSave = async () => {
-    try {
-      const token = localStorage.getItem("adminToken");
+  await dispatch(
+    assignTrainer({
+      trainerId: selectedTrainer,
+      customerId: customer.id,
+    })
+  );
 
-      const response = await fetch(
-        "https://fitness-app-seven-beryl.vercel.app/api/assign-customer",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            trainerId: selectedTrainer,
-            customerId: customer.id,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message);
-      }
-
-      alert("Trainer Assigned ✅");
-      setShowAssign(false);
-      router.reload();
-
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+  setShowAssign(false);
+};
 
   const filteredTrainers = trainers.filter((trainer) =>
     `${trainer.firstName} ${trainer.lastName}`

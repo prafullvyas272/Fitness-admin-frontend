@@ -1,6 +1,12 @@
 import { Card, Row, Col, Form, Button, Nav } from "react-bootstrap";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchCustomerById,
+  createCustomer,
+  updateCustomer,
+} from "../../redux/slices/customerSlice";
 
 export default function CreateCustomer() {
   const router = useRouter();
@@ -19,45 +25,35 @@ export default function CreateCustomer() {
     avatarPreview: "",
   });
 
+  const dispatch = useDispatch();
+
+const { selectedCustomer, loading } = useSelector(
+  (state) => state.customers
+);
   /* ===============================
      FETCH CUSTOMER IF EDIT MODE
   =============================== */
   useEffect(() => {
-    if (!id) return;
-
-    const fetchCustomer = async () => {
-      try {
-        const token = localStorage.getItem("adminToken");
-
-        const res = await fetch(
-          `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}/profile`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        const data = await res.json();
-
-        if (!res.ok) throw new Error(data.message);
-
-        setCustomer({
-          firstName: data.data.firstName,
-          lastName: data.data.lastName,
-          email: data.data.email,
-          phone: data.data.phone,
-          status: data.data.isActive ? "Active" : "Inactive",
-          avatarFile: null,
-          avatarPreview:
-            data.data.userProfileDetails?.[0]?.avatarUrl || "",
-        });
-
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchCustomer();
-  }, [id]);
+  if (id) {
+    dispatch(fetchCustomerById(id));
+  }
+}, [id]);
+  
+  useEffect(() => {
+  if (selectedCustomer && id) {
+    setCustomer({
+      firstName: selectedCustomer.firstName || "",
+      lastName: selectedCustomer.lastName || "",
+      email: selectedCustomer.email || "",
+      phone: selectedCustomer.phone || "",
+      countryCode: "+91",
+      status: selectedCustomer.isActive ? "Active" : "Inactive",
+      avatarFile: null,
+      avatarPreview:
+        selectedCustomer.userProfileDetails?.[0]?.avatarUrl || "",
+    });
+  }
+}, [selectedCustomer]);
 
   /* ===============================
      HANDLE CHANGE
@@ -84,74 +80,54 @@ const validatePhone = (phone) => {
 
 
   const handleSubmit = async () => {
-    try {
-      const token = localStorage.getItem("adminToken");
-
-      if (!token) {
-        alert("Session expired");
-        router.push("/login");
-        return;
-      }
-
-      if (!validateEmail(customer.email)) {
-  alert("Email must be valid and end with .com");
-  return;
-}
-
-if (!validatePhone(customer.phone)) {
-  alert("Phone number must contain only digits (7–12 numbers)");
-  return;
-}
-
-
-      const formData = new FormData();
-
-      formData.append("firstName", customer.firstName);
-      formData.append("lastName", customer.lastName);
-      formData.append("email", customer.email);
-      fformData.append(
-  "phone",
-  `${customer.countryCode}${customer.phone}`
-);
-
-
-      if (!id) {
-        // Only required when creating
-        formData.append("password", "Customer@123");
-      }
-
-      if (customer.avatarFile) {
-        formData.append("avatar", customer.avatarFile);
-      }
-
-      const url = id
-        ? `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}`
-        : "https://fitness-app-seven-beryl.vercel.app/api/customers";
-
-      const method = id ? "PUT" : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Operation failed");
-      }
-
-      alert(id ? "Customer updated ✅" : "Customer created ✅");
-
-      router.push("/customers");
-
-    } catch (error) {
-      alert(error.message);
+  try {
+    if (!validateEmail(customer.email)) {
+      alert("Email must be valid and end with .com");
+      return;
     }
-  };
+
+    if (!validatePhone(customer.phone)) {
+      alert("Phone must be 7–12 digits");
+      return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("firstName", customer.firstName);
+    formData.append("lastName", customer.lastName);
+    formData.append("email", customer.email);
+    formData.append(
+      "phone",
+      `${customer.countryCode}${customer.phone}`
+    );
+
+    formData.append(
+      "isActive",
+      customer.status === "Active"
+    );
+
+    if (!id) {
+      formData.append("password", "Customer@123");
+    }
+
+    if (customer.avatarFile) {
+      formData.append("avatar", customer.avatarFile);
+    }
+
+    if (id) {
+      await dispatch(updateCustomer({ id, formData }));
+      alert("Customer updated ✅");
+    } else {
+      await dispatch(createCustomer(formData));
+      alert("Customer created ✅");
+    }
+
+    router.push("/customers");
+
+  } catch (error) {
+    alert(error.message);
+  }
+};
 
   const hasUnsavedChanges = () => {
   return (
