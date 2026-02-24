@@ -66,6 +66,11 @@ export const DashboardMenu = [
       link: "/availability-slots",
       name: "Availability Slots",
     },
+    {
+      id: uuid(),
+      link: "/workout",   // ✅ NEW ROUTE
+      name: "Workout",    // ✅ NEW MENU NAME
+    },
   ],
 },
 
