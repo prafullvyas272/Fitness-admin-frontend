@@ -121,7 +121,7 @@ export default function Workout() {
       <div className="workout-header">
         <h3>Workout Library</h3>
         <button
-          className="primary-btn"
+          className="app-primary-btn"
           onClick={() => setShowModal(true)}
         >
           + Upload Video
@@ -218,7 +218,13 @@ export default function Workout() {
                   setForm({ ...form, tagInput: e.target.value })
                 }
               />
-              <button onClick={addTag}>Add</button>
+              <button
+  type="button"
+  className="app-tag-btn"
+  onClick={addTag}
+>
+  + Add
+</button>
             </div>
 
             <div className="tag-list">
@@ -264,7 +270,7 @@ export default function Workout() {
 
             <div className="modal-actions">
               <button onClick={resetForm}>Cancel</button>
-              <button onClick={handleSubmit} className="primary-btn">
+              <button onClick={handleSubmit} className="app-primary-btn">
                 {editItem ? "Update" : "Upload"}
               </button>
             </div>

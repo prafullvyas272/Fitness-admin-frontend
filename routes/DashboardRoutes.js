@@ -51,6 +51,13 @@ export const DashboardMenu = [
     link: "/customers",
   },
 
+  {
+  id: uuid(),
+  title: "Billing Details",
+  icon: "credit-card",   // you can change icon if needed
+  link: "/billing-details",
+},
+
  {
   id: uuid(),
   title: "Session Management",

@@ -1467,3 +1467,60 @@ img:hover {
   justify-content: flex-end;
   gap: 10px;
 }
+.app-primary-btn {
+  background: linear-gradient(90deg, #6d5dfc, #5b4df5);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: 0.3s ease;
+  box-shadow: 0 4px 12px rgba(109, 93, 252, 0.25);
+}
+
+.app-primary-btn:hover {
+  opacity: 0.9;
+}
+
+.app-tag-btn {
+  background: #eef2ff;
+  color: #5b4df5;
+  border: 1px solid #dcdcff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: 0.3s ease;
+}
+
+.app-tag-btn:hover {
+  background: #5b4df5;
+  color: #fff;
+}
+
+//billing-details
+
+.billing-card {
+  border-radius: 14px;
+  padding: 10px;
+  transition: 0.3s ease;
+  background: #ffffff;
+}
+
+.billing-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0, 123, 255, 0.12);
+}
+
+.popular-plan {
+  border: 2px solid #0d6efd;
+}
+
+.billing-card ul {
+  padding-left: 18px;
+}
+
+.billing-card ul li {
+  margin-bottom: 8px;
+}
