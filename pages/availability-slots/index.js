@@ -560,7 +560,7 @@ const formatToUS = (dateString) => {
 
       <div className="text-end mt-4">
         <Button
-  size="lg"
+  // size="lg"
   variant="primary"
   onClick={handleSubmit}
   disabled={saving}
