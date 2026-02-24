@@ -1367,20 +1367,69 @@ img:hover {
   font-size: 12px;
 }
 
-.hover-actions {
+.hover-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 15px;
   opacity: 0;
+  transition: 0.3s ease;
+  flex-direction: column;
+}
+
+.video-thumb:hover .hover-overlay {
+  opacity: 1;
+}
+
+/* PLAY BUTTON */
+.play-btn {
+  background: white;
+  color: #5b4df5;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
   transition: 0.3s;
 }
 
-.video-thumb:hover .hover-actions {
-  opacity: 1;
+.play-btn:hover {
+  transform: scale(1.1);
+}
+
+/* BOTTOM ACTIONS */
+.bottom-actions {
+  position: absolute;
+  bottom: 15px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.bottom-actions button {
+  background: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.bottom-actions .delete-btn {
+  color: #ef4444;
+}
+
+.bottom-actions .edit-btn {
+  color: #5b4df5;
 }
 
 .hover-actions button {

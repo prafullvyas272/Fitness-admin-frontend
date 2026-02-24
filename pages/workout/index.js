@@ -13,6 +13,7 @@ export default function Workout() {
   const dispatch = useDispatch();
   const fileRef = useRef();
 
+  const [previewVideo, setPreviewVideo] = useState(null);
   const { workouts, currentPage, itemsPerPage } =
     useSelector((state) => state.workout);
 
@@ -141,7 +142,15 @@ export default function Workout() {
                 {("0" + (video.duration % 60)).slice(-2)}
               </div>
 
-              <div className="hover-actions">
+              <div className="hover-overlay">
+                {/* PLAY BUTTON CENTER */}
+  <div
+    className="play-btn"
+    onClick={() => setPreviewVideo(video)}
+  >
+    ▶
+  </div>
+  <div className="bottom-actions">
                 <button
                   onClick={() => {
                     setEditItem(video);
@@ -157,6 +166,7 @@ export default function Workout() {
                 >
                   Delete
                 </button>
+              </div>
               </div>
             </div>
 
@@ -275,9 +285,28 @@ export default function Workout() {
               </button>
             </div>
 
+            
+
           </div>
         </Modal.Body>
       </Modal>
+      <Modal
+  show={!!previewVideo}
+  onHide={() => setPreviewVideo(null)}
+  centered
+  size="lg"
+>
+  <Modal.Body style={{ padding: 0 }}>
+    {previewVideo && (
+      <video
+        src={previewVideo.url}
+        controls
+        autoPlay
+        style={{ width: "100%", borderRadius: "10px" }}
+      />
+    )}
+  </Modal.Body>
+</Modal>
 
     </div>
   );
