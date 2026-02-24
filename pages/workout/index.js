@@ -8,10 +8,21 @@ import {
 } from "../../redux/slices/workoutSlice";
 import { v4 as uuid } from "uuid";
 import { Modal } from "react-bootstrap";
+import { uploadWorkout } from "../../redux/slices/workoutSlice";
+import { fetchWorkouts, removeWorkout, updateWorkoutAPI } 
+from "../../redux/slices/workoutSlice";
+
+import { useEffect } from "react";
+
 
 export default function Workout() {
   const dispatch = useDispatch();
+  useEffect(() => {
+  dispatch(fetchWorkouts());
+}, [dispatch]);
+
   const fileRef = useRef();
+
 
   const [previewVideo, setPreviewVideo] = useState(null);
   const { workouts, currentPage, itemsPerPage } =
@@ -19,6 +30,9 @@ export default function Workout() {
 
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  const { loading } = useSelector((state) => state.workout);
+
+  const [durations, setDurations] = useState({});
 
   const [form, setForm] = useState({
     title: "",
@@ -72,26 +86,21 @@ export default function Workout() {
   };
 
   // ================= SUBMIT =================
-  const handleSubmit = () => {
-    if (!form.title || !form.file) return alert("Fill required fields");
+const handleSubmit = () => {
+  const data = new FormData();
+  data.append("title", form.title);
+  data.append("description", form.description);
+  form.tags.forEach((tag) => data.append("tags", tag));
+  if (form.file) data.append("video", form.file);
 
-    const payload = {
-      id: editItem ? editItem.id : uuid(),
-      title: form.title,
-      description: form.description,
-      tags: form.tags,
-      url: form.preview,
-      duration: form.duration,
-    };
+  if (editItem) {
+    dispatch(updateWorkoutAPI({ id: editItem.id, formData: data }));
+  } else {
+    dispatch(uploadWorkout(data));
+  }
 
-    if (editItem) {
-      dispatch(updateWorkout(payload));
-    } else {
-      dispatch(addWorkout(payload));
-    }
-
-    resetForm();
-  };
+  resetForm();
+};
 
   const resetForm = () => {
     setForm({
@@ -109,10 +118,7 @@ export default function Workout() {
 
   // ================= PAGINATION =================
   const indexOfLast = currentPage * itemsPerPage;
-  const currentItems = workouts.slice(
-    indexOfLast - itemsPerPage,
-    indexOfLast
-  );
+  const currentItems = workouts;
   const totalPages = Math.ceil(workouts.length / itemsPerPage);
 
   return (
@@ -135,12 +141,31 @@ export default function Workout() {
           <div key={video.id} className="video-card">
 
             <div className="video-thumb">
-              <video src={video.url} />
 
-              <div className="duration">
-                {Math.floor(video.duration / 60)}:
-                {("0" + (video.duration % 60)).slice(-2)}
-              </div>
+  {video.videoUrl && (
+  <>
+    <video
+      src={video.videoUrl}
+      preload="metadata"
+      onLoadedMetadata={(e) => {
+        const duration = e.target.duration;
+
+        setDurations((prev) => ({
+          ...prev,
+          [video.id]: duration,
+        }));
+      }}
+    />
+
+    <div className="duration">
+      {durations[video.id]
+        ? `${Math.floor(durations[video.id] / 60)}:${(
+            "0" + Math.floor(durations[video.id] % 60)
+          ).slice(-2)}`
+        : "--:--"}
+    </div>
+  </>
+)}
 
               <div className="hover-overlay">
                 {/* PLAY BUTTON CENTER */}
@@ -162,7 +187,7 @@ export default function Workout() {
                 </button>
 
                 <button
-                  onClick={() => dispatch(deleteWorkout(video.id))}
+                  onClick={() => dispatch(removeWorkout(video.id))}
                 >
                   Delete
                 </button>
@@ -280,9 +305,13 @@ export default function Workout() {
 
             <div className="modal-actions">
               <button onClick={resetForm}>Cancel</button>
-              <button onClick={handleSubmit} className="app-primary-btn">
-                {editItem ? "Update" : "Upload"}
-              </button>
+              <button
+  onClick={handleSubmit}
+  className="app-primary-btn"
+  disabled={loading}
+>
+  {loading ? "Uploading..." : editItem ? "Update" : "Upload"}
+</button>
             </div>
 
             
@@ -299,7 +328,7 @@ export default function Workout() {
   <Modal.Body style={{ padding: 0 }}>
     {previewVideo && (
       <video
-        src={previewVideo.url}
+        src={previewVideo.videoUrl}
         controls
         autoPlay
         style={{ width: "100%", borderRadius: "10px" }}

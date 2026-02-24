@@ -1573,3 +1573,9 @@ img:hover {
 .billing-card ul li {
   margin-bottom: 8px;
 }
+
+//workout. button
+.app-primary-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
