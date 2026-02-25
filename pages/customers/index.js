@@ -24,7 +24,9 @@ export default function AllCustomers() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [editData, setEditData] = useState({});
   const [selectedTrainer, setSelectedTrainer] = useState("");
-  
+  const [bulkMode, setBulkMode] = useState(false);
+const [selectedCustomers, setSelectedCustomers] = useState([]);
+
   //redux
   const dispatch = useDispatch();
 
@@ -77,6 +79,22 @@ const handleView = (customer) => {
   router.push(`/customers/${customer.id}`);
 };
 
+const handleBulkDelete = async () => {
+  if (selectedCustomers.length === 0) return;
+
+  const confirmDelete = confirm(
+    "Are you sure you want to delete selected customers?"
+  );
+
+  if (!confirmDelete) return;
+
+  for (let id of selectedCustomers) {
+    await dispatch(deleteCustomer(id));
+  }
+
+  setSelectedCustomers([]);
+  setBulkMode(false);
+};
 
   // EDIT
  // EDIT (Redirect to create page in edit mode)
@@ -184,12 +202,8 @@ const filteredTrainers = trainers
   <Dropdown align="end">
   <Dropdown.Toggle
     as="button"
-    className="btn btn-light border-0 shadow-sm d-flex align-items-center justify-content-center"
-    style={{
-      width: 38,
-      height: 38,
-      borderRadius: 8,
-    }}
+    className="btn btn-light border d-flex align-items-center justify-content-center"
+    style={{ width: 42, height: 42 }}
   >
     <i className="fe fe-filter text-secondary"></i>
   </Dropdown.Toggle>
@@ -200,27 +214,57 @@ const filteredTrainers = trainers
   style={{ width: 180 }}
 >
 
-      <Dropdown.Item onClick={() => setFilterType("All")}>
+      <Dropdown.Item
+  active={filterType === "All"}
+  onClick={() => setFilterType("All")}
+  className={`filter-item ${
+    filterType === "All" ? "active-filter" : ""
+  }`}
+>
   <span className="filter-dot filter-all me-2"></span>
   All
 </Dropdown.Item>
 
-<Dropdown.Item onClick={() => setFilterType("Active")}>
+<Dropdown.Item
+  active={filterType === "Active"}
+  onClick={() => setFilterType("Active")}
+  className={`filter-item ${
+    filterType === "Active" ? "active-filter" : ""
+  }`}
+>
   <span className="filter-dot filter-active me-2"></span>
   Active
 </Dropdown.Item>
 
-<Dropdown.Item onClick={() => setFilterType("Inactive")}>
+<Dropdown.Item
+  active={filterType === "Inactive"}
+  onClick={() => setFilterType("Inactive")}
+  className={`filter-item ${
+    filterType === "Inactive" ? "active-filter" : ""
+  }`}
+>
   <span className="filter-dot filter-inactive me-2"></span>
   Inactive
 </Dropdown.Item>
 
-<Dropdown.Item onClick={() => setFilterType("Premium")}>
+<Dropdown.Item
+  active={filterType === "Premium"}
+  onClick={() => setFilterType("Premium")}
+  className={`filter-item ${
+    filterType === "Premium" ? "active-filter" : ""
+  }`}
+>
   <span className="filter-dot filter-premium me-2"></span>
   Premium
 </Dropdown.Item>
 
-<Dropdown.Item onClick={() => setFilterType("Free")}>
+<Dropdown.Item
+  active={filterType === "Free"}
+  onClick={() => setFilterType("Free")}
+  className={`filter-item ${
+    filterType === "Free" ? "active-filter" : ""
+  }`}
+>
   <span className="filter-dot filter-free me-2"></span>
   Free
 </Dropdown.Item>
@@ -228,6 +272,19 @@ const filteredTrainers = trainers
     </Dropdown.Menu>
   </Dropdown>
 
+{/* BULK DELETE BUTTON */}
+<Button
+  variant="light"
+  className={`btn border icon-square-btn delete-toggle-btn ${
+    bulkMode ? "active-delete" : ""
+  }`}
+  onClick={() => {
+    setBulkMode(!bulkMode);
+    setSelectedCustomers([]);
+  }}
+>
+  <i className="fe fe-trash text-secondary"></i>
+</Button>
   {/* CREATE BUTTON */}
   <Button
     variant="primary"
@@ -280,11 +337,21 @@ const filteredTrainers = trainers
 />
           </Col>
         </Row>
-
+{bulkMode && selectedCustomers.length > 0 && (
+  <div className="mb-3">
+    <Button
+      variant="danger"
+      onClick={handleBulkDelete}
+    >
+      Delete Selected ({selectedCustomers.length})
+    </Button>
+  </div>
+)}
         {/* TABLE */}
         <Table responsive hover className="align-middle">
           <thead className="bg-light">
             <tr className="text-muted text-uppercase small">
+  {bulkMode && <th style={{ width: 40 }}></th>}
               <th>Name</th>
               <th>Email</th>
               <th>Phone</th>
@@ -310,6 +377,28 @@ const filteredTrainers = trainers
             ) : (
               currentCustomers.map((customer) => (
                 <tr key={customer.id}>
+                  {bulkMode && (
+  <td>
+    <Form.Check
+      type="checkbox"
+      checked={selectedCustomers.includes(customer.id)}
+      onChange={(e) => {
+        if (e.target.checked) {
+          setSelectedCustomers([
+            ...selectedCustomers,
+            customer.id,
+          ]);
+        } else {
+          setSelectedCustomers(
+            selectedCustomers.filter(
+              (id) => id !== customer.id
+            )
+          );
+        }
+      }}
+    />
+  </td>
+)}
 
                   <td className="fw-semibold text-dark">
                     {customer.firstName} {customer.lastName}

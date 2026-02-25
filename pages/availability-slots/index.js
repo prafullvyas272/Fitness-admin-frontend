@@ -1,573 +1,387 @@
 import { useState, useEffect } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import {
-  Card,
-  Row,
-  Col,
-  Form,
-  Button,
-  Accordion,
-  Alert,
-  ProgressBar,
-  Badge,
-} from "react-bootstrap";
-
-const daysOfWeek = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
+import { Card, Button, Row, Col, Form } from "react-bootstrap";
 
 export default function AvailabilitySlots() {
-  const [weekStart, setWeekStart] = useState(null);
-  const [weekData, setWeekData] = useState({});
-  const [applyToAll, setApplyToAll] = useState(false);
-  const [repeatMonth, setRepeatMonth] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [totalMinutes, setTotalMinutes] = useState(0);
 
-  const [loading, setLoading] = useState(false);
-const [saving, setSaving] = useState(false);
+  const creatorId = localStorage.getItem("adminId");
+  const token = localStorage.getItem("adminToken");
 
-  // const requiredMinutes = 2700;
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [slots, setSlots] = useState([]);
+  const [slotDates, setSlotDates] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  /* -------- Initialize Week -------- */
+  /* ================= FORMAT DATE ================= */
 
-const initializeWeek = async (startDate) => {
-  const [year, month, day] = startDate.split("-");
-
-  const start = new Date(Number(year), Number(month) - 1, Number(day));
-
-  const newWeek = {};
-
-  daysOfWeek.forEach((dayName, index) => {
-    const current = new Date(start);
-    current.setDate(start.getDate() + index);
-
-    const formattedDate =
-      current.getFullYear() +
-      "-" +
-      String(current.getMonth() + 1).padStart(2, "0") +
-      "-" +
-      String(current.getDate()).padStart(2, "0");
-
-    newWeek[dayName] = {
-      date: formattedDate,
-      slots: [],
-    };
-  });
-
-  // 🔥 RESET FIRST
- await loadWeekSlots(newWeek);
-};
-  const loadWeekSlots = async (weekObject) => {
-  setLoading(true);
-
-  const updatedWeek = JSON.parse(JSON.stringify(weekObject));
-
-  try {
-    await Promise.all(
-      Object.keys(updatedWeek).map(async (day) => {
-        const date = updatedWeek[day].date;
-
-        const res = await fetch(
-          `https://fitness-app-seven-beryl.vercel.app/api/time-slots?date=${date}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-            },
-          }
-        );
-
-        const data = await res.json();
-        const backendSlots = data?.data?.slots || [];
-
-        updatedWeek[day].slots = backendSlots.map((slot) => {
-          const start = new Date(slot.startTime);
-          const end = new Date(slot.endTime);
-
-          const startUTC =
-            String(start.getUTCHours()).padStart(2, "0") +
-            ":" +
-            String(start.getUTCMinutes()).padStart(2, "0");
-
-          const endUTC =
-            String(end.getUTCHours()).padStart(2, "0") +
-            ":" +
-            String(end.getUTCMinutes()).padStart(2, "0");
-
-          return {
-            id: slot.id,
-            startTime: startUTC,
-            endTime: endUTC,
-          };
-        });
-      })
-    );
-
-    setWeekData(updatedWeek);
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
-  /* -------- Time Calculation -------- */
-
-  const calculateMinutes = (start, end) => {
-    const s = new Date(`1970-01-01T${start}`);
-    const e = new Date(`1970-01-01T${end}`);
-    if (e <= s) return 0;
-    return (e - s) / 60000;
+  const formatDate = (date) => {
+    if (!date) return null;
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
   };
 
-  useEffect(() => {
-    let total = 0;
-    Object.keys(weekData).forEach((day) => {
-      weekData[day].slots.forEach((slot) => {
-        if (slot.startTime && slot.endTime) {
-          total += calculateMinutes(slot.startTime, slot.endTime);
-        }
-      });
-    });
-    setTotalMinutes(total);
-  }, [weekData]);
+  /* ================= MONTH NAV ================= */
 
-  const totalHours = (totalMinutes / 60).toFixed(1);
-
-  /* -------- Slot Functions -------- */
-
-  const addSlot = (day) => {
-    setWeekData((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        slots: [...prev[day].slots, { startTime: "", endTime: "" }],
-      },
-    }));
+  const changeMonth = (dir) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(newMonth.getMonth() + dir);
+    setCurrentMonth(newMonth);
   };
 
-  const updateSlot = (day, index, field, value) => {
-  setWeekData((prev) => {
-    const updatedSlots = [...prev[day].slots];
+  /* ================= CALENDAR GRID ================= */
 
-    updatedSlots[index][field] = value;
+  const generateCalendarDays = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
 
-    // If startTime changed, reset endTime if invalid
-    if (field === "startTime") {
-      const end = updatedSlots[index].endTime;
-      if (end && end <= value) {
-        updatedSlots[index].endTime = "";
-      }
+    const firstDay = new Date(year, month, 1).getDay();
+    const totalDays = new Date(year, month + 1, 0).getDate();
+
+    const days = [];
+
+    for (let i = 0; i < firstDay; i++) days.push(null);
+    for (let i = 1; i <= totalDays; i++) {
+      days.push(new Date(year, month, i));
     }
 
-    return {
-      ...prev,
-      [day]: {
-        ...prev[day],
-        slots: updatedSlots,
-      },
-    };
-  });
-};
+    return days;
+  };
 
+  /* ================= FETCH MONTH SLOT DATES ================= */
 
- const removeSlot = async (day, index) => {
-  const slot = weekData[day].slots[index];
+  useEffect(() => {
+    fetchMonthSlots();
+  }, [currentMonth]);
 
-  try {
-    // If slot exists in backend → delete from DB
+  useEffect(() => {
+  if (selectedDate) {
+    fetchSlotsForDate(selectedDate);
+  }
+}, []);
+
+  const fetchMonthSlots = async () => {
+    try {
+      const firstDay = new Date(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth(),
+        1
+      );
+
+      const res = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/time-slots?creatorId=${creatorId}&pageSize=500`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) return;
+
+      const uniqueDates = [
+        ...new Set(
+          data?.data?.slots?.map((slot) =>
+            slot.date.split("T")[0]
+          )
+        ),
+      ];
+
+      setSlotDates(uniqueDates);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  /* ================= FETCH SLOTS FOR DATE ================= */
+
+  const fetchSlotsForDate = async (date) => {
+    setLoadingSlots(true);
+    const formatted = formatDate(date);
+
+    try {
+      const res = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/time-slots?creatorId=${creatorId}&date=${formatted}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) return;
+
+      const loadedSlots =
+        data?.data?.slots?.map((slot) => ({
+          id: slot.id,
+          startTime: new Date(slot.startTime)
+            .toISOString()
+            .substring(11, 16),
+          endTime: new Date(slot.endTime)
+            .toISOString()
+            .substring(11, 16),
+        })) || [];
+
+      setSlots(loadedSlots);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  /* ================= DATE CLICK ================= */
+
+  const handleDateClick = (date) => {
+    setSelectedDate(date);
+    fetchSlotsForDate(date);
+  };
+
+  /* ================= SLOT CRUD ================= */
+
+  const addSlot = () => {
+    setSlots([...slots, { startTime: "", endTime: "" }]);
+  };
+
+  const updateSlot = (index, field, value) => {
+    const updated = [...slots];
+    updated[index][field] = value;
+    setSlots(updated);
+  };
+
+  const deleteSlot = async (index) => {
+    const slot = slots[index];
+
     if (slot.id) {
       await fetch(
         `https://fitness-app-seven-beryl.vercel.app/api/time-slots/${slot.id}`,
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
     }
 
-    // Remove from frontend state
-    setWeekData((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        slots: prev[day].slots.filter((_, i) => i !== index),
-      },
-    }));
-
-  } catch (err) {
-    console.error("Delete failed:", err);
-    alert("Failed to delete slot ❌");
-  }
-};
-
-  /* -------- Same For Week -------- */
-
-  const handleApplyToAll = (checked) => {
-    setApplyToAll(checked);
-
-    if (checked && weekData["Monday"]) {
-      const mondaySlots = weekData["Monday"].slots;
-
-      setWeekData((prev) => {
-        const updated = {};
-        daysOfWeek.forEach((day) => {
-          updated[day] = {
-            ...prev[day],
-            slots: [...mondaySlots],
-          };
-        });
-        return updated;
-      });
-    }
+    setSlots(slots.filter((_, i) => i !== index));
+    fetchMonthSlots();
   };
 
-  /* -------- Submit -------- */
-const handleSubmit = async () => {
-  if (!weekStart) {
-    alert("Please select week start date.");
-    return;
+  const handleSave = async () => {
+  if (!selectedDate) return;
+
+  const formatted = formatDate(selectedDate);
+
+  // ✅ VALIDATION CHECK
+  for (let slot of slots) {
+    if (!slot.startTime || !slot.endTime) {
+      alert("Please fill both start and end time.");
+      return;
+    }
+
+    if (slot.endTime <= slot.startTime) {
+      alert("End time must be greater than start time.");
+      return;
+    }
   }
 
   setSaving(true);
 
   try {
-    const requests = [];
+    for (let slot of slots) {
 
-    Object.keys(weekData).forEach((day) => {
-      const date = weekData[day].date;
-
-      weekData[day].slots.forEach((slot) => {
-        if (!slot.startTime || !slot.endTime) return;
-
-        const utcStart = new Date(`${date}T${slot.startTime}:00`);
-        const utcEnd = new Date(`${date}T${slot.endTime}:00`);
-
-        if (slot.id) {
-          requests.push(
-            fetch(
-              `https://fitness-app-seven-beryl.vercel.app/api/time-slots/${slot.id}`,
-              {
-                method: "PATCH",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+      if (slot.id) {
+        await fetch(
+          `https://fitness-app-seven-beryl.vercel.app/api/time-slots/${slot.id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              date: formatted,
+              startTime: `${formatted}T${slot.startTime}:00.000Z`,
+              endTime: `${formatted}T${slot.endTime}:00.000Z`,
+            }),
+          }
+        );
+      } else {
+        await fetch(
+          `https://fitness-app-seven-beryl.vercel.app/api/time-slots`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              date: formatted,
+              peakSlots: [
+                {
+                  start: slot.startTime,
+                  end: slot.endTime,
                 },
-                body: JSON.stringify({
-                  date,
-                  startTime: utcStart.toISOString(),
-                  endTime: utcEnd.toISOString(),
-                }),
-              }
-            )
-          );
-        } else {
-          requests.push(
-            fetch(
-              `https://fitness-app-seven-beryl.vercel.app/api/time-slots`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-                },
-                body: JSON.stringify({
-                  date,
-                  peakSlots: [
-                    {
-                      start: slot.startTime,
-                      end: slot.endTime,
-                    },
-                  ],
-                }),
-              }
-            )
-          );
-        }
-      });
-    });
+              ],
+            }),
+          }
+        );
+      }
+    }
 
-    await Promise.all(requests);
+    fetchMonthSlots();
+    alert("Slots saved successfully ✅");
 
-    alert("Time slots saved successfully ✅");
-
-    const isoDate =
-      weekStart.getFullYear() +
-      "-" +
-      String(weekStart.getMonth() + 1).padStart(2, "0") +
-      "-" +
-      String(weekStart.getDate()).padStart(2, "0");
-
-    await initializeWeek(isoDate);
   } catch (err) {
-    console.error(err);
-    alert("Something went wrong ❌");
+    alert("Error saving ❌");
   } finally {
     setSaving(false);
   }
 };
 
-//get details of slots
-const fetchSlotsForDate = async (date) => {
-  try {
-    const res = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/time-slots?date=${date}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-        },
-      }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) return [];
-
-    return data?.data?.slots || [];
-  } catch (err) {
-    console.error("Fetch slots error:", err);
-    return [];
-  }
-};
-const formatTime = (isoString) => {
-  const date = new Date(isoString);
-  return date.toISOString().substring(11, 16);
-};
-
-
-const formatToUS = (dateString) => {
-  if (!dateString) return "";
-
-  const date = new Date(dateString);
-
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const year = String(date.getFullYear()).slice(-2);
-
-  return `${month}/${day}/${year}`;
-};
-
-
-  /* -------- UI -------- */
+  /* ================= UI ================= */
 
   return (
     <div className="p-4">
-      <h2 className="mb-4 fw-semibold">Peak Time Slots</h2>
+      <h3 className="fw-bold mb-4">Availability Slots</h3>
 
-      {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
-
-      {/* Week Start */}
-      <Card className="shadow-sm border-0 mb-4">
+      <Card className="shadow-sm border-0 rounded-3">
         <Card.Body>
-       <Form.Label>Select Week Start (Monday)</Form.Label>
 
-<div style={{ position: "relative" }}>
-  <DatePicker
-  selected={weekStart}
-  onChange={(date) => {
-    setWeekStart(date);
+          <div className="availability-pro-calendar">
 
-    const isoDate =
-  date.getFullYear() +
-  "-" +
-  String(date.getMonth() + 1).padStart(2, "0") +
-  "-" +
-  String(date.getDate()).padStart(2, "0");
-    initializeWeek(isoDate);
-  }}
-  dateFormat="MM/dd/yy"
-  placeholderText="MM/DD/YY"
-  className="form-control"
-  calendarStartDay={1}
-  filterDate={(date) => date.getDay() === 1}
-  wrapperClassName="w-100"
-/>
-</div>
-
-
-
-        </Card.Body>
-      </Card>
-
-      {/* Hours UI */}
-      {/* <Card className="shadow-sm border-0 mb-4">
-        <Card.Body>
-          <Row className="align-items-center">
-            <Col md={8}>
-              <ProgressBar
-                now={(totalMinutes / requiredMinutes) * 100}
-                variant={
-                  totalMinutes >= requiredMinutes
-                    ? "success"
-                    : "danger"
-                }
-                style={{ height: "10px" }}
-              />
-            </Col>
-            <Col md={4} className="text-end">
-              <Badge
-                bg={
-                  totalMinutes >= requiredMinutes
-                    ? "success"
-                    : "danger"
-                }
-                className="fs-6 px-3 py-2"
+            <div className="availability-pro-header">
+              <button
+                className="availability-pro-nav"
+                onClick={() => changeMonth(-1)}
               >
-                {totalHours}h / 45h
-              </Badge>
-            </Col>
-          </Row>
-          <div className="mt-2 text-muted small">
-            Minimum 45 hours required per week.
+                ‹
+              </button>
+
+              <h4 className="fw-semibold mb-0">
+                {currentMonth.toLocaleString("default", {
+                  month: "long",
+                  year: "numeric",
+                })}
+              </h4>
+
+              <button
+                className="availability-pro-nav"
+                onClick={() => changeMonth(1)}
+              >
+                ›
+              </button>
+            </div>
+
+            <div className="availability-pro-weekdays">
+              {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
+                <div key={d}>{d}</div>
+              ))}
+            </div>
+
+            <div className="availability-pro-grid">
+              {generateCalendarDays().map((date, i) => {
+                if (!date) return <div key={i}></div>;
+
+                const formatted = formatDate(date);
+                const hasSlots = slotDates.includes(formatted);
+                const isSelected =
+                  selectedDate &&
+                  date.toDateString() === selectedDate.toDateString();
+
+                return (
+                  <div
+                    key={i}
+                    className={`availability-pro-cell
+                      ${isSelected ? "availability-pro-selected" : ""}
+                    `}
+                    onClick={() => handleDateClick(date)}
+                  >
+                    {date.getDate()}
+                    {hasSlots && (
+                      <span className="availability-dot"></span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
           </div>
-        </Card.Body>
-      </Card> */}
 
-      {/* Options */}
-      <Card className="shadow-sm border-0 mb-4">
-        <Card.Body>
-          <Form.Check
-            type="checkbox"
-            label="Same slots for entire week"
-            checked={applyToAll}
-            onChange={(e) => handleApplyToAll(e.target.checked)}
-            className="mb-2"
-          />
-
-          <Form.Check
-            type="checkbox"
-            label="Repeat this weekly schedule for entire month"
-            checked={repeatMonth}
-            onChange={(e) =>
-              setRepeatMonth(e.target.checked)
-            }
-          />
         </Card.Body>
       </Card>
 
-{loading && (
-  <div className="text-center my-4">
-    <div className="spinner-border text-primary" />
-  </div>
-)}
+      {selectedDate && (
+        <Card className="shadow-sm border-0 mt-4">
+          <Card.Body>
 
-      {/* 7 Days */}
-      <Accordion alwaysOpen>
-        {Object.keys(weekData).map((day, idx) => (
-          <Accordion.Item eventKey={idx.toString()} key={day}>
-            <Accordion.Header>
-              {day} ({formatToUS(weekData[day].date)})
-            </Accordion.Header>
+            <h5 className="fw-semibold mb-3">
+              Slots for {selectedDate.toDateString()}
+            </h5>
 
-            <Accordion.Body>
-              {weekData[day].slots.map((slot, index) => (
-  <div
-    key={index}
-    className="d-flex align-items-center gap-3 mb-3 flex-wrap"
-  >
+            {loadingSlots ? (
+              <p>Loading slots...</p>
+            ) : (
+              <>
+                {slots.map((slot, index) => (
+                  <Row key={index} className="mb-3">
+                    <Col md={4}>
+                      <Form.Control
+                        type="time"
+                        value={slot.startTime}
+                        onChange={(e) =>
+                          updateSlot(index, "startTime", e.target.value)
+                        }
+                      />
+                    </Col>
 
-    {/* START TIME */}
-<div style={{ flex: "1 1 200px" }}>
-  <DatePicker
-    selected={
-      slot.startTime
-        ? new Date(`1970-01-01T${slot.startTime}:00`)
-        : null
-    }
-    onChange={(date) => {
-      const formatted = date
-        .toLocaleTimeString("en-GB", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-        .substring(0, 5);
+                    <Col md={4}>
+                      <Form.Control
+                        type="time"
+                        value={slot.endTime}
+                        onChange={(e) =>
+                          updateSlot(index, "endTime", e.target.value)
+                        }
+                      />
+                    </Col>
 
-      updateSlot(day, index, "startTime", formatted);
-    }}
-    showTimeSelect
-    showTimeSelectOnly
-    timeIntervals={15}
-    dateFormat="hh:mm aa"
-    placeholderText="Start time"
-    className="form-control custom-time-input"
-  />
-</div>
+                    <Col md={2}>
+                      <Button
+                        variant="outline-danger"
+                        onClick={() => deleteSlot(index)}
+                      >
+                        Delete
+                      </Button>
+                    </Col>
+                  </Row>
+                ))}
 
-    {/* END TIME */}
-<div style={{ flex: "1 1 200px" }}>
-  <DatePicker
-    selected={
-      slot.endTime
-        ? new Date(`1970-01-01T${slot.endTime}:00`)
-        : null
-    }
-    onChange={(date) => {
-      const formatted = date
-        .toLocaleTimeString("en-GB", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-        .substring(0, 5);
+                <Button
+                  variant="outline-primary"
+                  onClick={addSlot}
+                  className="me-3"
+                >
+                  + Add Slot
+                </Button>
 
-      if (slot.startTime && formatted <= slot.startTime) {
-        alert("End time must be greater than start time");
-        return;
-      }
+                <Button
+                  variant="primary"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </>
+            )}
 
-      updateSlot(day, index, "endTime", formatted);
-    }}
-    showTimeSelect
-    showTimeSelectOnly
-    timeIntervals={15}
-    dateFormat="hh:mm aa"
-    placeholderText="End time"
-    className="form-control custom-time-input"
-  />
-</div>
-
-    <Button
-      variant="outline-danger"
-      onClick={() => removeSlot(day, index)}
-    >
-      Remove
-    </Button>
-
-  </div>
-))}
-
-              <Button
-                variant="outline-primary"
-                onClick={() => addSlot(day)}
-              >
-                + Add Slot
-              </Button>
-            </Accordion.Body>
-          </Accordion.Item>
-        ))}
-      </Accordion>
-
-      <div className="text-end mt-4">
-        <Button
-  // size="lg"
-  variant="primary"
-  onClick={handleSubmit}
-  disabled={saving}
->
-  {saving ? "Saving..." : "Save Time Slots"}
-</Button>
-      </div>
+          </Card.Body>
+        </Card>
+      )}
     </div>
   );
 }

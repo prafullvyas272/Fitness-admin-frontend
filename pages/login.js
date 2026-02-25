@@ -8,6 +8,7 @@ import {
   Row,
   Col,
   Alert,
+  Spinner,
 } from "react-bootstrap";
 
 export default function Login() {
@@ -36,7 +37,6 @@ export default function Login() {
       );
 
       const data = await res.json();
-      console.log("FULL LOGIN RESPONSE:", data);
 
       if (!res.ok || !data.success) {
         throw new Error(data.message || "Login failed");
@@ -48,7 +48,6 @@ export default function Login() {
         throw new Error("Access token not received");
       }
 
-      // ✅ Save correct token
       localStorage.setItem("adminToken", accessToken);
       localStorage.setItem("refreshToken", data?.data?.refresh_token);
 
@@ -61,14 +60,30 @@ export default function Login() {
   };
 
   return (
-    <Container fluid className="vh-100 d-flex align-items-center justify-content-center bg-light">
+    <Container
+      fluid
+      className="vh-100 d-flex align-items-center justify-content-center login-wrapper"
+    >
       <Row>
         <Col>
-          <Card
-            className="shadow-lg border-0 rounded-4 p-4"
-            style={{ width: 400 }}
-          >
-            <h3 className="text-center mb-4 fw-bold">Admin Login</h3>
+          <Card className="login-card">
+            
+            {/* LOGO */}
+            <div className="text-center mb-3">
+              <img
+                src="https://res.cloudinary.com/dbazlbkfj/image/upload/v1772011826/Upto_logo_1_l2ocqd.png"
+                alt="Upto Logo"
+                className="login-logo"
+              />
+            </div>
+
+            <h3 className="text-center fw-bold mb-2">
+              Admin Login
+            </h3>
+
+            <p className="text-center text-muted mb-4 small">
+              Welcome back! Please login to continue.
+            </p>
 
             {error && <Alert variant="danger">{error}</Alert>}
 
@@ -78,8 +93,10 @@ export default function Login() {
                 <Form.Control
                   type="email"
                   required
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="login-input"
                 />
               </Form.Group>
 
@@ -88,18 +105,30 @@ export default function Login() {
                 <Form.Control
                   type="password"
                   required
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="login-input"
                 />
               </Form.Group>
 
               <Button
                 type="submit"
-                variant="primary"
-                className="w-100"
+                className="login-btn w-100"
                 disabled={loading}
               >
-                {loading ? "Logging in..." : "Login"}
+                {loading ? (
+                  <>
+                    <Spinner
+                      size="sm"
+                      animation="border"
+                      className="me-2"
+                    />
+                    Logging in...
+                  </>
+                ) : (
+                  "Login"
+                )}
               </Button>
             </Form>
           </Card>

@@ -89,8 +89,8 @@ export default function Dashboard() {
         <Col md={4}>
           <Card className="shadow-sm bg-primary text-white">
             <Card.Body>
-              <h4>Total Revenue</h4>
-              <h2>$30,569</h2>
+              <h4 style={{ color: "#fff" }}>Total Revenue</h4>
+              <h2 style={{ color: "#fff" }}>$30,569</h2>
               <p>+12% this month</p>
             </Card.Body>
           </Card>
