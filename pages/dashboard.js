@@ -25,7 +25,7 @@ export default function Dashboard() {
 
   return (
     <div className="p-4">
-      <h2 className="mb-4">Gym Dashboard</h2>
+      <h2 className="mb-4">Dashboard</h2>
 
       {/* Top Stats */}
       <Row className="mb-4">
