@@ -3,8 +3,8 @@ import { Card, Button, Row, Col, Form } from "react-bootstrap";
 
 export default function AvailabilitySlots() {
 
-  const creatorId = localStorage.getItem("adminId");
-  const token = localStorage.getItem("adminToken");
+  const [creatorId, setCreatorId] = useState(null);
+const [token, setToken] = useState(null);
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -51,18 +51,27 @@ export default function AvailabilitySlots() {
   };
 
   /* ================= FETCH MONTH SLOT DATES ================= */
-
   useEffect(() => {
-    fetchMonthSlots();
-  }, [currentMonth]);
-
-  useEffect(() => {
-  if (selectedDate) {
-    fetchSlotsForDate(selectedDate);
+  if (typeof window !== "undefined") {
+    setCreatorId(localStorage.getItem("adminId"));
+    setToken(localStorage.getItem("adminToken"));
   }
 }, []);
 
+ useEffect(() => {
+  if (creatorId && token) {
+    fetchMonthSlots();
+  }
+}, [currentMonth, creatorId, token]);
+
+useEffect(() => {
+  if (selectedDate && creatorId && token) {
+    fetchSlotsForDate(selectedDate);
+  }
+}, [selectedDate, creatorId, token]);
+
   const fetchMonthSlots = async () => {
+    if (!creatorId || !token) return;
     try {
       const firstDay = new Date(
         currentMonth.getFullYear(),
@@ -98,9 +107,11 @@ export default function AvailabilitySlots() {
 
   /* ================= FETCH SLOTS FOR DATE ================= */
 
-  const fetchSlotsForDate = async (date) => {
-    setLoadingSlots(true);
-    const formatted = formatDate(date);
+ const fetchSlotsForDate = async (date) => {
+  if (!creatorId || !token) return;
+
+  setLoadingSlots(true);
+  const formatted = formatDate(date);
 
     try {
       const res = await fetch(
@@ -137,10 +148,8 @@ export default function AvailabilitySlots() {
   /* ================= DATE CLICK ================= */
 
   const handleDateClick = (date) => {
-    setSelectedDate(date);
-    fetchSlotsForDate(date);
-  };
-
+  setSelectedDate(date);
+};
   /* ================= SLOT CRUD ================= */
 
   const addSlot = () => {

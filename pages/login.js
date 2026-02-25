@@ -50,6 +50,7 @@ export default function Login() {
 
       localStorage.setItem("adminToken", accessToken);
       localStorage.setItem("refreshToken", data?.data?.refresh_token);
+      localStorage.setItem("adminId", data?.data?.user?.id);
 
       router.push("/dashboard");
     } catch (err) {
