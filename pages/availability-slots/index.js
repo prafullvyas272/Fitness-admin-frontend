@@ -259,7 +259,7 @@ useEffect(() => {
 
   return (
     <div className="p-4">
-      <h3 className="fw-bold mb-4">Availability Slots</h3>
+      <h3 className="fw-bold mb-4">Peak Slots</h3>
 
       <Card className="shadow-sm border-0 rounded-3">
         <Card.Body>

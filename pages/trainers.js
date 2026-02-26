@@ -434,6 +434,8 @@ const filteredCustomers = customers.filter((customer) => {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
+                <th>Host Gym</th>      {/* NEW */}
+                <th>Gender</th>  
                 <th className="text-center">Status</th>
                 {!selectionMode && <th className="text-end">Action</th>}
               </tr>
@@ -443,7 +445,7 @@ const filteredCustomers = customers.filter((customer) => {
   {loading ? (
   <tr>
     <td
-      colSpan={selectionMode ? 6 : 5}
+      colSpan={selectionMode ? 8 : 7}
       className="text-center py-4 text-muted fw-semibold"
     >
       Loading trainers...
@@ -485,7 +487,13 @@ const filteredCustomers = customers.filter((customer) => {
 
         <td className="text-dark">{trainer.email}</td>
         <td className="text-dark">{trainer.phone}</td>
+        <td className="text-dark">
+  {trainer.userProfileDetails?.hostGymName || "N/A"}
+</td>
 
+<td className="text-dark">
+  {trainer.gender || "N/A"}
+</td>
         <td className="text-center align-middle">
           <Dropdown>
             <Dropdown.Toggle
