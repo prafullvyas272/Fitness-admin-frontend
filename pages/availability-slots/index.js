@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, Button, Row, Col, Form } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function AvailabilitySlots() {
 
@@ -340,23 +342,47 @@ useEffect(() => {
                 {slots.map((slot, index) => (
                   <Row key={index} className="mb-3">
                     <Col md={4}>
-                      <Form.Control
-                        type="time"
-                        value={slot.startTime}
-                        onChange={(e) =>
-                          updateSlot(index, "startTime", e.target.value)
-                        }
-                      />
+  <DatePicker
+  selected={
+    slot.startTime
+      ? new Date(`1970-01-01T${slot.startTime}`)
+      : null
+  }
+  onChange={(date) => {
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    updateSlot(index, "startTime", `${hours}:${minutes}`);
+  }}
+  showTimeSelect
+  showTimeSelectOnly
+  timeIntervals={15}
+  timeCaption="Time"
+  dateFormat="hh:mm aa"
+  placeholderText="Select time"
+  className="form-control"
+/>
                     </Col>
 
                     <Col md={4}>
-                      <Form.Control
-                        type="time"
-                        value={slot.endTime}
-                        onChange={(e) =>
-                          updateSlot(index, "endTime", e.target.value)
-                        }
-                      />
+                      <DatePicker
+  selected={
+    slot.endTime
+      ? new Date(`1970-01-01T${slot.endTime}`)
+      : null
+  }
+  onChange={(date) => {
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    updateSlot(index, "endTime", `${hours}:${minutes}`);
+  }}
+  showTimeSelect
+  showTimeSelectOnly
+  timeIntervals={15}
+  timeCaption="Time"
+  dateFormat="hh:mm aa"
+  placeholderText="Select time"
+  className="form-control"
+/>
                     </Col>
 
                     <Col md={2}>
