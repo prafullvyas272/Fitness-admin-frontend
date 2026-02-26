@@ -21,6 +21,7 @@ export default function CreateCustomer() {
     phone: "",
     countryCode: "+91", 
     status: "Active",
+    gender: "",
     avatarFile: null,
     avatarPreview: "",
   });
@@ -48,6 +49,7 @@ const { selectedCustomer, loading } = useSelector(
       phone: selectedCustomer.phone || "",
       countryCode: "+91",
       status: selectedCustomer.isActive ? "Active" : "Inactive",
+      gender: selectedCustomer.gender || "",
       avatarFile: null,
       avatarPreview:
         selectedCustomer.userProfileDetails?.[0]?.avatarUrl || "",
@@ -97,6 +99,7 @@ const validatePhone = (phone) => {
       email: customer.email,
       phone: `${customer.countryCode}${customer.phone}`,
       isActive: customer.status === "Active", // REAL BOOLEAN
+      gender: customer.gender,  
     };
 
     if (!id) {
@@ -338,6 +341,20 @@ const validatePhone = (phone) => {
                       <option>Inactive</option>
                     </Form.Select>
                   </Col>
+
+                  <Col md={6} className="mb-3">
+  <Form.Label>Gender</Form.Label>
+  <Form.Select
+    name="gender"
+    value={customer.gender}
+    onChange={handleChange}
+  >
+    <option value="">Select Gender</option>
+    <option value="MALE">Male</option>
+    <option value="FEMALE">Female</option>
+    <option value="OTHER">Other</option>
+  </Form.Select>
+</Col>
 
                 </Row>
               </Col>

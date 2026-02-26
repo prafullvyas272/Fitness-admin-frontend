@@ -40,6 +40,7 @@ const { trainers, selectedTrainer, loading } = useSelector(
   hostGymAddress: "",
   address: "",
   bio: "",
+  gender: "",
   status: "Active",
   avatar: "",
 });
@@ -70,7 +71,7 @@ useEffect(() => {
 
 useEffect(() => {
   if (selectedTrainer) {
-    const details = selectedTrainer.userProfileDetails?.[0] || {};
+    const details = selectedTrainer.userProfileDetails || {};
 
     const fullPhone = selectedTrainer.phone || "";
     const countryMatch = fullPhone.match(/^\+\d{1,4}/);
@@ -98,6 +99,7 @@ const formattedTrainer = {
   hostGymAddress: details.hostGymAddress || "",
   address: details.address || "",
   bio: details.bio || "",
+  gender: selectedTrainer.gender || "", 
   status: selectedTrainer.isActive ? "Active" : "Inactive",
   avatar: details.avatarUrl || "",
 };
@@ -144,6 +146,7 @@ const formattedTrainer = {
     hostGymAddress: trainer.hostGymAddress,
     address: trainer.address,
     bio: trainer.bio,
+    gender: trainer.gender, 
   };
 
   const resultAction = await dispatch(
@@ -473,6 +476,25 @@ if (!selectedTrainer && loading) {
                 </InputGroup>
               </Col>
             </Row>
+
+            {/* GENDER */}
+<Row className="mb-4 align-items-center">
+  <Col md={3} className="fw-semibold">Gender:</Col>
+  <Col md={9}>
+    <Form.Select
+      name="gender"
+      value={trainer.gender}
+      onChange={handleChange}
+      className="bg-light border-0 custom-input"
+      required
+    >
+      <option value="">Select Gender</option>
+      <option value="MALE">Male</option>
+      <option value="FEMALE">Female</option>
+      <option value="OTHER">Other</option>
+    </Form.Select>
+  </Col>
+</Row>
 
             {/* STATUS */}
             {/* STATUS */}

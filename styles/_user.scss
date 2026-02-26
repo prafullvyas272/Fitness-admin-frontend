@@ -1732,6 +1732,29 @@ img:hover {
   background-color: #f3f4f6;
 }
 
+//customers page
+.gender-badge {
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.gender-male {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.gender-female {
+  background-color: #fce7f3;
+  color: #be185d;
+}
+
+.gender-other {
+  background-color: #ede9fe;
+  color: #6d28d9;
+}
 
 //availabilit-slots page
 /* ================= BIG AVAILABILITY CALENDAR ================= */

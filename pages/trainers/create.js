@@ -31,6 +31,7 @@ const [trainer, setTrainer] = useState({
   hostGymAddress: "",
   address: "",
   bio: "",
+  gender: "",
   status: "Active",
   avatarFile: null,
   avatarPreview: "",
@@ -109,6 +110,7 @@ const [trainer, setTrainer] = useState({
     formData.append("hostGymAddress", trainer.hostGymAddress);
     formData.append("address", trainer.address);
     formData.append("bio", trainer.bio);
+    formData.append("gender", trainer.gender);
 
     if (trainer.avatarFile) {
       formData.append("avatar", trainer.avatarFile);
@@ -422,6 +424,25 @@ const countryOptions = [
                 </InputGroup>
               </Col>
             </Row>
+
+            {/* GENDER */}
+<Row className="mb-4 align-items-center">
+  <Col md={3} className="fw-semibold">Gender:</Col>
+  <Col md={9}>
+    <Form.Select
+      name="gender"
+      value={trainer.gender}
+      onChange={handleChange}
+      className="bg-light border-0 custom-input"
+      required
+    >
+      <option value="">Select Gender</option>
+      <option value="MALE">Male</option>
+      <option value="FEMALE">Female</option>
+      <option value="OTHER">Other</option>
+    </Form.Select>
+  </Col>
+</Row>
 
             {/* BIO */}
             <Row className="mb-4 align-items-start">

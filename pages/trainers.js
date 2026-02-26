@@ -492,7 +492,9 @@ const filteredCustomers = customers.filter((customer) => {
 </td>
 
 <td className="text-dark">
-  {trainer.gender || "N/A"}
+  {trainer.gender
+    ? trainer.gender.toLowerCase()
+    : "N/A"}
 </td>
         <td className="text-center align-middle">
           <Dropdown>

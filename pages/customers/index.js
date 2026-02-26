@@ -355,6 +355,7 @@ const filteredTrainers = trainers
               <th>Name</th>
               <th>Email</th>
               <th>Phone</th>
+              <th>Gender</th> 
               <th className="text-center">Status</th>
               <th>Trainer</th>
               <th className="text-end">Action</th>
@@ -364,7 +365,7 @@ const filteredTrainers = trainers
           <tbody>
             {loading ? (
   <tr>
-    <td colSpan="6" className="text-center py-4 text-muted fw-semibold">
+    <td colSpan={bulkMode ? 7 : 6} className="text-center py-4 text-muted fw-semibold">
       Loading customers...
     </td>
   </tr>
@@ -411,6 +412,12 @@ const filteredTrainers = trainers
                   <td className="text-dark">
                     {customer.phone}
                   </td>
+
+                  <td>
+  {customer.gender
+    ? customer.gender.toLowerCase()
+    : "—"}
+</td>
 
                   <td className="text-center align-middle">
   <Dropdown>
