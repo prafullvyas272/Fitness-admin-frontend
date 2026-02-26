@@ -104,13 +104,13 @@ export default function BillingDetails() {
       <Row>
         {plans?.map((plan) => (
           <Col md={4} key={plan.id} className="mb-4">
-            <Card className="billing-card shadow-sm border-0">
-              <Card.Body>
+            <Card className="billing-card shadow-sm border-0 h-100">
+              <Card.Body className="d-flex flex-column">
                 {plan.isPopular && (
-                  <Badge bg="primary" className="mb-2">
-                    Most Popular
-                  </Badge>
-                )}
+  <div className="popular-badge">
+    Most Popular
+  </div>
+)}
 
                 <h5 className="fw-bold">{plan.name}</h5>
 
@@ -118,7 +118,7 @@ export default function BillingDetails() {
                   ${plan.price}
                 </h2>
 
-                <ul className="text-muted">
+                <ul className="text-muted plan-features">
                   {plan.features?.map((item, i) => (
                     <li key={i}>{item}</li>
                   ))}

@@ -12,6 +12,7 @@ import {
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTrainerById } from "../../../redux/slices/trainerSlice";
+import { FaMapMarkerAlt } from "react-icons/fa";
 
 import { removeCustomerFromTrainer } from "../../../redux/slices/trainerSlice";
 
@@ -356,6 +357,14 @@ const getWeekDates = (date) => {
 
 const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
 
+const formatDisplayDate = (dateString) => {
+  const d = new Date(dateString);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}/${month}/${year}`;
+};
 
 
 
@@ -740,18 +749,27 @@ const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
 
 <div className="booking-meta">
   <span>
-    📅 {new Date(booking.timeSlot.startTime).toLocaleDateString()}
+    📅 {formatDisplayDate(booking.timeSlot.startTime)}
   </span>
 
   <span>
-    ⏰ {new Date(booking.timeSlot.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-     -
-    {new Date(booking.timeSlot.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+   ⏰ {new Date(booking.timeSlot.startTime).toLocaleTimeString("en-US", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+})}
+-
+{new Date(booking.timeSlot.endTime).toLocaleTimeString("en-US", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+})}
   </span>
 
-  <span>
-    📍 {booking.trainer.userProfileDetails?.[0]?.hostGymName || "Gym"}
-  </span>
+  <span className="d-flex align-items-center gap-1">
+  <FaMapMarkerAlt size={14} style={{ color: "#dc3545" }} />
+  {booking.trainer.userProfileDetails?.[0]?.hostGymName || "Gym"}
+</span>
 </div>
   </div>
 
