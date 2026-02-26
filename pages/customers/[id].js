@@ -256,6 +256,16 @@ if (loading || !customer) {
           </div>
 
           <div className="detail-row">
+  <div>Gender</div>
+  <div>
+    {customer.gender
+      ? customer.gender.charAt(0).toUpperCase() +
+        customer.gender.slice(1).toLowerCase()
+      : "N/A"}
+  </div>
+</div>
+
+          <div className="detail-row">
             <div>Assigned Trainer</div>
             <div>
               {customer.assignedTrainers?.length > 0

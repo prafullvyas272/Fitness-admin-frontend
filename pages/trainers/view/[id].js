@@ -505,6 +505,16 @@ const formatDisplayDate = (dateString) => {
                 </Row>
 
                 <Row className="mb-3">
+  <Col md={4} className="fw-semibold">Gender:</Col>
+  <Col md={8}>
+    {trainer.gender
+      ? trainer.gender.charAt(0).toUpperCase() +
+        trainer.gender.slice(1).toLowerCase()
+      : "N/A"}
+  </Col>
+</Row>
+
+                <Row className="mb-3">
                   <Col md={4} className="fw-semibold">Host Gym:</Col>
                   <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.hostGymName)}</Col>
                 </Row>
