@@ -1937,7 +1937,6 @@ img:hover {
   transition: 0.2s ease;
   color: #64748b;
   position: relative;
-
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1961,10 +1960,10 @@ img:hover {
   height: 6px;
   background: #16a34a;   /* softer green */
   border-radius: 50%;
-<<<<<<< HEAD
   margin-top: 6px;
   box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
 }
+
 input[type="time"] {
   cursor: pointer;
 }
@@ -1976,7 +1975,6 @@ input[type="time"] {
 .react-datepicker__input-container input {
   height: 38px;
   border-radius: 8px;
-=======
   position: absolute;
   bottom: 8px;
 }
