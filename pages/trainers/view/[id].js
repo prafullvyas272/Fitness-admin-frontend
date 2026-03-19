@@ -357,6 +357,21 @@ const getWeekDates = (date) => {
 
 const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
 
+const assignedVideos = [
+  {
+    id: 1,
+    title: "Chest Workout",
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+    tags: ["chest", "beginner"],
+  },
+  {
+    id: 2,
+    title: "Triceps Blast",
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+    tags: ["tricep"],
+  },
+];
+
 const formatDisplayDate = (dateString) => {
   const d = new Date(dateString);
   const day = String(d.getDate()).padStart(2, "0");
@@ -419,6 +434,17 @@ const formatDisplayDate = (dateString) => {
     onClick={() => setActiveTab("sessions")}
   >
     Session Management
+  </button>
+</li>
+
+<li className="nav-item">
+  <button
+    className={`nav-link ${
+      activeTab === "videos" ? "active fw-semibold" : ""
+    }`}
+    onClick={() => setActiveTab("videos")}
+  >
+    Videos
   </button>
 </li>
 
@@ -786,6 +812,8 @@ const formatDisplayDate = (dateString) => {
 </div>
 
 
+
+
           {/* RIGHT SECTION */}
           {/* <div className="booking-actions">
   <button className="btn-cancel">
@@ -797,11 +825,52 @@ const formatDisplayDate = (dateString) => {
         </div>
       );
     })}
+    
 
 </div>
 
       </>
     )}
+    
+  </>
+)}
+
+{activeTab === "videos" && (
+  <>
+    <h5 className="fw-bold mb-4">Assigned Videos</h5>
+
+    <div className="video-grid">
+      {assignedVideos.length === 0 ? (
+        <p className="text-muted">No videos assigned</p>
+      ) : (
+        assignedVideos.map((video) => (
+          <div key={video.id} className="video-card">
+
+            <div className="video-thumb">
+              <video
+                src={video.videoUrl}
+                preload="metadata"
+              />
+
+              <div className="hover-overlay">
+                <div className="play-btn">▶</div>
+              </div>
+            </div>
+
+            <div className="video-info">
+              <h6>{video.title}</h6>
+
+              <div className="tags">
+                {video.tags.map((tag, i) => (
+                  <span key={i}>{tag}</span>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        ))
+      )}
+    </div>
   </>
 )}
 

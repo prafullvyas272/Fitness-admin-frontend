@@ -371,7 +371,7 @@ const filteredTrainers = trainers
   </tr>
 ) : currentCustomers.length === 0 ? (
               <tr>
-                <td colSpan="6" className="text-center">
+                <td colSpan="6" className="text-center py-4 text-muted fw-semibold">
                   No Customers Found
                 </td>
               </tr>

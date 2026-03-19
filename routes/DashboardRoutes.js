@@ -46,6 +46,13 @@ export const DashboardMenu = [
 
   {
     id: uuid(),
+    title: "Trainer Requests",
+    icon: "users",
+    link: "/trainer-requests",
+  },
+
+  {
+    id: uuid(),
     title: "Customers",
     icon: "user",
     link: "/customers",
@@ -66,17 +73,17 @@ export const DashboardMenu = [
     {
       id: uuid(),
       link: "/speciality",
-      name: "Speciality",
+      name: "• Speciality",
     },
     {
       id: uuid(),
       link: "/availability-slots",
-      name: "Availability Slots",
+      name: "• Availability Slots",
     },
     {
       id: uuid(),
       link: "/workout",   // ✅ NEW ROUTE
-      name: "Workout",    // ✅ NEW MENU NAME
+      name: "• Workout",    // ✅ NEW MENU NAME
     },
   ],
 },
@@ -95,17 +102,17 @@ export const DashboardMenu = [
     {
       id: uuid(),
       link: "/settings/privacy",
-      name: "Privacy Policy",
+      name: "• Privacy Policy",
     },
     {
       id: uuid(),
       link: "/settings/terms",
-      name: "Terms & Conditions",
+      name: "• Terms & Conditions",
     },
     {
       id: uuid(),
       link: "/settings/faq",
-      name: "FAQ",
+      name: "• FAQ",
     },
   ],
 },

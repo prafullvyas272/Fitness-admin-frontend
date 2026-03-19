@@ -457,7 +457,7 @@ const filteredCustomers = customers.filter((customer) => {
         colSpan={selectionMode ? 6 : 5}
         className="text-center py-4 text-muted fw-semibold"
       >
-        No data found
+        No Trainer found
       </td>
     </tr>
   ) : (

@@ -232,6 +232,9 @@ if (loading || !customer) {
       <Nav.Item>
         <Nav.Link eventKey="billing">Billing</Nav.Link>
       </Nav.Item>
+      <Nav.Item>
+  <Nav.Link eventKey="questionaries">Questionaries</Nav.Link>
+</Nav.Item>
     </Nav>
 
     <div className="tab-content-area">
@@ -298,6 +301,63 @@ if (loading || !customer) {
           </div>
         </>
       )}
+      {activeTab === "questionaries" && (
+  <>
+    <h5 className="mb-4">PAR-Q Questionnaire</h5>
+
+    <div className="questionnaire-box">
+
+      {/* Question Row */}
+      {[
+        { q: "Heart condition or doctor restriction?", a: "No" },
+        { q: "Chest pain during activity?", a: "No" },
+        { q: "Chest pain in last month (rest)?", a: "No" },
+        { q: "Dizziness or loss of consciousness?", a: "No" },
+        { q: "Bone or joint problem?", a: "Yes" },
+        { q: "BP or heart medication?", a: "No" },
+        { q: "Any other reason to avoid exercise?", a: "No" },
+        { q: "Pregnant or given birth in last 6 months?", a: "No" },
+        { q: "Any medical condition (diabetes, asthma etc)?", a: "Yes" },
+      ].map((item, index) => (
+        <div key={index} className="question-row">
+          <div className="question-text">{item.q}</div>
+
+          <div
+            className={`answer-badge ${
+              item.a === "Yes" ? "answer-yes" : "answer-no"
+            }`}
+          >
+            {item.a}
+          </div>
+        </div>
+      ))}
+
+      {/* Declaration */}
+      <div className="mt-4 p-3 border rounded bg-light">
+        <h6>Client Declaration</h6>
+        <p className="text-muted mb-1">
+          I confirm that the information provided is true and complete.
+        </p>
+
+        <div className="detail-row mt-2">
+          <div>Client Signature</div>
+          <div>John Doe</div>
+        </div>
+
+        <div className="detail-row">
+          <div>Date</div>
+          <div>12 March 2026</div>
+        </div>
+
+        <div className="detail-row">
+          <div>Trainer Name</div>
+          <div>Rahul Sharma</div>
+        </div>
+      </div>
+
+    </div>
+  </>
+)}
 
     </div>
   </div>

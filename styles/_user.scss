@@ -1961,6 +1961,7 @@ img:hover {
   height: 6px;
   background: #16a34a;   /* softer green */
   border-radius: 50%;
+<<<<<<< HEAD
   margin-top: 6px;
   box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
 }
@@ -1975,4 +1976,130 @@ input[type="time"] {
 .react-datepicker__input-container input {
   height: 38px;
   border-radius: 8px;
+=======
+  position: absolute;
+  bottom: 8px;
+}
+
+//workout updated 
+.workout-actions{
+display:flex;
+gap:10px;
+}
+
+.app-secondary-btn{
+ background: linear-gradient(90deg, #6d5dfc, #5b4df5);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: 0.3s ease;
+  box-shadow: 0 4px 12px rgba(109, 93, 252, 0.25);
+}
+
+.assign-section{
+margin-bottom:20px;
+}
+
+.assign-section label{
+display:block;
+margin-bottom:8px;
+font-weight:600;
+}
+
+.assign-section select{
+width:100%;
+padding:10px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+
+.trainer-list{
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.trainer-item{
+display:flex;
+gap:10px;
+align-items:center;
+}
+
+.view-trainer-btn{
+margin-top:10px;
+background:#eef2ff;
+border:none;
+padding:6px 10px;
+border-radius:6px;
+cursor:pointer;
+font-size:12px;
+font-weight:500;
+}
+
+.view-trainer-btn:hover{
+background:#dbeafe;
+}
+
+.trainer-modal h4{
+margin-bottom:5px;
+}
+
+.video-name{
+font-size:14px;
+color:#666;
+margin-bottom:15px;
+}
+
+.trainer-list-modal{
+list-style:none;
+padding:0;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.trainer-list-modal li{
+background:#f5f5f5;
+padding:10px;
+border-radius:6px;
+}
+
+//customer - questionaries
+.questionnaire-box {
+  padding: 10px 5px;
+}
+
+.question-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.question-text {
+  font-size: 14px;
+  color: #444;
+  max-width: 70%;
+}
+
+.answer-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.answer-yes {
+  background: #ffe5e5;
+  color: #dc3545;
+}
+
+.answer-no {
+  background: #e6f7ee;
+  color: #16a34a;
+>>>>>>> 1c5f329 (removed unwanted files and fixed repostructure and updated ui)
 }

@@ -31,6 +31,13 @@ export default function Workout() {
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const { loading } = useSelector((state) => state.workout);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+const [selectedVideo, setSelectedVideo] = useState("");
+const [selectedTrainers, setSelectedTrainers] = useState([]);
+
+const [showTrainerModal, setShowTrainerModal] = useState(false);
+const [selectedVideoTrainers, setSelectedVideoTrainers] = useState([]);
+const [selectedVideoTitle, setSelectedVideoTitle] = useState("");
 
   const [durations, setDurations] = useState({});
 
@@ -43,6 +50,19 @@ export default function Workout() {
     preview: "",
     duration: 0,
   });
+
+  const trainers = [
+  { id: 1, name: "Trainer John" },
+  { id: 2, name: "Trainer Mike" },
+  { id: 3, name: "Trainer Alex" },
+  { id: 4, name: "Trainer David" },
+];
+
+const trainerAssignments = {
+  1: ["Trainer John", "Trainer Mike"],
+  2: ["Trainer Alex"],
+  3: ["Trainer David", "Trainer Mike"],
+};
 
   // ================= HANDLE FILE =================
   const handleFile = (file) => {
@@ -125,15 +145,27 @@ const handleSubmit = () => {
     <div className="workout-container">
 
       {/* TOP BAR */}
-      <div className="workout-header">
-        <h3>Workout Library</h3>
-        <button
-          className="app-primary-btn"
-          onClick={() => setShowModal(true)}
-        >
-          + Upload Video
-        </button>
-      </div>
+     <div className="workout-header">
+  <h3>Workout Library</h3>
+
+  <div className="workout-actions">
+
+    <button
+      className="app-secondary-btn"
+      onClick={() => setShowAssignModal(true)}
+    >
+      Assign Trainer
+    </button>
+
+    <button
+      className="app-primary-btn"
+      onClick={() => setShowModal(true)}
+    >
+      + Upload Video
+    </button>
+
+  </div>
+</div>
 
       {/* VIDEO GRID */}
       <div className="video-grid">
@@ -202,6 +234,18 @@ const handleSubmit = () => {
                   <span key={i}>{tag}</span>
                 ))}
               </div>
+               {/* NEW BUTTON */}
+  <button
+    className="view-trainer-btn"
+    onClick={() => {
+      const trainers = trainerAssignments[video.id] || [];
+      setSelectedVideoTrainers(trainers);
+      setSelectedVideoTitle(video.title);
+      setShowTrainerModal(true);
+    }}
+  >
+    View Trainers
+  </button>
             </div>
           </div>
         ))}
@@ -334,6 +378,107 @@ const handleSubmit = () => {
         style={{ width: "100%", borderRadius: "10px" }}
       />
     )}
+  </Modal.Body>
+</Modal>
+
+<Modal
+  show={showAssignModal}
+  onHide={() => setShowAssignModal(false)}
+  centered
+>
+  <Modal.Body>
+
+    <div className="assign-modal">
+
+      <h4>Assign Workout to Trainers</h4>
+
+      {/* SELECT VIDEO */}
+      <div className="assign-section">
+        <label>Select Video</label>
+
+        <select
+          value={selectedVideo}
+          onChange={(e) => setSelectedVideo(e.target.value)}
+        >
+          <option value="">Select workout</option>
+
+          {workouts.map((video) => (
+            <option key={video.id} value={video.id}>
+              {video.title}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* TRAINER LIST */}
+      <div className="assign-section">
+        <label>Select Trainers</label>
+
+        <div className="trainer-list">
+          {trainers.map((trainer) => (
+            <label key={trainer.id} className="trainer-item">
+              <input
+                type="checkbox"
+                checked={selectedTrainers.includes(trainer.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedTrainers([...selectedTrainers, trainer.id]);
+                  } else {
+                    setSelectedTrainers(
+                      selectedTrainers.filter((id) => id !== trainer.id)
+                    );
+                  }
+                }}
+              />
+              {trainer.name}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* ACTIONS */}
+      <div className="modal-actions">
+        <button onClick={() => setShowAssignModal(false)}>
+          Cancel
+        </button>
+
+        <button className="app-primary-btn">
+          Assign
+        </button>
+      </div>
+
+    </div>
+
+  </Modal.Body>
+</Modal>
+<Modal
+  show={showTrainerModal}
+  onHide={() => setShowTrainerModal(false)}
+  centered
+>
+  <Modal.Body>
+
+    <div className="trainer-modal">
+      <h4>Assigned Trainers</h4>
+      <p className="video-name">{selectedVideoTitle}</p>
+
+      {selectedVideoTrainers.length > 0 ? (
+        <ul className="trainer-list-modal">
+          {selectedVideoTrainers.map((trainer, index) => (
+            <li key={index}>{trainer}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>No trainers assigned</p>
+      )}
+
+      <div className="modal-actions">
+        <button onClick={() => setShowTrainerModal(false)}>
+          Close
+        </button>
+      </div>
+    </div>
+
   </Modal.Body>
 </Modal>
 
