@@ -39,6 +39,9 @@ const [showTrainerModal, setShowTrainerModal] = useState(false);
 const [selectedVideoTrainers, setSelectedVideoTrainers] = useState([]);
 const [selectedVideoTitle, setSelectedVideoTitle] = useState("");
 
+const [selectedTrainer, setSelectedTrainer] = useState(null);
+const [searchTrainer, setSearchTrainer] = useState("");
+
   const [durations, setDurations] = useState({});
 
   const [form, setForm] = useState({
@@ -59,9 +62,9 @@ const [selectedVideoTitle, setSelectedVideoTitle] = useState("");
 ];
 
 const trainerAssignments = {
-  1: ["Trainer John", "Trainer Mike"],
-  2: ["Trainer Alex"],
-  3: ["Trainer David", "Trainer Mike"],
+  1: [1, 2],
+  2: [3],
+  3: [4, 2],
 };
 
   // ================= HANDLE FILE =================
@@ -142,114 +145,140 @@ const handleSubmit = () => {
   const totalPages = Math.ceil(workouts.length / itemsPerPage);
 
   return (
-    <div className="workout-container">
+  <div className="workout-container">
 
-      {/* TOP BAR */}
-     <div className="workout-header">
-  <h3>Workout Library</h3>
+    {/* HEADER */}
+    <div className="workout-header">
+      <h3>Workout Library</h3>
 
-  <div className="workout-actions">
+      <div className="workout-actions">
+        <button
+          className="app-secondary-btn"
+          onClick={() => setShowAssignModal(true)}
+        >
+          Assign Trainer
+        </button>
 
-    <button
-      className="app-secondary-btn"
-      onClick={() => setShowAssignModal(true)}
-    >
-      Assign Trainer
-    </button>
-
-    <button
-      className="app-primary-btn"
-      onClick={() => setShowModal(true)}
-    >
-      + Upload Video
-    </button>
-
-  </div>
-</div>
-
-      {/* VIDEO GRID */}
-      <div className="video-grid">
-        {currentItems.map((video) => (
-          <div key={video.id} className="video-card">
-
-            <div className="video-thumb">
-
-  {video.videoUrl && (
-  <>
-    <video
-      src={video.videoUrl}
-      preload="metadata"
-      onLoadedMetadata={(e) => {
-        const duration = e.target.duration;
-
-        setDurations((prev) => ({
-          ...prev,
-          [video.id]: duration,
-        }));
-      }}
-    />
-
-    <div className="duration">
-      {durations[video.id]
-        ? `${Math.floor(durations[video.id] / 60)}:${(
-            "0" + Math.floor(durations[video.id] % 60)
-          ).slice(-2)}`
-        : "--:--"}
-    </div>
-  </>
-)}
-
-              <div className="hover-overlay">
-                {/* PLAY BUTTON CENTER */}
-  <div
-    className="play-btn"
-    onClick={() => setPreviewVideo(video)}
-  >
-    ▶
-  </div>
-  <div className="bottom-actions">
-                <button
-                  onClick={() => {
-                    setEditItem(video);
-                    setForm({ ...video, preview: video.url });
-                    setShowModal(true);
-                  }}
-                >
-                  Edit
-                </button>
-
-                <button
-                  onClick={() => dispatch(removeWorkout(video.id))}
-                >
-                  Delete
-                </button>
-              </div>
-              </div>
-            </div>
-
-            <div className="video-info">
-              <h6>{video.title}</h6>
-              <div className="tags">
-                {video.tags.map((tag, i) => (
-                  <span key={i}>{tag}</span>
-                ))}
-              </div>
-               {/* NEW BUTTON */}
-  <button
-    className="view-trainer-btn"
-    onClick={() => {
-      const trainers = trainerAssignments[video.id] || [];
-      setSelectedVideoTrainers(trainers);
-      setSelectedVideoTitle(video.title);
-      setShowTrainerModal(true);
-    }}
-  >
-    View Trainers
-  </button>
-            </div>
-          </div>
-        ))}
+        <button
+          className="app-primary-btn"
+          onClick={() => setShowModal(true)}
+        >
+          + Upload Video
+        </button>
       </div>
+    </div>
+
+    {/* MAIN SPLIT LAYOUT */}
+    <div className="workout-body">
+
+      {/* LEFT SIDE - TRAINERS */}
+      <div className="trainer-sidebar">
+
+        <input
+          type="text"
+          placeholder="Search trainer..."
+          value={searchTrainer}
+          onChange={(e) => setSearchTrainer(e.target.value)}
+          className="trainer-search"
+        />
+
+        <div className="trainer-list">
+          {trainers
+            .filter((t) =>
+              t.name.toLowerCase().includes(searchTrainer.toLowerCase())
+            )
+            .map((trainer) => (
+              <div
+                key={trainer.id}
+                className={`trainer-card ${
+                  selectedTrainer?.id === trainer.id ? "active" : ""
+                }`}
+                onClick={() => setSelectedTrainer(trainer)}
+              >
+                {trainer.name}
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {/* RIGHT SIDE - VIDEOS */}
+      <div className="trainer-content">
+
+        {!selectedTrainer ? (
+          <div className="empty-state">
+            Select a trainer to view workouts
+          </div>
+        ) : (
+          <>
+            <h4>{selectedTrainer.name}'s Workouts</h4>
+
+            <div className="video-grid">
+              {workouts
+                .filter((video) =>
+                  (trainerAssignments[video.id] || []).includes(
+                    selectedTrainer.id
+                  )
+                )
+                .map((video) => (
+                  <div key={video.id} className="video-card">
+
+                    <div className="video-thumb">
+                      {video.videoUrl && (
+                        <>
+                          <video src={video.videoUrl} preload="metadata" />
+
+                          <div className="duration">--:--</div>
+                        </>
+                      )}
+
+                      <div className="hover-overlay">
+                        <div
+                          className="play-btn"
+                          onClick={() => setPreviewVideo(video)}
+                        >
+                          ▶
+                        </div>
+
+                        <div className="bottom-actions">
+                          <button
+                            onClick={() => {
+                              setEditItem(video);
+                              setForm({ ...video });
+                              setShowModal(true);
+                            }}
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              dispatch(removeWorkout(video.id))
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="video-info">
+                      <h6>{video.title}</h6>
+
+                      <div className="tags">
+                        {video.tags.map((tag, i) => (
+                          <span key={i}>{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+                ))}
+            </div>
+          </>
+        )}
+      </div>
+
+    </div>
 
       {/* PAGINATION */}
       <div className="pagination">
