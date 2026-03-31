@@ -210,7 +210,7 @@ const handleSubmit = () => {
           </div>
         ) : (
           <>
-            <h4>{selectedTrainer.name}'s Workouts</h4>
+           <h4>{selectedTrainer.name}&apos;s Workouts</h4>
 
             <div className="video-grid">
               {workouts
