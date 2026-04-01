@@ -11,6 +11,7 @@ import { Modal } from "react-bootstrap";
 import { uploadWorkout } from "../../redux/slices/workoutSlice";
 import { fetchWorkouts, removeWorkout, updateWorkoutAPI } 
 from "../../redux/slices/workoutSlice";
+import { fetchTrainers } from "../../redux/slices/trainerSlice";
 
 import { useEffect } from "react";
 
@@ -19,6 +20,7 @@ export default function Workout() {
   const dispatch = useDispatch();
   useEffect(() => {
   dispatch(fetchWorkouts());
+  dispatch(fetchTrainers());
 }, [dispatch]);
 
   const fileRef = useRef();
@@ -42,6 +44,11 @@ const [selectedVideoTitle, setSelectedVideoTitle] = useState("");
 const [selectedTrainer, setSelectedTrainer] = useState(null);
 const [searchTrainer, setSearchTrainer] = useState("");
 
+const { trainers, loading: trainerLoading } = useSelector(
+  (state) => state.trainers
+);
+console.log("TRAINERS DATA:", trainers);
+
   const [durations, setDurations] = useState({});
 
   const [form, setForm] = useState({
@@ -54,17 +61,10 @@ const [searchTrainer, setSearchTrainer] = useState("");
     duration: 0,
   });
 
-  const trainers = [
-  { id: 1, name: "Trainer John" },
-  { id: 2, name: "Trainer Mike" },
-  { id: 3, name: "Trainer Alex" },
-  { id: 4, name: "Trainer David" },
-];
 
 const trainerAssignments = {
   1: [1, 2],
   2: [3],
-  3: [4, 2],
 };
 
   // ================= HANDLE FILE =================
@@ -183,23 +183,33 @@ const handleSubmit = () => {
         />
 
         <div className="trainer-list">
-          {trainers
-            .filter((t) =>
-              t.name.toLowerCase().includes(searchTrainer.toLowerCase())
-            )
-            .map((trainer) => (
-              <div
-                key={trainer.id}
-                className={`trainer-card ${
-                  selectedTrainer?.id === trainer.id ? "active" : ""
-                }`}
-                onClick={() => setSelectedTrainer(trainer)}
-              >
-                {trainer.name}
-              </div>
-            ))}
+
+  {trainerLoading ? (
+    <p>Loading trainers...</p>
+  ) : trainers.length === 0 ? (
+    <p>No trainers found</p>
+  ) : (
+    trainers
+     .filter((t) =>
+  `${t.firstName || ""} ${t.lastName || ""}`
+    .toLowerCase()
+    .includes((searchTrainer || "").toLowerCase())
+)
+      .map((trainer) => (
+        <div
+          key={trainer.id}
+          className={`trainer-card ${
+            selectedTrainer?._id === trainer.id ? "active" : ""
+          }`}
+          onClick={() => setSelectedTrainer(trainer)}
+        >
+          {trainer.firstName} {trainer.lastName}
         </div>
-      </div>
+      ))
+  )}
+
+</div>
+</div>
 
       {/* RIGHT SIDE - VIDEOS */}
       <div className="trainer-content">
@@ -210,7 +220,12 @@ const handleSubmit = () => {
           </div>
         ) : (
           <>
-           <h4>{selectedTrainer.name}&apos;s Workouts</h4>
+           <h4>
+  {(selectedTrainer?.firstName || "") +
+    " " +
+    (selectedTrainer?.lastName || "")}
+  &apos;s Workouts
+</h4>
 
             <div className="video-grid">
               {workouts
@@ -459,7 +474,7 @@ const handleSubmit = () => {
                   }
                 }}
               />
-              {trainer.name}
+              {trainer.firstName} {trainer.lastName}
             </label>
           ))}
         </div>
