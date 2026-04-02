@@ -102,7 +102,9 @@ const workoutSlice = createSlice({
     trainerWorkouts: [],
     loading: false,
      trainerLoading: false,
-  assigning: false,        
+  assigning: false,     
+  trainerVideos: [],
+  trainerVideosLoading: false,   
     error: null,
   },
   reducers: {},
@@ -171,6 +173,21 @@ const workoutSlice = createSlice({
   state.trainerLoading = false;
 })
 
+.addCase(fetchAllTrainerVideos.pending, (state) => {
+  state.trainerVideosLoading = true;
+})
+
+.addCase(fetchAllTrainerVideos.fulfilled, (state, action) => {
+  state.trainerVideosLoading = false;
+  state.trainerVideos = action.payload.map((item) => ({
+    ...item,
+    id: item.id || item._id,
+  }));
+})
+
+.addCase(fetchAllTrainerVideos.rejected, (state) => {
+  state.trainerVideosLoading = false;
+})
       /* ================= UPDATE ================= */
       .addCase(updateWorkoutAPI.fulfilled, (state, action) => {
         const index = state.workouts.findIndex(
@@ -214,6 +231,27 @@ export const assignTrainersAPI = createAsyncThunk(
         },
       }
     );
+  }
+);
+
+
+export const fetchAllTrainerVideos = createAsyncThunk(
+  "workout/fetchAllTrainerVideos",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axios.get(
+        "https://fitness-app-seven-beryl.vercel.app/api/trainer-video/admin",
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
+
+      return res.data.data; // ✅ array only
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data);
+    }
   }
 );
 

@@ -9,6 +9,7 @@ import {
   setPage,
   fetchTrainerWorkouts,
   assignTrainersAPI,
+  fetchAllTrainerVideos,
 } from "../../redux/slices/workoutSlice";
 import { fetchTrainers } from "../../redux/slices/trainerSlice";
 
@@ -42,6 +43,15 @@ export default function Workout() {
   const [previewVideo, setPreviewVideo] = useState(null);
   const [editItem, setEditItem] = useState(null);
 
+  const { trainerVideos, trainerVideosLoading } = useSelector(
+    (state) => state.workout
+  );
+
+  const filteredTrainerVideos = trainerVideos.filter(
+  (video) => video.trainer?.id === selectedTrainer?.id
+);
+
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -56,6 +66,10 @@ export default function Workout() {
   useEffect(() => {
     dispatch(fetchWorkouts());
     dispatch(fetchTrainers());
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(fetchAllTrainerVideos());
   }, [dispatch]);
 
   // ================= FETCH TRAINER VIDEOS =================
@@ -267,6 +281,33 @@ export default function Workout() {
       ))}
     </div>
   )}
+  <h4 style={{ marginTop: "20px" }}>Trainer Uploaded Videos</h4>
+
+{trainerVideosLoading ? (
+  <div className="empty-state">Loading trainer videos...</div>
+) : filteredTrainerVideos.length === 0 ? (
+  <div className="empty-state">No videos uploaded by this trainer</div>
+) : (
+  <div className="video-grid">
+    {filteredTrainerVideos.map((video) => (
+      <div key={video.id} className="video-card">
+
+        <div className="video-thumb">
+          <img src={video.thumbnail} alt="thumbnail" />
+        </div>
+
+        <div className="video-info">
+          <h6>{video.title}</h6>
+
+          <p style={{ fontSize: "12px", color: "#777" }}>
+            {video.trainer?.firstName} {video.trainer?.lastName}
+          </p>
+        </div>
+
+      </div>
+    ))}
+  </div>
+)}
 
 </div>
 </div>
