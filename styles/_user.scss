@@ -2014,6 +2014,17 @@ border-radius:8px;
 border:1px solid #ddd;
 }
 
+.trainer-sidebar {
+  height: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.trainer-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
 .trainer-list{
 display:flex;
 flex-direction:column;
@@ -2108,7 +2119,8 @@ border-radius:6px;
   padding: 20px;
   background: #f9fafb;
   color: #1f2937;
-  height: 100vh;
+   min-height: 100vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
