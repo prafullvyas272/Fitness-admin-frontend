@@ -99,7 +99,10 @@ const workoutSlice = createSlice({
   name: "workout",
   initialState: {
     workouts: [],
+    trainerWorkouts: [],
     loading: false,
+     trainerLoading: false,
+  assigning: false,        
     error: null,
   },
   reducers: {},
@@ -140,6 +143,34 @@ const workoutSlice = createSlice({
         );
       })
 
+      .addCase(assignTrainersAPI.pending, (state) => {
+  state.assigning = true;
+})
+
+.addCase(assignTrainersAPI.fulfilled, (state) => {
+  state.assigning = false;
+})
+
+.addCase(assignTrainersAPI.rejected, (state) => {
+  state.assigning = false;
+})
+
+.addCase(fetchTrainerWorkouts.pending, (state) => {
+  state.trainerLoading = true;
+})
+
+.addCase(fetchTrainerWorkouts.fulfilled, (state, action) => {
+  state.trainerLoading = false;
+  state.trainerWorkouts = action.payload.map((item) => ({
+    ...item,
+    id: item.id || item._id,
+  }));
+})
+
+.addCase(fetchTrainerWorkouts.rejected, (state) => {
+  state.trainerLoading = false;
+})
+
       /* ================= UPDATE ================= */
       .addCase(updateWorkoutAPI.fulfilled, (state, action) => {
         const index = state.workouts.findIndex(
@@ -155,5 +186,35 @@ const workoutSlice = createSlice({
       });
   },
 });
+
+export const fetchTrainerWorkouts = createAsyncThunk(
+  "workout/fetchTrainerWorkouts",
+  async (trainerId) => {
+    const res = await axios.get(
+      `${API_URL}/trainer/${trainerId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
+    return res.data.data;
+  }
+);
+
+export const assignTrainersAPI = createAsyncThunk(
+  "workout/assign",
+  async (data) => {
+    await axios.post(
+      `${API_URL}/assign-trainers`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    );
+  }
+);
 
 export default workoutSlice.reducer;
