@@ -372,6 +372,96 @@ export default function Workout() {
         <video src={previewVideo?.videoUrl} controls autoPlay />
       </Modal>
 
+{/* UPLOAD MODAL */}
+<Modal show={showModal} onHide={() => setShowModal(false)} centered>
+  <Modal.Body className="upload-modal">
+
+    <h3 className="upload-title">Upload Workout</h3>
+
+    {/* TITLE */}
+    <div className="form-group">
+      <label>Title</label>
+      <input
+        type="text"
+        placeholder="Enter workout title"
+        value={form.title}
+        onChange={(e) =>
+          setForm({ ...form, title: e.target.value })
+        }
+      />
+    </div>
+
+    {/* DESCRIPTION */}
+    <div className="form-group">
+      <label>Description</label>
+      <textarea
+        placeholder="Enter description"
+        value={form.description}
+        onChange={(e) =>
+          setForm({ ...form, description: e.target.value })
+        }
+      />
+    </div>
+
+    {/* FILE UPLOAD */}
+    <div className="form-group">
+      <label>Upload Video</label>
+
+      <div
+        className="file-upload-box"
+        onClick={() => fileRef.current.click()}
+      >
+        <p>Click to upload video</p>
+      </div>
+
+      <input
+        type="file"
+        accept="video/*"
+        ref={fileRef}
+        hidden
+        onChange={(e) => handleFile(e.target.files[0])}
+      />
+    </div>
+
+    {/* TAG INPUT */}
+    <div className="form-group">
+      <label>Tags</label>
+
+      <div className="tag-input-box">
+        <input
+          type="text"
+          placeholder="Add tag"
+          value={form.tagInput}
+          onChange={(e) =>
+            setForm({ ...form, tagInput: e.target.value })
+          }
+        />
+        <button onClick={addTag}>Add</button>
+      </div>
+
+      <div className="tag-list">
+        {form.tags.map((tag) => (
+          <span key={tag} onClick={() => removeTag(tag)}>
+            {tag} ✕
+          </span>
+        ))}
+      </div>
+    </div>
+
+    {/* PREVIEW */}
+    {form.preview && (
+      <div className="preview-box">
+        <video src={form.preview} controls />
+      </div>
+    )}
+
+    {/* ACTION */}
+    <button className="upload-btn" onClick={handleSubmit}>
+      Upload Video
+    </button>
+
+  </Modal.Body>
+</Modal>
     </div>
   );
 }

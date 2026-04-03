@@ -2435,3 +2435,113 @@ border-radius:6px;
   color: #888;
   font-size: 16px;
 }
+
+.upload-modal {
+  padding: 25px;
+  border-radius: 10px;
+}
+
+.upload-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 13px;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.form-group textarea {
+  resize: none;
+  height: 80px;
+}
+
+/* FILE UPLOAD */
+.file-upload-box {
+  border: 2px dashed #ccc;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.file-upload-box:hover {
+  border-color: #6c5ce7;
+  background: #f8f7ff;
+}
+
+/* TAG INPUT */
+.tag-input-box {
+  display: flex;
+  gap: 10px;
+}
+
+.tag-input-box input {
+  flex: 1;
+}
+
+.tag-input-box button {
+  padding: 8px 12px;
+  border: none;
+  background: #6c5ce7;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tag-list {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-list span {
+  background: #eee;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* PREVIEW */
+.preview-box video {
+  width: 100%;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+/* BUTTON */
+.upload-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #6c5ce7, #5a4bd1);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.upload-btn:hover {
+  opacity: 0.9;
+}
