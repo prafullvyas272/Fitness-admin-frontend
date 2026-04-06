@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { Card, Button, Row, Col, Form } from "react-bootstrap";
+import { Card, Button, Form } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Select from "react-select";
+import moment from "moment";
 
 export default function AvailabilitySlots() {
 
@@ -23,6 +25,43 @@ const [token, setToken] = useState(null);
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const d = String(date.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
+  };
+
+  const addMinutesToTime = (time, minutesToAdd) => {
+    if (!time) return "";
+
+    return moment(time, "h:mm A")
+      .add(minutesToAdd, "minutes")
+      .format("h:mm A");
+  };
+
+  const generateTimeOptions = () => {
+    const times = [];
+    const start = 9 * 60;
+    const end = 21 * 60;
+
+    for (let i = start; i <= end; i += 15) {
+      const hours = Math.floor(i / 60);
+      const minutes = i % 60;
+
+      const ampm = hours >= 12 ? "PM" : "AM";
+      const formattedHour = hours % 12 || 12;
+
+      const label = `${formattedHour}:${minutes
+        .toString()
+        .padStart(2, "0")} ${ampm}`;
+
+      times.push({ value: label, label });
+    }
+
+    return times;
+  };
+
+  const timeOptions = generateTimeOptions();
+
+  const toTwentyFourHourTime = (time) => {
+    if (!time) return "";
+    return moment(time, "h:mm A").format("HH:mm");
   };
 
   /* ================= MONTH NAV ================= */
@@ -131,12 +170,8 @@ useEffect(() => {
       const loadedSlots =
         data?.data?.slots?.map((slot) => ({
           id: slot.id,
-          startTime: new Date(slot.startTime)
-            .toISOString()
-            .substring(11, 16),
-          endTime: new Date(slot.endTime)
-            .toISOString()
-            .substring(11, 16),
+          startTime: moment(slot.startTime).format("h:mm A"),
+          endTime: moment(slot.endTime).format("h:mm A"),
         })) || [];
 
       setSlots(loadedSlots);
@@ -162,6 +197,21 @@ useEffect(() => {
     const updated = [...slots];
     updated[index][field] = value;
     setSlots(updated);
+  };
+
+  const updateStartTimeWithAutoEnd = (index, value) => {
+    const updated = [...slots];
+    updated[index].startTime = value;
+    updated[index].endTime = addMinutesToTime(value, 45);
+    setSlots(updated);
+  };
+
+  const handleStartTimeChange = (index, value) => {
+    updateStartTimeWithAutoEnd(index, value);
+  };
+
+  const handleEndTimeChange = (index, value) => {
+    updateSlot(index, "endTime", value);
   };
 
   const deleteSlot = async (index) => {
@@ -195,7 +245,11 @@ useEffect(() => {
       return;
     }
 
-    if (slot.endTime <= slot.startTime) {
+    if (
+      moment(slot.endTime, "h:mm A").isSameOrBefore(
+        moment(slot.startTime, "h:mm A")
+      )
+    ) {
       alert("End time must be greater than start time.");
       return;
     }
@@ -205,6 +259,9 @@ useEffect(() => {
 
   try {
     for (let slot of slots) {
+
+      const formattedStartTime = toTwentyFourHourTime(slot.startTime);
+      const formattedEndTime = toTwentyFourHourTime(slot.endTime);
 
       if (slot.id) {
         await fetch(
@@ -217,8 +274,8 @@ useEffect(() => {
             },
             body: JSON.stringify({
               date: formatted,
-              startTime: `${formatted}T${slot.startTime}:00.000Z`,
-              endTime: `${formatted}T${slot.endTime}:00.000Z`,
+              startTime: `${formatted}T${formattedStartTime}:00.000Z`,
+              endTime: `${formatted}T${formattedEndTime}:00.000Z`,
             }),
           }
         );
@@ -235,8 +292,8 @@ useEffect(() => {
               date: formatted,
               peakSlots: [
                 {
-                  start: slot.startTime,
-                  end: slot.endTime,
+                  start: formattedStartTime,
+                  end: formattedEndTime,
                 },
               ],
             }),
@@ -329,10 +386,14 @@ useEffect(() => {
 
       {selectedDate && (
         <Card className="shadow-sm border-0 mt-4">
-          <Card.Body>
-
-            <h5 className="fw-semibold mb-3">
-              Slots for {selectedDate.toDateString()}
+          <Card.Body style={{ overflow: "visible" }}>
+            <h5
+              style={{
+                marginBottom: "16px",
+                fontWeight: "600",
+              }}
+            >
+              Time Slots
             </h5>
 
             {loadingSlots ? (
@@ -340,77 +401,118 @@ useEffect(() => {
             ) : (
               <>
                 {slots.map((slot, index) => (
-                  <Row key={index} className="mb-3">
-                    <Col md={4}>
-  <DatePicker
-  selected={
-    slot.startTime
-      ? new Date(`1970-01-01T${slot.startTime}`)
-      : null
-  }
-  onChange={(date) => {
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    updateSlot(index, "startTime", `${hours}:${minutes}`);
-  }}
-  showTimeSelect
-  showTimeSelectOnly
-  timeIntervals={15}
-  timeCaption="Time"
-  dateFormat="hh:mm aa"
-  placeholderText="Select time"
-  className="form-control"
-/>
-                    </Col>
+                  <div
+                    key={index}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      flexWrap: "wrap",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <div style={{ width: "180px" }}>
+                      <Select
+                        options={timeOptions}
+                        value={timeOptions.find(
+                          (t) => t.value === slot.startTime
+                        )}
+                        onChange={(selected) =>
+                          handleStartTimeChange(
+                            index,
+                            selected?.value || ""
+                          )
+                        }
+                        placeholder="Select Time"
+                        menuPlacement="top"
+                        menuPosition="fixed"
+                        styles={{
+                          control: (base) => ({
+                            ...base,
+                            minHeight: "38px",
+                            borderRadius: "8px",
+                          }),
+                          menu: (base) => ({
+                            ...base,
+                            zIndex: 9999,
+                          }),
+                        }}
+                      />
+                    </div>
 
-                    <Col md={4}>
-                      <DatePicker
-  selected={
-    slot.endTime
-      ? new Date(`1970-01-01T${slot.endTime}`)
-      : null
-  }
-  onChange={(date) => {
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    updateSlot(index, "endTime", `${hours}:${minutes}`);
-  }}
-  showTimeSelect
-  showTimeSelectOnly
-  timeIntervals={15}
-  timeCaption="Time"
-  dateFormat="hh:mm aa"
-  placeholderText="Select time"
-  className="form-control"
-/>
-                    </Col>
+                    <div style={{ width: "180px" }}>
+                      <Select
+                        options={timeOptions}
+                        value={timeOptions.find(
+                          (t) => t.value === slot.endTime
+                        )}
+                        onChange={(selected) =>
+                          handleEndTimeChange(
+                            index,
+                            selected?.value || ""
+                          )
+                        }
+                        placeholder="Select Time"
+                        menuPlacement="top"
+                        menuPosition="fixed"
+                        styles={{
+                          control: (base) => ({
+                            ...base,
+                            minHeight: "38px",
+                            borderRadius: "8px",
+                          }),
+                          menu: (base) => ({
+                            ...base,
+                            zIndex: 9999,
+                          }),
+                        }}
+                      />
+                    </div>
 
-                    <Col md={2}>
-                      <Button
-                        variant="outline-danger"
-                        onClick={() => deleteSlot(index)}
-                      >
-                        Delete
-                      </Button>
-                    </Col>
-                  </Row>
+                    <span
+                      style={{
+                        background: "#eef2ff",
+                        padding: "6px 12px",
+                        borderRadius: "8px",
+                        fontSize: "13px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {selectedDate.toDateString()}
+                    </span>
+
+                    <Button
+                      variant="outline-danger"
+                      onClick={() => deleteSlot(index)}
+                      style={{
+                        height: "38px",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 ))}
 
-                <Button
-                  variant="outline-primary"
-                  onClick={addSlot}
-                  className="me-3"
+                <div
+                  style={{
+                    marginTop: "16px",
+                    display: "flex",
+                    gap: "10px",
+                  }}
                 >
-                  + Add Slot
-                </Button>
-
-                <Button
-                  variant="primary"
-                  onClick={handleSave}
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save Changes"}
-                </Button>
+                  <Button variant="outline-primary" onClick={addSlot}>
+                    + Add Slot
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
               </>
             )}
 

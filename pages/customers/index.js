@@ -106,16 +106,20 @@ const handleEditOpen = (customer) => {
   // ASSIGN TRAINER
   const handleAssignOpen = (customer) => {
     setSelectedCustomer(customer);
-    if (
-  customer.assignedTrainers &&
-  customer.assignedTrainers.length > 0
-) {
-  setSelectedTrainer(
-    customer.assignedTrainers[0].trainerId
-  );
-} else {
-  setSelectedTrainer("");
-}
+
+    // Find assigned trainer from trainers list
+    const assignedTrainer = trainers.find((trainer) =>
+      trainer.assignedCustomers?.some(
+        (item) => item.customerId === customer.id
+      )
+    );
+
+    if (assignedTrainer) {
+      setSelectedTrainer(assignedTrainer.id);
+    } else {
+      setSelectedTrainer("");
+    }
+
     setShowAssign(true);
   };
 
@@ -469,11 +473,18 @@ const filteredTrainers = trainers
 </td>
 
                   <td>
-                    {customer.assignedTrainers &&
-                    customer.assignedTrainers.length > 0
-                      ? "Assigned"
-                      : "Not Assigned"}
-                  </td>
+  {(() => {
+    const assignedTrainer = trainers.find((trainer) =>
+      trainer.assignedCustomers?.some(
+        (item) => item.customerId === customer.id
+      )
+    );
+
+    return assignedTrainer
+      ? `${assignedTrainer.firstName} ${assignedTrainer.lastName}`
+      : "Not Assigned";
+  })()}
+</td>
 
                   <td className="text-end">
                     <Dropdown align="end">
@@ -490,16 +501,21 @@ const filteredTrainers = trainers
                           View
                         </Dropdown.Item>
 
-                       {customer.isActive && (
+{customer.isActive && (
   <Dropdown.Item
     onClick={() => handleAssignOpen(customer)}
   >
     <i className="fe fe-user-plus me-2 text-secondary"></i>
 
-    {customer.assignedTrainers &&
-    customer.assignedTrainers.length > 0
-      ? "Change Trainer"
-      : "Assign Trainer"}
+    {(() => {
+      const isAssigned = trainers.some((trainer) =>
+        trainer.assignedCustomers?.some(
+          (item) => item.customerId === customer.id
+        )
+      );
+
+      return isAssigned ? "Change Trainer" : "Assign Trainer";
+    })()}
   </Dropdown.Item>
 )}
 
@@ -592,10 +608,15 @@ const filteredTrainers = trainers
     <Modal show={showAssign} onHide={() => setShowAssign(false)} centered>
   <Modal.Header closeButton>
     <Modal.Title>
-      {selectedCustomer?.assignedTrainers &&
-      selectedCustomer.assignedTrainers.length > 0
-        ? "Change Trainer"
-        : "Assign Trainer"}
+      {(() => {
+        const isAssigned = trainers.some((trainer) =>
+          trainer.assignedCustomers?.some(
+            (item) => item.customerId === selectedCustomer?.id
+          )
+        );
+
+        return isAssigned ? "Change Trainer" : "Assign Trainer";
+      })()}
     </Modal.Title>
   </Modal.Header>
 
@@ -652,10 +673,15 @@ const filteredTrainers = trainers
       onClick={handleAssignSave}
       disabled={!selectedTrainer}
     >
-      {selectedCustomer?.assignedTrainers &&
-      selectedCustomer.assignedTrainers.length > 0
-        ? "Change Trainer"
-        : "Assign Trainer"}
+      {(() => {
+        const isAssigned = trainers.some((trainer) =>
+          trainer.assignedCustomers?.some(
+            (item) => item.customerId === selectedCustomer?.id
+          )
+        );
+
+        return isAssigned ? "Change Trainer" : "Assign Trainer";
+      })()}
     </Button>
   </Modal.Footer>
 </Modal>

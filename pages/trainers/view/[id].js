@@ -12,7 +12,7 @@ import {
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTrainerById } from "../../../redux/slices/trainerSlice";
-import { FaMapMarkerAlt } from "react-icons/fa";
+import { GeoAltFill } from "react-bootstrap-icons";
 
 import { removeCustomerFromTrainer } from "../../../redux/slices/trainerSlice";
 
@@ -20,6 +20,10 @@ import { fetchTrainerBookings }  from "../../../redux/slices/sessionSlice";
 import { 
   setSelectedTrainer 
 } from "../../../redux/slices/trainerSlice";
+import {
+  fetchTrainerWorkouts,
+  fetchAllTrainerVideos,
+} from "../../../redux/slices/workoutSlice";
 
 
 export default function TrainerProfile() {
@@ -29,6 +33,12 @@ export default function TrainerProfile() {
  const { sessions: reduxSessions, loading: sessionLoading } = useSelector(
   (state) => state.sessions
 );
+const {
+  trainerWorkouts,
+  trainerLoading,
+  trainerVideos,
+  trainerVideosLoading,
+} = useSelector((state) => state.workout);
 
 const formatDate = (date) => {
   if (!date) return null;
@@ -69,6 +79,7 @@ const trainer = selectedTrainer;
   
 
   const [showImageModal, setShowImageModal] = useState(false);
+  const [previewVideo, setPreviewVideo] = useState(null);
 
 
 
@@ -107,6 +118,16 @@ useEffect(() => {
   dispatch(fetchTrainerBookings(trainer.id));
 
 }, [trainer]);
+
+useEffect(() => {
+  if (!trainer?.id) return;
+
+  dispatch(fetchTrainerWorkouts(trainer.id));
+}, [dispatch, trainer?.id]);
+
+useEffect(() => {
+  dispatch(fetchAllTrainerVideos());
+}, [dispatch]);
 
 
 
@@ -357,20 +378,9 @@ const getWeekDates = (date) => {
 
 const weekDates = selectedDate ? getWeekDates(selectedDate) : [];
 
-const assignedVideos = [
-  {
-    id: 1,
-    title: "Chest Workout",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    tags: ["chest", "beginner"],
-  },
-  {
-    id: 2,
-    title: "Triceps Blast",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    tags: ["tricep"],
-  },
-];
+const filteredTrainerVideos = trainerVideos.filter(
+  (video) => video.trainer?.id === trainer?.id
+);
 
 const formatDisplayDate = (dateString) => {
   const d = new Date(dateString);
@@ -803,7 +813,7 @@ const formatDisplayDate = (dateString) => {
   </span>
 
   <span className="d-flex align-items-center gap-1">
-  <FaMapMarkerAlt size={14} style={{ color: "#dc3545" }} />
+  <GeoAltFill size={14} style={{ color: "#dc3545" }} />
   {booking.trainer.userProfileDetails?.[0]?.hostGymName || "Gym"}
 </span>
 </div>
@@ -839,38 +849,62 @@ const formatDisplayDate = (dateString) => {
   <>
     <h5 className="fw-bold mb-4">Assigned Videos</h5>
 
-    <div className="video-grid">
-      {assignedVideos.length === 0 ? (
-        <p className="text-muted">No videos assigned</p>
-      ) : (
-        assignedVideos.map((video) => (
+    {trainerLoading ? (
+      <div className="empty-state">Loading videos...</div>
+    ) : trainerWorkouts.length === 0 ? (
+      <div className="empty-state">No videos assigned</div>
+    ) : (
+      <div className="video-grid">
+        {trainerWorkouts.map((video) => (
           <div key={video.id} className="video-card">
-
             <div className="video-thumb">
-              <video
-                src={video.videoUrl}
-                preload="metadata"
-              />
+              <video src={video.videoUrl} />
 
-              <div className="hover-overlay">
-                <div className="play-btn">▶</div>
+              <div className="video-overlay">
+                <div
+                  className="play-btn"
+                  onClick={() => setPreviewVideo(video)}
+                >
+                  ▶
+                </div>
               </div>
             </div>
 
             <div className="video-info">
               <h6>{video.title}</h6>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
 
-              <div className="tags">
-                {video.tags.map((tag, i) => (
-                  <span key={i}>{tag}</span>
-                ))}
-              </div>
+    <h5 className="fw-bold mb-4 mt-5">Trainer Uploaded Videos</h5>
+
+    {trainerVideosLoading ? (
+      <div className="empty-state">Loading trainer videos...</div>
+    ) : filteredTrainerVideos.length === 0 ? (
+      <div className="empty-state">
+        No videos uploaded by this trainer
+      </div>
+    ) : (
+      <div className="video-grid">
+        {filteredTrainerVideos.map((video) => (
+          <div key={video.id} className="video-card">
+            <div className="video-thumb">
+              <img src={video.thumbnail} alt="thumbnail" />
             </div>
 
+            <div className="video-info">
+              <h6>{video.title}</h6>
+
+              <p style={{ fontSize: "12px", color: "#777" }}>
+                {video.trainer?.firstName} {video.trainer?.lastName}
+              </p>
+            </div>
           </div>
-        ))
-      )}
-    </div>
+        ))}
+      </div>
+    )}
   </>
 )}
 
@@ -914,7 +948,20 @@ const formatDisplayDate = (dateString) => {
   Assign to This Trainer
 </Button>
         </Modal.Footer>
-      </Modal>
+</Modal>
+
+<Modal
+  show={!!previewVideo}
+  onHide={() => setPreviewVideo(null)}
+  centered
+>
+  <video
+    src={previewVideo?.videoUrl}
+    controls
+    autoPlay
+    style={{ width: "100%" }}
+  />
+</Modal>
 
 {/* IMAGE PREVIEW MODAL */}
 <Modal

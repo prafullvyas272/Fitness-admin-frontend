@@ -184,33 +184,41 @@ const totalPages = Math.ceil(
 const openAssignModal = async (trainerId) => {
   setSelectedTrainerId(trainerId);
   setShowAssignModal(true);
-  setAssignLoading(true);  
+  setAssignLoading(true);
 
   try {
     const token = localStorage.getItem("adminToken");
 
-    const res = await fetch(
+    // 1 Fetch all customers
+    const customerRes = await fetch(
       "https://fitness-app-seven-beryl.vercel.app/api/customers",
       {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       }
     );
 
-    const data = await res.json();
+    const customerData = await customerRes.json();
+    const allCustomers = customerData.data || [];
+    setCustomers(allCustomers);
 
- if (res.ok) {
-  const unassignedCustomers = (data.data || []).filter(
-    (customer) => !customer.assignedTrainers || customer.assignedTrainers.length === 0
-  );
+    // 2 Get trainer directly from Redux
+    const trainer = trainers.find(
+      (t) => t.id === trainerId
+    );
 
-  setCustomers(unassignedCustomers);
-}
+    const assignedIds =
+      trainer?.assignedCustomers?.map(
+        (item) => item.customerId
+      ) || [];
+
+       console.log("Assigned IDs:", assignedIds); // 👈 debug
+
+    // 3 Pre-select
+    setSelectedCustomers(assignedIds);
   } catch (err) {
     console.error(err);
   } finally {
-    setAssignLoading(false); // 👈 stop loading
+    setAssignLoading(false);
   }
 };
 // ASSIGN CUSTOMERS
@@ -223,8 +231,8 @@ const handleAssignCustomers = async () => {
   try {
     const token = localStorage.getItem("adminToken");
 
-    // Loop through selected customers
-    for (const customerId of selectedCustomers) {
+    // selectedCustomers contains customer.id values
+    for (const selectedCustomerId of selectedCustomers) {
       const response = await fetch(
         "https://fitness-app-seven-beryl.vercel.app/api/assign-customer",
         {
@@ -235,7 +243,7 @@ const handleAssignCustomers = async () => {
           },
           body: JSON.stringify({
             trainerId: selectedTrainerId,
-            customerId: customerId,
+            customerId: selectedCustomerId,
           }),
         }
       );

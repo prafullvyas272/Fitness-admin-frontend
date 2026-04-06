@@ -46,13 +46,6 @@ export const DashboardMenu = [
 
   {
     id: uuid(),
-    title: "Trainer Requests",
-    icon: "users",
-    link: "/trainer-requests",
-  },
-
-  {
-    id: uuid(),
     title: "Customers",
     icon: "user",
     link: "/customers",
