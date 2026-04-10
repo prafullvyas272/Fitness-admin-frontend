@@ -16,6 +16,7 @@ import {
   fetchTrainers,
   removeTrainer,
   updateTrainerStatusRedux,
+  updateTrainerAssignedCustomers,
 } from "../redux/slices/trainerSlice";
 
 
@@ -34,6 +35,8 @@ const { trainers, loading } = useSelector(
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
+
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
 
 
   //Assign trainer 
@@ -202,16 +205,24 @@ const openAssignModal = async (trainerId) => {
     setCustomers(allCustomers);
 
     // 2 Get trainer directly from Redux
-    const trainer = trainers.find(
-      (t) => t.id === trainerId
-    );
+  // 2 Fetch trainer fresh from API
+const trainerRes = await fetch(
+  `https://fitness-app-seven-beryl.vercel.app/api/trainers/${trainerId}/profile`,
+  { headers: { Authorization: `Bearer ${token}` } }
+);
+const trainerData = await trainerRes.json();
+const trainerDetail = trainerData.data || trainerData;
 
-    const assignedIds =
-      trainer?.assignedCustomers?.map(
-        (item) => item.customerId
-      ) || [];
 
-       console.log("Assigned IDs:", assignedIds); // 👈 debug
+console.log("trainerDetail keys:", Object.keys(trainerDetail));
+console.log("assignedCustomers:", trainerDetail?.assignedCustomers);
+console.log("assignedCustomersAsTrainer:", trainerDetail?.assignedCustomersAsTrainer);
+
+
+const assignedIds =
+  trainerDetail?.assignedCustomersAsTrainer?.map(
+    (item) => String(item.customerId)
+  ) || [];
 
     // 3 Pre-select
     setSelectedCustomers(assignedIds);
@@ -255,6 +266,13 @@ const handleAssignCustomers = async () => {
 
     alert("Customers assigned successfully ✅");
 
+    selectedCustomers.forEach((customerId) => {
+  dispatch(updateTrainerAssignedCustomers({
+    trainerId: selectedTrainerId,
+    customerId,
+  }));
+});
+
     setShowAssignModal(false);
     setSelectedCustomers([]);
 
@@ -263,19 +281,20 @@ const handleAssignCustomers = async () => {
   }
 };
 
-
-  const handleBulkDelete = async () => {
+const handleBulkDelete = async () => {
   if (selectedIds.length === 0) {
     alert("Select trainers first");
     return;
   }
-  
+
   if (!confirm("Delete selected trainers?")) return;
+
+  setBulkDeleteLoading(true); // 👈 start loader
 
   try {
     const token = localStorage.getItem("adminToken");
 
-    await Promise.all(
+    const results = await Promise.all(
       selectedIds.map((id) =>
         fetch(
           `https://fitness-app-seven-beryl.vercel.app/api/trainers/${id}`,
@@ -285,21 +304,27 @@ const handleAssignCustomers = async () => {
               Authorization: `Bearer ${token}`,
             },
           }
-        )
+        ).then(async (res) => {
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.message || `Failed to delete trainer ${id}`);
+          }
+          return id;
+        })
       )
     );
-  
-    // remove from UI
-    selectedIds.forEach((id) =>
-  dispatch(removeTrainer(id))
-);
 
-
+    results.forEach((id) => dispatch(removeTrainer(id)));
     setSelectedIds([]);
+    setSelectionMode(false);
     alert("Deleted successfully ✅");
 
   } catch (err) {
-    alert("Delete failed");
+    console.error("Bulk delete error:", err.message);
+    alert(`Delete failed: ${err.message}`);
+    dispatch(fetchTrainers());
+  } finally {
+    setBulkDeleteLoading(false); // 👈 stop loader
   }
 };
 
@@ -426,14 +451,26 @@ const filteredCustomers = customers.filter((customer) => {
 
 
           {selectionMode && selectedIds.length > 0 && (
-            <Button
-              variant="danger"
-              className="mb-3"
-              onClick={handleBulkDelete}
-            >
-              Delete Selected ({selectedIds.length})
-            </Button>
-          )}
+  <Button
+    variant="danger"
+    className="mb-3"
+    onClick={handleBulkDelete}
+    disabled={bulkDeleteLoading}
+  >
+    {bulkDeleteLoading ? (
+      <>
+        <span
+          className="spinner-border spinner-border-sm me-2"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        Deleting...
+      </>
+    ) : (
+      `Delete Selected (${selectedIds.length})`
+    )}
+  </Button>
+)}
 
           <Table responsive hover className="align-middle">
             <thead className="bg-light">
@@ -702,19 +739,26 @@ const filteredCustomers = customers.filter((customer) => {
     <Form.Check
       key={customer.id}
       type="checkbox"
-      label={`${customer.firstName} ${customer.lastName}`}
+      label={
+  <span>
+    {customer.firstName} {customer.lastName}
+    <br />
+    <small className="text-muted">{customer.email}</small>
+  </span>
+}
       value={customer.id}
-      checked={selectedCustomers.includes(customer.id)}
+      checked={selectedCustomers.includes(String(customer.id))}
       onChange={(e) => {
+        const id = String(customer.id);
         if (e.target.checked) {
           setSelectedCustomers([
             ...selectedCustomers,
-            customer.id,
+            id,
           ]);
         } else {
           setSelectedCustomers(
             selectedCustomers.filter(
-              (id) => id !== customer.id
+              (sid) => sid !== id
             )
           );
         }

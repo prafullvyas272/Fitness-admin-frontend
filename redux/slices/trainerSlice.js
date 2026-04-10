@@ -160,6 +160,22 @@ const trainerSlice = createSlice({
       }
     },
 
+    updateTrainerAssignedCustomers: (state, action) => {
+  const { trainerId, customerId } = action.payload;
+  const trainer = state.trainers.find((t) => t.id === trainerId);
+  if (trainer) {
+    if (!trainer.assignedCustomers) {
+      trainer.assignedCustomers = [];
+    }
+    const alreadyAssigned = trainer.assignedCustomers.find(
+      (item) => String(item.customerId) === String(customerId)
+    );
+    if (!alreadyAssigned) {
+      trainer.assignedCustomers.push({ customerId });
+    }
+  }
+},
+
     removeTrainer: (state, action) => {
       state.trainers = state.trainers.filter(
         (t) => t.id !== action.payload
@@ -264,6 +280,7 @@ export const {
   setTrainerError,
   removeCustomerFromTrainer,
   updateTrainerStatusRedux,
+  updateTrainerAssignedCustomers,
 } = trainerSlice.actions;
 
 export default trainerSlice.reducer;

@@ -560,10 +560,10 @@ const formatDisplayDate = (dateString) => {
                   <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.hostGymAddress)}</Col>
                 </Row>
 
-                <Row>
+                {/* <Row>
                   <Col md={4} className="fw-semibold">Address:</Col>
                   <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.address)}</Col>
-                </Row>
+                </Row> */}
 
               </Col>
             </Row>

@@ -17,6 +17,8 @@ export default function AllCustomers() {
 
   const [filterType, setFilterType] = useState("All");
 
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+
   const [showView, setShowView] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showAssign, setShowAssign] = useState(false);
@@ -46,11 +48,10 @@ const [search, setSearch] = useState("");
 
   // Load customers + trainers
 
+// To this:
 useEffect(() => {
-  if (!customers || customers.length === 0) {
-    dispatch(fetchCustomers());
-  }
-}, [dispatch, customers]);
+  dispatch(fetchCustomers());
+}, [dispatch]);
 
 useEffect(() => {
   const fetchTrainers = async () => {
@@ -82,18 +83,49 @@ const handleView = (customer) => {
 const handleBulkDelete = async () => {
   if (selectedCustomers.length === 0) return;
 
-  const confirmDelete = confirm(
-    "Are you sure you want to delete selected customers?"
-  );
-
+  const confirmDelete = confirm("Are you sure you want to delete selected customers?");
   if (!confirmDelete) return;
 
-  for (let id of selectedCustomers) {
-    await dispatch(deleteCustomer(id));
-  }
+  setBulkDeleteLoading(true);
 
-  setSelectedCustomers([]);
-  setBulkMode(false);
+  try {
+    const token = localStorage.getItem("adminToken");
+
+    const results = await Promise.all(
+      selectedCustomers.map((id) =>
+        fetch(
+          `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        ).then(async (res) => {
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.message || `Failed to delete customer ${id}`);
+          }
+          return id;
+        })
+      )
+    );
+
+    // Only remove from Redux if API succeeded
+    results.forEach((id) => {
+  dispatch({ type: "customers/deleteCustomer/fulfilled", payload: id });
+});
+
+    setSelectedCustomers([]);
+    setBulkMode(false);
+    alert("Deleted successfully ✅");
+
+  } catch (err) {
+    console.error("Bulk delete error:", err.message);
+    alert(`Delete failed: ${err.message}`);
+  } finally {
+    setBulkDeleteLoading(false);
+  }
 };
 
   // EDIT
@@ -346,8 +378,20 @@ const filteredTrainers = trainers
     <Button
       variant="danger"
       onClick={handleBulkDelete}
+      disabled={bulkDeleteLoading}
     >
-      Delete Selected ({selectedCustomers.length})
+      {bulkDeleteLoading ? (
+        <>
+          <span
+            className="spinner-border spinner-border-sm me-2"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          Deleting...
+        </>
+      ) : (
+        `Delete Selected (${selectedCustomers.length})`
+      )}
     </Button>
   </div>
 )}
@@ -531,7 +575,10 @@ const filteredTrainers = trainers
 
                         <Dropdown.Item
                           className="text-dark"
-                          onClick={() => dispatch(deleteCustomer(customer.id))}
+                          onClick={async () => {
+  if (!confirm("Delete this customer?")) return;
+  await dispatch(deleteCustomer(customer.id));
+}}
                         >
                           <i className="fe fe-trash me-2"></i>
                           Delete
