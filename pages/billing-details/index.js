@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -5,6 +6,7 @@ import {
   createPlan,
   updatePlan,
   deletePlan,
+  assignPlanToTrainers,
 } from "../../redux/slices/billingSlice";
 
 import {
@@ -20,9 +22,15 @@ import {
 export default function BillingDetails() {
   const dispatch = useDispatch();
   const { plans } = useSelector((state) => state.billing);
+  const [assignLoading, setAssignLoading] = useState(false);
 
   const [show, setShow] = useState(false);
   const [editId, setEditId] = useState(null);
+
+  const [assignModal, setAssignModal] = useState(false);
+const [selectedPlanId, setSelectedPlanId] = useState(null);
+const [selectedTrainers, setSelectedTrainers] = useState([]);
+const [trainers, setTrainers] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -78,6 +86,58 @@ export default function BillingDetails() {
     setShow(false);
   };
 
+
+const openAssignModal = async (planId) => {
+  setSelectedPlanId(planId);
+
+  const token = localStorage.getItem("adminToken");
+  const res = await axios.get(
+    "https://fitness-app-seven-beryl.vercel.app/api/trainers",
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  const fetchedTrainers = res.data.data;
+  setTrainers(fetchedTrainers);
+
+  // Pre-select trainers already assigned to this plan
+  const alreadyAssigned = fetchedTrainers
+    .filter((trainer) => trainer.plan?.id === planId)
+    .map((trainer) => trainer.id);
+
+  setSelectedTrainers(alreadyAssigned);
+  setAssignModal(true);
+};
+
+
+const handleTrainerSelect = (trainerId) => {
+  setSelectedTrainers((prev) =>
+    prev.includes(trainerId)
+      ? prev.filter((id) => id !== trainerId)
+      : [...prev, trainerId]
+  );
+};
+
+const handleAssign = async () => {
+  try {
+    setAssignLoading(true);
+
+    await dispatch(
+      assignPlanToTrainers({
+        planId: selectedPlanId,
+        trainerIds: selectedTrainers,
+      })
+    );
+
+    setAssignModal(false);
+    setSelectedTrainers([]);
+
+  } catch (err) {
+    console.log(err);
+  } finally {
+    setAssignLoading(false);
+  }
+};
+
   return (
     <div className="p-4">
       {/* HEADER */}
@@ -124,9 +184,19 @@ export default function BillingDetails() {
                   ))}
                 </ul>
 
-                <Button variant="primary" className="w-100 mt-3">
-                  Select Plan
-                </Button>
+               <div className="d-flex gap-2 mt-auto">
+  <Button
+    variant="outline-dark"
+    className="w-50"
+    onClick={() => openAssignModal(plan.id)}
+  >
+    Assign Trainers
+  </Button>
+
+  <Button variant="primary" className="w-50">
+    Select Plan
+  </Button>
+</div>
 
                 <div className="d-flex justify-content-between mt-3">
                   <Button
@@ -228,6 +298,36 @@ export default function BillingDetails() {
           </Button>
         </Modal.Footer>
       </Modal>
+      <Modal show={assignModal} onHide={() => setAssignModal(false)} centered>
+  <Modal.Header closeButton>
+    <Modal.Title>Assign Trainers</Modal.Title>
+  </Modal.Header>
+
+  <Modal.Body>
+    {trainers.map((trainer) => (
+      <Form.Check
+        key={trainer.id}
+        type="checkbox"
+        label={`${trainer.firstName} ${trainer.lastName}`}
+        checked={selectedTrainers.includes(trainer.id)}
+        onChange={() => handleTrainerSelect(trainer.id)}
+      />
+    ))}
+  </Modal.Body>
+
+  <Modal.Footer>
+    <Button variant="secondary" onClick={() => setAssignModal(false)}>
+      Cancel
+    </Button>
+   <Button
+  variant="primary"
+  onClick={handleAssign}
+  disabled={assignLoading}
+>
+  {assignLoading ? "Assigning..." : "Assign"}
+</Button>
+  </Modal.Footer>
+</Modal>
     </div>
   );
 }

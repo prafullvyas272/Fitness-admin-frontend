@@ -87,6 +87,31 @@ await axios.delete(`${API_URL}/${id}`, {
   }
 );
 
+
+//assign plan to trainers
+export const assignPlanToTrainers = createAsyncThunk(
+  "billing/assignPlanToTrainers",
+  async ({ planId, trainerIds }, { rejectWithValue }) => {
+    try {
+      const adminToken = localStorage.getItem("adminToken");
+
+      await axios.put(
+        "https://fitness-app-seven-beryl.vercel.app/api/admin-assign-plan",
+        { trainerIds, planId },
+        {
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+          },
+        }
+      );
+
+      return { planId, trainerIds };
+    } catch (err) {
+      return rejectWithValue(err.response?.data || "Error assigning plan");
+    }
+  }
+);
+
 /* ================================
    SLICE
 ================================ */
@@ -119,6 +144,15 @@ const billingSlice = createSlice({
       .addCase(createPlan.fulfilled, (state, action) => {
         state.plans.push(action.payload);
       })
+
+      // Add this case in extraReducers builder
+.addCase(assignPlanToTrainers.fulfilled, (state, action) => {
+  const { planId, trainerIds } = action.payload;
+  const index = state.plans.findIndex((p) => p.id === planId);
+  if (index !== -1) {
+    state.plans[index].assignedTrainers = trainerIds;
+  }
+})
 
       // UPDATE
       .addCase(updatePlan.fulfilled, (state, action) => {

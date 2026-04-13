@@ -13,7 +13,7 @@ export const fetchCustomers = createAsyncThunk(
         "https://fitness-app-seven-beryl.vercel.app/api/customers",
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`, 
           },
         }
       );
