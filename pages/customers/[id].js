@@ -8,7 +8,8 @@ import {
   fetchCustomerById,
   deleteCustomer,
   updateCustomer,
-  assignTrainer
+  assignTrainer,
+  fetchCustomerQuestionnaire,
 } from "../../redux/slices/customerSlice";
 
 export default function CustomerDetail() {
@@ -17,7 +18,7 @@ export default function CustomerDetail() {
 
   const dispatch = useDispatch();
 
-const { selectedCustomer: customer, loading } = useSelector(
+const { selectedCustomer: customer, loading, questionnaire, questionnaireLoading } = useSelector(
   (state) => state.customers
 );
 
@@ -38,6 +39,7 @@ const { trainers: reduxTrainers } = useSelector(
 useEffect(() => {
   if (id) {
     dispatch(fetchCustomerById(id));
+    dispatch(fetchCustomerQuestionnaire(id));
   }
 }, [id, dispatch]);
 
@@ -110,6 +112,28 @@ useEffect(() => {
     .toLowerCase()
     .includes(trainerSearch.toLowerCase())
 );
+
+const questionMap = [
+    { key: "heartCondition", label: "Heart condition or doctor restriction?" },
+    { key: "chestPainDuringActivity", label: "Chest pain during activity?" },
+    { key: "chestPainLastMonth", label: "Chest pain in last month (rest)?" },
+    { key: "dizzinessOrLossOfConsciousness", label: "Dizziness or loss of consciousness?" },
+    { key: "boneOrJointProblem", label: "Bone or joint problem?" },
+    { key: "bloodPressureMedication", label: "BP or heart medication?" },
+    { key: "otherReasonNotToExercise", label: "Any other reason to avoid exercise?" },
+    { key: "pregnancyOrRecentBirth", label: "Pregnant or given birth in last 6 months?" },
+    { key: "chronicMedicalCondition", label: "Any medical condition (diabetes, asthma etc)?" },
+  ];
+
+   const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A";
+    return new Date(dateStr).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
 
 if (loading || !customer) {
   return <div className="p-4">Loading customer...</div>;
@@ -301,69 +325,84 @@ if (loading || !customer) {
           </div>
         </>
       )}
-      {activeTab === "questionaries" && (
-  <>
-    <h5 className="mb-4">PAR-Q Questionnaire</h5>
+       {activeTab === "questionaries" && (
+                    <>
+                      <h5 className="mb-4">PAR-Q Questionnaire</h5>
 
-    <div className="questionnaire-box">
+                      {questionnaireLoading ? (
+                        <div className="text-muted py-4 text-center">Loading questionnaire...</div>
 
-      {/* Question Row */}
-      {[
-        { q: "Heart condition or doctor restriction?", a: "No" },
-        { q: "Chest pain during activity?", a: "No" },
-        { q: "Chest pain in last month (rest)?", a: "No" },
-        { q: "Dizziness or loss of consciousness?", a: "No" },
-        { q: "Bone or joint problem?", a: "Yes" },
-        { q: "BP or heart medication?", a: "No" },
-        { q: "Any other reason to avoid exercise?", a: "No" },
-        { q: "Pregnant or given birth in last 6 months?", a: "No" },
-        { q: "Any medical condition (diabetes, asthma etc)?", a: "Yes" },
-      ].map((item, index) => (
-        <div key={index} className="question-row">
-          <div className="question-text">{item.q}</div>
+                      ) : !questionnaire ? (
+                        <div className="text-muted py-4 text-center">
+                          No questionnaire submitted yet.
+                        </div>
 
-          <div
-            className={`answer-badge ${
-              item.a === "Yes" ? "answer-yes" : "answer-no"
-            }`}
-          >
-            {item.a}
-          </div>
-        </div>
-      ))}
+                      ) : (
+                        <div className="questionnaire-box">
 
-      {/* Declaration */}
-      <div className="mt-4 p-3 border rounded bg-light">
-        <h6>Client Declaration</h6>
-        <p className="text-muted mb-1">
-          I confirm that the information provided is true and complete.
-        </p>
+                          {/* ✅ Client info row */}
+                          <div className="detail-row mb-3">
+                            <div className="text-muted">Client Name</div>
+                            <div>{questionnaire.clientName || "N/A"}</div>
+                          </div>
+                          <div className="detail-row mb-4">
+                            <div className="text-muted">Date of Birth</div>
+                            <div>{formatDate(questionnaire.dateOfBirth)}</div>
+                          </div>
 
-        <div className="detail-row mt-2">
-          <div>Client Signature</div>
-          <div>John Doe</div>
-        </div>
+                          {/* ✅ Dynamic questions from API */}
+                          {questionMap.map((item) => (
+                            <div key={item.key} className="question-row">
+                              <div className="question-text">{item.label}</div>
+                              <div className={`answer-badge ${questionnaire[item.key] ? "answer-yes" : "answer-no"}`}>
+                                {questionnaire[item.key] ? "Yes" : "No"}
+                              </div>
+                            </div>
+                          ))}
 
-        <div className="detail-row">
-          <div>Date</div>
-          <div>12 March 2026</div>
-        </div>
+                          {/* ✅ Client Declaration */}
+                          <div className="mt-4 p-3 border rounded bg-light">
+                            <h6>Client Declaration</h6>
+                            <p className="text-muted mb-1">
+                              I confirm that the information provided is true and complete.
+                            </p>
 
-        <div className="detail-row">
-          <div>Trainer Name</div>
-          <div>Rahul Sharma</div>
-        </div>
-      </div>
+                            <div className="detail-row mt-2">
+                              <div>Client Signature</div>
+                              <div>{questionnaire.clientSignature || "Not signed"}</div>
+                            </div>
 
-    </div>
-  </>
-)}
+                            <div className="detail-row">
+                              <div>Date Signed</div>
+                              <div>{formatDate(questionnaire.clientSignedDate)}</div>
+                            </div>
 
-    </div>
-  </div>
-</Col>
+                            <div className="detail-row">
+                              <div>Date Completed</div>
+                              <div>{formatDate(questionnaire.dateCompleted)}</div>
+                            </div>
+
+                            <div className="detail-row">
+                              <div>Trainer Name</div>
+                              <div>{questionnaire.trainerName || "N/A"}</div>
+                            </div>
+
+                            <div className="detail-row">
+                              <div>Trainer Signature</div>
+                              <div>{questionnaire.trainerSignature || "Not signed"}</div>
+                            </div>
+                          </div>
+
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                </div>
+              </div>
+            </Col>
           </Row>
-  </Card.Body>
+        </Card.Body>
 </Card>
 
       <Modal show={showEdit} onHide={() => setShowEdit(false)}>

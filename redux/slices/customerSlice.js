@@ -128,6 +128,25 @@ export const assignTrainer = createAsyncThunk(
   }
 );
 
+/* ================= FETCH QUESTIONNAIRE ================= */
+export const fetchCustomerQuestionnaire = createAsyncThunk(
+  "customers/fetchQuestionnaire",
+  async (customerId, thunkAPI) => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      const response = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/customer-questionaire/${customerId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+      return data.data?.[0] || null; // take first record
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
 export const fetchCustomerById = createAsyncThunk(
   "customers/fetchCustomerById",
   async (id, thunkAPI) => {
@@ -240,6 +259,9 @@ const customerSlice = createSlice({
     loading: false,
     error: null,
     selectedCustomer: null,
+    questionnaire: null,
+questionnaireLoading: false,
+questionnaireError: null,
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -268,6 +290,20 @@ const customerSlice = createSlice({
         const customer = state.customers.find((c) => c.id === id);
         if (customer) customer.isActive = isActive;
       })
+
+       .addCase(fetchCustomerQuestionnaire.fulfilled, (state, action) => {
+  state.questionnaireLoading = false;   // ✅ ADD THIS LINE
+  state.questionnaire = action.payload;
+})
+
+.addCase(fetchCustomerQuestionnaire.pending, (state) => {
+  state.questionnaireLoading = true;
+})
+
+.addCase(fetchCustomerQuestionnaire.rejected, (state, action) => {
+  state.questionnaireLoading = false;
+  state.questionnaireError = action.payload;
+})
 
       .addCase(fetchCustomerById.fulfilled, (state, action) => {
   state.selectedCustomer = action.payload;

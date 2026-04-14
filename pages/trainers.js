@@ -791,6 +791,40 @@ const filteredCustomers = customers.filter((customer) => {
 </Modal>
 
       </Card>
+
+      {bulkDeleteLoading && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.45)",
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "16px",
+          }}
+        >
+          <div
+            className="spinner-border text-light"
+            role="status"
+            style={{ width: "3rem", height: "3rem" }}
+          >
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p
+            style={{
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: "16px",
+              margin: 0,
+            }}
+          >
+            Deleting trainers...
+          </p>
+        </div>
+      )}
     </div>
   );
 }
