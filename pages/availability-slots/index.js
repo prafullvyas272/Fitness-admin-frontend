@@ -37,6 +37,8 @@ export default function AvailabilitySlots() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const [overlapError, setOverlapError] = useState(null);
+
   const formatDate = (date) => (date ? formatDateIST(date) : null);
 
   const addMinutesToTime = (time, minutesToAdd) => {
@@ -47,8 +49,8 @@ export default function AvailabilitySlots() {
 
   const generateTimeOptions = () => {
     const times = [];
-    const start = 9 * 60;
-    const end = 21 * 60;
+    const start = 0;
+const end = 24 * 60;
 
     for (let i = start; i <= end; i += 15) {
       const hours = Math.floor(i / 60);
@@ -71,6 +73,39 @@ export default function AvailabilitySlots() {
     if (!time) return "";
     return moment(time, "h:mm A").format("HH:mm");
   };
+
+  // Converts "h:mm A" to total minutes for easy comparison
+const timeToMinutes = (time) => {
+  if (!time) return null;
+  return moment(time, "h:mm A").hours() * 60 + moment(time, "h:mm A").minutes();
+};
+
+// Returns true if slot A overlaps slot B
+const slotsOverlap = (startA, endA, startB, endB) => {
+  const sA = timeToMinutes(startA);
+  const eA = timeToMinutes(endA);
+  const sB = timeToMinutes(startB);
+  const eB = timeToMinutes(endB);
+  if (sA === null || eA === null || sB === null || eB === null) return false;
+  // Overlap if one starts before the other ends
+  return sA < eB && sB < eA;
+};
+
+// Returns an error message if any two slots in the array overlap, else null
+const validateNoOverlaps = (slotList) => {
+  for (let i = 0; i < slotList.length; i++) {
+    for (let j = i + 1; j < slotList.length; j++) {
+      const a = slotList[i];
+      const b = slotList[j];
+      if (a.startTime && a.endTime && b.startTime && b.endTime) {
+        if (slotsOverlap(a.startTime, a.endTime, b.startTime, b.endTime)) {
+          return `Slot ${i + 1} (${a.startTime}–${a.endTime}) overlaps with Slot ${j + 1} (${b.startTime}–${b.endTime}).`;
+        }
+      }
+    }
+  }
+  return null;
+};
 
   const changeMonth = (dir) => {
     const newMonth = new Date(currentMonth);
@@ -113,6 +148,10 @@ export default function AvailabilitySlots() {
       fetchSlotsForDate(selectedDate);
     }
   }, [selectedDate, creatorId, token]);
+
+  useEffect(() => {
+  setOverlapError(validateNoOverlaps(slots));
+}, [slots]);
 
   const fetchMonthSlots = async () => {
     if (!creatorId || !token) return;
@@ -193,12 +232,24 @@ export default function AvailabilitySlots() {
   };
 
   const handleStartTimeChange = (index, value) => {
-    updateStartTimeWithAutoEnd(index, value);
-  };
+  const updated = [...slots];
+  updated[index].startTime = value;
+  updated[index].endTime = addMinutesToTime(value, 45);
+  setSlots(updated);
+
+  // Validate overlaps live
+  const error = validateNoOverlaps(updated);
+  setOverlapError(error);
+};
 
   const handleEndTimeChange = (index, value) => {
-    updateSlot(index, "endTime", value);
-  };
+  const updated = [...slots];
+  updated[index].endTime = value;
+  setSlots(updated);
+
+  const error = validateNoOverlaps(updated);
+  setOverlapError(error);
+};
 
   const deleteSlot = async (index) => {
     const slot = slots[index];
@@ -232,6 +283,12 @@ export default function AvailabilitySlots() {
         return;
       }
     }
+
+    const overlapMsg = validateNoOverlaps(slots);
+if (overlapMsg) {
+  alert(`Cannot save: ${overlapMsg}`);
+  return;
+}
 
     setSaving(true);
 
@@ -353,6 +410,21 @@ export default function AvailabilitySlots() {
               <p>Loading slots...</p>
             ) : (
               <>
+              {overlapError && (
+  <div
+    style={{
+      background: "#fff0f0",
+      border: "1px solid #ffcccc",
+      borderRadius: "8px",
+      padding: "10px 14px",
+      marginBottom: "12px",
+      color: "#cc0000",
+      fontSize: "13px",
+    }}
+  >
+    ⚠️ {overlapError}
+  </div>
+)}
                 {slots.map((slot, index) => (
                   <div
                     key={index}
@@ -444,9 +516,13 @@ export default function AvailabilitySlots() {
                   <Button variant="outline-primary" onClick={addSlot}>
                     + Add Slot
                   </Button>
-                  <Button variant="primary" onClick={handleSave} disabled={saving}>
-                    {saving ? "Saving..." : "Save Changes"}
-                  </Button>
+                  <Button 
+  variant="primary" 
+  onClick={handleSave} 
+  disabled={saving || !!overlapError}
+>
+  {saving ? "Saving..." : "Save Changes"}
+</Button>
                 </div>
               </>
             )}

@@ -224,6 +224,34 @@ const filteredTrainers = trainers
 
   return (
   <div className="p-4">
+    {/* Full page loader overlay */}
+{bulkDeleteLoading && (
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
+      zIndex: 9999,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "16px",
+    }}
+  >
+    <div
+      className="spinner-border text-light"
+      role="status"
+      style={{ width: "48px", height: "48px" }}
+    />
+    <p style={{ color: "#fff", fontWeight: "600", fontSize: "16px", margin: 0 }}>
+      Deleting customers...
+    </p>
+  </div>
+)}
 
     {/* HEADER */}
     <Row className="align-items-center mb-4">
