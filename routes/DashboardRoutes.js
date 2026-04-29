@@ -52,6 +52,13 @@ export const DashboardMenu = [
   },
 
   {
+    id: uuid(),
+    title: "PT Requests",
+    icon: "inbox",
+    link: "/trainer-requests",
+  },
+
+  {
   id: uuid(),
   title: "Billing Details",
   icon: "credit-card",   // you can change icon if needed
