@@ -9,6 +9,7 @@ import {
   Button,
   Form,
   Modal,
+  Spinner,
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTrainerById } from "../../../redux/slices/trainerSlice";
@@ -81,6 +82,19 @@ const trainer = selectedTrainer;
   const [showImageModal, setShowImageModal] = useState(false);
   const [previewVideo, setPreviewVideo] = useState(null);
 
+  // Payout state
+  const [payouts, setPayouts] = useState([]);
+  const [payoutLoading, setPayoutLoading] = useState(false);
+  const [payoutPosting, setPayoutPosting] = useState(false);
+  const [payoutPeriod, setPayoutPeriod] = useState("weekly");
+  const [payoutStartDate, setPayoutStartDate] = useState("");
+  const [payoutEndDate, setPayoutEndDate] = useState("");
+  const [payoutPage, setPayoutPage] = useState(1);
+  const [payoutTotal, setPayoutTotal] = useState(0);
+  const payoutPageSize = 20;
+  const [showPayoutModal, setShowPayoutModal] = useState(false);
+  const [payoutForm, setPayoutForm] = useState({ totalPayout: "", netPayout: "", note: "", periodStart: "", periodEnd: "" });
+
 
 
 const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -118,6 +132,15 @@ useEffect(() => {
   dispatch(fetchTrainerBookings(trainer.id));
 
 }, [trainer]);
+
+useEffect(() => {
+  setPayouts([]);
+  setPayoutPage(1);
+  setPayoutTotal(0);
+  setPayoutPeriod("weekly");
+  setPayoutStartDate("");
+  setPayoutEndDate("");
+}, [id]);
 
 useEffect(() => {
   if (!trainer?.id) return;
@@ -296,6 +319,71 @@ const displayValue = (value) => {
   return value && value !== "" ? value : "N/A";
 };
 
+/* ================= PAYOUT ================= */
+
+const fetchPayouts = async (period, startDate, endDate, page) => {
+  if (!trainer?.id) return;
+  setPayoutLoading(true);
+  try {
+    const token = localStorage.getItem("adminToken");
+    let url = `https://fitness-app-seven-beryl.vercel.app/api/trainers/${trainer.id}/payout?page=${page}&pageSize=${payoutPageSize}`;
+    if (period === "custom" && startDate && endDate) {
+      url += `&startDate=${startDate}&endDate=${endDate}`;
+    } else if (period !== "custom") {
+      url += `&period=${period}`;
+    }
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setPayouts(data.payouts || []);
+      setPayoutTotal(data.pagination?.total || 0);
+    }
+  } catch (err) {
+    console.error("Failed to fetch payouts:", err);
+  } finally {
+    setPayoutLoading(false);
+  }
+};
+
+const handlePostPayout = async () => {
+  setPayoutPosting(true);
+  try {
+    const token = localStorage.getItem("adminToken");
+    const res = await fetch(
+      `https://fitness-app-seven-beryl.vercel.app/api/trainers/${trainer.id}/payout`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          totalPayout: Number(payoutForm.totalPayout),
+          netPayout: Number(payoutForm.netPayout),
+          periodStart: payoutForm.periodStart,
+          periodEnd: payoutForm.periodEnd,
+          ...(payoutForm.note ? { note: payoutForm.note } : {}),
+        }),
+      }
+    );
+    const data = await res.json();
+    if (res.ok) {
+      setShowPayoutModal(false);
+      setPayoutForm({ totalPayout: "", netPayout: "", note: "", periodStart: "", periodEnd: "" });
+      fetchPayouts(payoutPeriod, payoutStartDate, payoutEndDate, 1);
+      setPayoutPage(1);
+    } else {
+      alert(data.error || data.message || "Payout failed");
+    }
+  } catch (err) {
+    alert("Payout failed: " + err.message);
+  } finally {
+    setPayoutPosting(false);
+  }
+};
+
 //New
 
 /* ================= SESSIONS STATE ================= */
@@ -455,6 +543,20 @@ const formatDisplayDate = (dateString) => {
     onClick={() => setActiveTab("videos")}
   >
     Videos
+  </button>
+</li>
+
+<li className="nav-item">
+  <button
+    className={`nav-link ${
+      activeTab === "payout" ? "active fw-semibold" : ""
+    }`}
+    onClick={() => {
+      setActiveTab("payout");
+      fetchPayouts("weekly", "", "", 1);
+    }}
+  >
+    Payout
   </button>
 </li>
 
@@ -908,6 +1010,181 @@ const formatDisplayDate = (dateString) => {
   </>
 )}
 
+        {/* ================= PAYOUT TAB ================= */}
+        {activeTab === "payout" && (
+          <>
+            {/* Header */}
+            <Row className="align-items-center mb-4">
+              <Col>
+                <h5 className="fw-bold mb-0">Payout History</h5>
+                <small className="text-muted">View and process trainer payouts</small>
+              </Col>
+              <Col className="text-end">
+                <Button
+                  variant="primary"
+                  onClick={() => setShowPayoutModal(true)}
+                >
+                  Process Payout
+                </Button>
+              </Col>
+            </Row>
+
+            {/* Period Filter */}
+            <Row className="mb-4 align-items-end">
+              <Col xs="auto">
+                <div className="d-flex gap-2">
+                  {["weekly", "monthly", "custom"].map((p) => (
+                    <Button
+                      key={p}
+                      size="sm"
+                      variant={payoutPeriod === p ? "primary" : "outline-secondary"}
+                      onClick={() => {
+                        setPayoutPeriod(p);
+                        setPayoutPage(1);
+                        if (p !== "custom") {
+                          fetchPayouts(p, "", "", 1);
+                        }
+                      }}
+                    >
+                      {p.charAt(0).toUpperCase() + p.slice(1)}
+                    </Button>
+                  ))}
+                </div>
+              </Col>
+
+              {payoutPeriod === "custom" && (
+                <>
+                  <Col xs="auto">
+                    <Form.Control
+                      type="date"
+                      size="sm"
+                      value={payoutStartDate}
+                      onChange={(e) => setPayoutStartDate(e.target.value)}
+                    />
+                  </Col>
+                  <Col xs="auto">
+                    <Form.Control
+                      type="date"
+                      size="sm"
+                      value={payoutEndDate}
+                      onChange={(e) => setPayoutEndDate(e.target.value)}
+                    />
+                  </Col>
+                  <Col xs="auto">
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      disabled={!payoutStartDate || !payoutEndDate}
+                      onClick={() => {
+                        setPayoutPage(1);
+                        fetchPayouts("custom", payoutStartDate, payoutEndDate, 1);
+                      }}
+                    >
+                      Apply
+                    </Button>
+                  </Col>
+                </>
+              )}
+            </Row>
+
+            {/* Payout Table */}
+            <Table responsive hover className="align-middle">
+              <thead className="bg-light">
+                <tr className="text-muted text-uppercase small">
+                  <th>#</th>
+                  <th>Total Payout</th>
+                  <th>Net Payout</th>
+                  <th>Period</th>
+                  <th>Note</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payoutLoading ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-5">
+                      <Spinner animation="border" size="sm" className="me-2" />
+                      Loading payouts...
+                    </td>
+                  </tr>
+                ) : payouts.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-5 text-muted fw-semibold">
+                      No payouts found for this period
+                    </td>
+                  </tr>
+                ) : (
+                  payouts.map((payout, idx) => (
+                    <tr key={payout.id || idx}>
+                      <td className="text-muted small">
+                        {(payoutPage - 1) * payoutPageSize + idx + 1}
+                      </td>
+                      <td className="fw-semibold text-dark">
+                        ${payout.totalPayout ?? "—"}
+                      </td>
+                      <td className="fw-semibold text-success">
+                        ${payout.netPayout ?? "—"}
+                      </td>
+                      <td className="small text-muted">
+                        {payout.periodStart && payout.periodEnd
+                          ? `${new Date(payout.periodStart).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} – ${new Date(payout.periodEnd).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`
+                          : "—"}
+                      </td>
+                      <td className="text-muted">{payout.note || "—"}</td>
+                      <td className="small text-muted">
+                        {payout.createdAt
+                          ? new Date(payout.createdAt).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </Table>
+
+            {/* Pagination */}
+            {!payoutLoading && payouts.length > 0 && (
+              <Row className="mt-3 align-items-center">
+                <Col md={6} className="text-muted small">
+                  Page {payoutPage} · {payouts.length} records
+                </Col>
+                <Col md={6} className="text-end">
+                  <div className="d-flex justify-content-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline-secondary"
+                      disabled={payoutPage === 1}
+                      onClick={() => {
+                        const newPage = payoutPage - 1;
+                        setPayoutPage(newPage);
+                        fetchPayouts(payoutPeriod, payoutStartDate, payoutEndDate, newPage);
+                      }}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline-secondary"
+                      disabled={payoutPage >= Math.ceil(payoutTotal / payoutPageSize)}
+                      onClick={() => {
+                        const newPage = payoutPage + 1;
+                        setPayoutPage(newPage);
+                        fetchPayouts(payoutPeriod, payoutStartDate, payoutEndDate, newPage);
+                      }}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </Col>
+              </Row>
+            )}
+          </>
+        )}
+
         </Card.Body>
       </Card>
 
@@ -961,6 +1238,78 @@ const formatDisplayDate = (dateString) => {
     autoPlay
     style={{ width: "100%" }}
   />
+</Modal>
+
+{/* PROCESS PAYOUT MODAL */}
+<Modal show={showPayoutModal} onHide={() => setShowPayoutModal(false)} centered>
+  <Modal.Header closeButton>
+    <Modal.Title>Process Payout</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    <Form.Group className="mb-3">
+      <Form.Label>Total Payout <span className="text-danger">*</span></Form.Label>
+      <Form.Control
+        type="number"
+        min="0"
+        placeholder="e.g. 1200"
+        value={payoutForm.totalPayout}
+        onChange={(e) => setPayoutForm({ ...payoutForm, totalPayout: e.target.value })}
+      />
+    </Form.Group>
+    <Form.Group className="mb-3">
+      <Form.Label>Net Payout <span className="text-danger">*</span></Form.Label>
+      <Form.Control
+        type="number"
+        min="0"
+        placeholder="e.g. 750"
+        value={payoutForm.netPayout}
+        onChange={(e) => setPayoutForm({ ...payoutForm, netPayout: e.target.value })}
+      />
+    </Form.Group>
+    <Row className="mb-3">
+      <Col>
+        <Form.Label>Period Start <span className="text-danger">*</span></Form.Label>
+        <Form.Control
+          type="date"
+          value={payoutForm.periodStart}
+          onChange={(e) => setPayoutForm({ ...payoutForm, periodStart: e.target.value })}
+        />
+      </Col>
+      <Col>
+        <Form.Label>Period End <span className="text-danger">*</span></Form.Label>
+        <Form.Control
+          type="date"
+          value={payoutForm.periodEnd}
+          onChange={(e) => setPayoutForm({ ...payoutForm, periodEnd: e.target.value })}
+        />
+      </Col>
+    </Row>
+    <Form.Group>
+      <Form.Label>Note <span className="text-muted small">(optional)</span></Form.Label>
+      <Form.Control
+        type="text"
+        placeholder="e.g. April payout"
+        value={payoutForm.note}
+        onChange={(e) => setPayoutForm({ ...payoutForm, note: e.target.value })}
+      />
+    </Form.Group>
+  </Modal.Body>
+  <Modal.Footer>
+    <Button variant="secondary" onClick={() => setShowPayoutModal(false)}>
+      Cancel
+    </Button>
+    <Button
+      variant="primary"
+      onClick={handlePostPayout}
+      disabled={payoutPosting || !payoutForm.totalPayout || !payoutForm.netPayout || !payoutForm.periodStart || !payoutForm.periodEnd}
+    >
+      {payoutPosting ? (
+        <><Spinner animation="border" size="sm" className="me-2" />Processing...</>
+      ) : (
+        "Confirm Payout"
+      )}
+    </Button>
+  </Modal.Footer>
 </Modal>
 
 {/* IMAGE PREVIEW MODAL */}
