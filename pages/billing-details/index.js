@@ -16,7 +16,6 @@ import {
   Button,
   Modal,
   Form,
-  Badge,
 } from "react-bootstrap";
 
 export default function BillingDetails() {
@@ -100,11 +99,12 @@ const openAssignModal = async (planId) => {
   setTrainers(fetchedTrainers);
 
   // Pre-select trainers already assigned to this plan
-  const alreadyAssigned = fetchedTrainers
-    .filter((trainer) => trainer.plan?.id === planId)
-    .map((trainer) => trainer.id);
+  const unassignedTrainers = fetchedTrainers.filter(
+    (trainer) => !trainer.plan
+  );
 
-  setSelectedTrainers(alreadyAssigned);
+  setTrainers(unassignedTrainers);
+  setSelectedTrainers([]);
   setAssignModal(true);
 };
 
@@ -121,7 +121,7 @@ const handleAssign = async () => {
   try {
     setAssignLoading(true);
 
-    await dispatch(
+    dispatch(
       assignPlanToTrainers({
         planId: selectedPlanId,
         trainerIds: selectedTrainers,
@@ -175,7 +175,7 @@ const handleAssign = async () => {
                 <h5 className="fw-bold">{plan.name}</h5>
 
                 <h2 className="text-primary fw-bold my-3">
-                  ${plan.price}
+                  €{plan.price}
                 </h2>
 
                 <ul className="text-muted plan-features">

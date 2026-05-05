@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Row, Col, Card, Nav, Button, Modal, Form } from "react-bootstrap";
+import { Row, Col, Card, Nav, Button, Modal, Form, Badge, Spinner } from "react-bootstrap";
 import { fetchTrainers } from "../../redux/slices/trainerSlice";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -35,6 +35,61 @@ const [trainerSearch, setTrainerSearch] = useState("");
 const { trainers: reduxTrainers } = useSelector(
   (state) => state.trainers
 );
+
+// Billing state
+const [billingData, setBillingData] = useState(null);
+const [billingLoading, setBillingLoading] = useState(false);
+const [activating, setActivating] = useState(false);
+
+const fetchBilling = async () => {
+  if (!id) return;
+  setBillingLoading(true);
+  try {
+    const token = localStorage.getItem("adminToken");
+    const res = await fetch(
+      `https://fitness-app-seven-beryl.vercel.app/api/admin/customers/${id}/subscription`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const data = await res.json();
+    if (res.ok) setBillingData(data.data || null);
+  } catch (err) {
+    console.error("Failed to fetch billing:", err);
+  } finally {
+    setBillingLoading(false);
+  }
+};
+
+const handleActivatePlan = async () => {
+  const planId = billingData?.assignedTrainer?.plan?.id;
+  if (!planId) return;
+  if (!confirm("Activate this plan for the customer?")) return;
+  setActivating(true);
+  try {
+    const token = localStorage.getItem("adminToken");
+    const res = await fetch(
+      `https://fitness-app-seven-beryl.vercel.app/api/admin/customers/${id}/activate-plan`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ planId }),
+      }
+    );
+    const data = await res.json();
+    if (res.ok) {
+      alert("Plan activated successfully ✅");
+      fetchBilling();
+    } else {
+      alert(data.message || "Activation failed");
+    }
+  } catch (err) {
+    alert("Activation failed: " + err.message);
+  } finally {
+    setActivating(false);
+  }
+};
 
 useEffect(() => {
   if (id) {
@@ -127,9 +182,9 @@ const questionMap = [
 
    const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
-    return new Date(dateStr).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "long",
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
       year: "numeric",
     });
   };
@@ -247,7 +302,10 @@ if (loading || !customer) {
     <Nav
       variant="tabs"
       activeKey={activeTab}
-      onSelect={(k) => setActiveTab(k)}
+      onSelect={(k) => {
+        setActiveTab(k);
+        if (k === "billing") fetchBilling();
+      }}
       className="custom-tabs"
     >
       <Nav.Item>
@@ -305,24 +363,112 @@ if (loading || !customer) {
 
       {activeTab === "billing" && (
         <>
-          <div className="billing-alert">
-            We need your attention! Add Payment Method.
-          </div>
-
-          <div className="billing-plan-box">
-            <div>
-              <h6>Your current plan</h6>
-              <p>Gym Premium</p>
+          {billingLoading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" size="sm" className="me-2" />
+              Loading billing info...
             </div>
+          ) : !billingData ? (
+            <div className="text-center text-muted py-5">No billing data found.</div>
+          ) : (
+            <>
+              {/* Current Subscription */}
+              <h6 className="fw-bold mb-3">Current Subscription</h6>
+              {billingData.subscription ? (
+                <div className="p-3 border rounded mb-4">
+                  <div className="detail-row">
+                    <div>Plan</div>
+                    <div className="fw-semibold">{billingData.subscription.plan?.name || "—"}</div>
+                  </div>
+                  <div className="detail-row">
+                    <div>Price</div>
+                    <div>€{billingData.subscription.plan?.price ?? "—"}</div>
+                  </div>
+                  <div className="detail-row">
+                    <div>Status</div>
+                    <div>
+                      {billingData.subscription.status === "ACTIVE" ? (
+                        <Badge bg="success">Active</Badge>
+                      ) : billingData.subscription.status === "CANCELLED" ? (
+                        <Badge bg="danger">Cancelled</Badge>
+                      ) : (
+                        <Badge bg="secondary">{billingData.subscription.status || "None"}</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="detail-row">
+                    <div>Start Date</div>
+                    <div>
+                      {billingData.subscription.startDate
+                        ? new Date(billingData.subscription.startDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
+                        : "—"}
+                    </div>
+                  </div>
+                  <div className="detail-row">
+                    <div>End Date</div>
+                    <div>
+                      {billingData.subscription.endDate
+                        ? new Date(billingData.subscription.endDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
+                        : "—"}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-muted mb-4 p-3 border rounded bg-light">
+                  No active subscription.
+                </div>
+              )}
 
-            <div>
-              <h4>₹1999 / Month</h4>
-            </div>
-
-            <Button variant="outline-primary" size="sm">
-              Update Plan
-            </Button>
-          </div>
+              {/* Trainer's Plan */}
+              {billingData.assignedTrainer?.plan && (
+                <>
+                  <h6 className="fw-bold mb-3">Trainer&apos;s Plan</h6>
+                  <div className="p-3 border rounded mb-3">
+                    <div className="detail-row">
+                      <div>Plan Name</div>
+                      <div className="fw-semibold">{billingData.assignedTrainer.plan.name}</div>
+                    </div>
+                    <div className="detail-row">
+                      <div>Price</div>
+                      <div>€{billingData.assignedTrainer.plan.price}</div>
+                    </div>
+                    {billingData.assignedTrainer.plan.description && (
+                      <div className="detail-row">
+                        <div>Description</div>
+                        <div>{billingData.assignedTrainer.plan.description}</div>
+                      </div>
+                    )}
+                    {billingData.assignedTrainer.plan.features?.length > 0 && (
+                      <div className="detail-row align-items-start">
+                        <div>Features</div>
+                        <ul className="mb-0 ps-3">
+                          {billingData.assignedTrainer.plan.features.map((f, i) => (
+                            <li key={i} className="small text-muted">{f}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {billingData.canActivate && (
+                      <div className="mt-3">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          disabled={activating}
+                          onClick={handleActivatePlan}
+                        >
+                          {activating ? (
+                            <><Spinner animation="border" size="sm" className="me-2" />Activating...</>
+                          ) : (
+                            "Activate Plan"
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </>
+          )}
         </>
       )}
        {activeTab === "questionaries" && (
@@ -340,17 +486,17 @@ if (loading || !customer) {
                       ) : (
                         <div className="questionnaire-box">
 
-                          {/* ✅ Client info row */}
+                          {/* Client info row */}
                           <div className="detail-row mb-3">
                             <div className="text-muted">Client Name</div>
-                            <div>{questionnaire.clientName || "N/A"}</div>
+                            <div>{customer.firstName} {customer.lastName}</div>
                           </div>
                           <div className="detail-row mb-4">
                             <div className="text-muted">Date of Birth</div>
                             <div>{formatDate(questionnaire.dateOfBirth)}</div>
                           </div>
 
-                          {/* ✅ Dynamic questions from API */}
+                          {/* Dynamic questions */}
                           {questionMap.map((item) => (
                             <div key={item.key} className="question-row">
                               <div className="question-text">{item.label}</div>
@@ -360,7 +506,7 @@ if (loading || !customer) {
                             </div>
                           ))}
 
-                          {/* ✅ Client Declaration */}
+                          {/* Client Declaration */}
                           <div className="mt-4 p-3 border rounded bg-light">
                             <h6>Client Declaration</h6>
                             <p className="text-muted mb-1">
@@ -369,27 +515,38 @@ if (loading || !customer) {
 
                             <div className="detail-row mt-2">
                               <div>Client Signature</div>
-                              <div>{questionnaire.clientSignature || "Not signed"}</div>
+                              <div>{customer.firstName} {customer.lastName}</div>
                             </div>
 
                             <div className="detail-row">
                               <div>Date Signed</div>
-                              <div>{formatDate(questionnaire.clientSignedDate)}</div>
-                            </div>
-
-                            <div className="detail-row">
-                              <div>Date Completed</div>
-                              <div>{formatDate(questionnaire.dateCompleted)}</div>
+                              <div>{formatDate(questionnaire.createdAt)}</div>
                             </div>
 
                             <div className="detail-row">
                               <div>Trainer Name</div>
-                              <div>{questionnaire.trainerName || "N/A"}</div>
+                              <div>
+                                {customer.assignedTrainers?.[0]?.trainer
+                                  ? `${customer.assignedTrainers[0].trainer.firstName} ${customer.assignedTrainers[0].trainer.lastName}`
+                                  : customer.assignedTrainers?.[0]?.trainerId
+                                  ? reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId)
+                                    ? `${reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId).firstName} ${reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId).lastName}`
+                                    : "N/A"
+                                  : "Not Assigned"}
+                              </div>
                             </div>
 
                             <div className="detail-row">
                               <div>Trainer Signature</div>
-                              <div>{questionnaire.trainerSignature || "Not signed"}</div>
+                              <div>
+                                {customer.assignedTrainers?.[0]?.trainer
+                                  ? `${customer.assignedTrainers[0].trainer.firstName} ${customer.assignedTrainers[0].trainer.lastName}`
+                                  : customer.assignedTrainers?.[0]?.trainerId
+                                  ? reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId)
+                                    ? `${reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId).firstName} ${reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId).lastName}`
+                                    : "N/A"
+                                  : "Not Assigned"}
+                              </div>
                             </div>
                           </div>
 

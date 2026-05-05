@@ -42,12 +42,24 @@ const { selectedCustomer, loading } = useSelector(
   
   useEffect(() => {
   if (selectedCustomer && id) {
+    const knownCodes = ["+971", "+91", "+61", "+44", "+1"];
+    const raw = selectedCustomer.phone || "";
+    let countryCode = "+91";
+    let phoneNumber = raw;
+    for (const code of knownCodes) {
+      if (raw.startsWith(code)) {
+        countryCode = code;
+        phoneNumber = raw.slice(code.length);
+        break;
+      }
+    }
+
     setCustomer({
       firstName: selectedCustomer.firstName || "",
       lastName: selectedCustomer.lastName || "",
       email: selectedCustomer.email || "",
-      phone: selectedCustomer.phone || "",
-      countryCode: "+91",
+      phone: phoneNumber,
+      countryCode,
       status: selectedCustomer.isActive ? "Active" : "Inactive",
       gender: selectedCustomer.gender || "",
       avatarFile: null,

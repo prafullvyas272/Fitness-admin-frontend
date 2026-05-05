@@ -104,6 +104,7 @@ const [selectedWeekDate, setSelectedWeekDate] = useState(null);
 
 const holidayDates = ["2026-02-22"];
 
+const [unavailableDates, setUnavailableDates] = useState([]);
 
  /* ================= LOAD DATA ================= */
 
@@ -132,6 +133,29 @@ useEffect(() => {
   dispatch(fetchTrainerBookings(trainer.id));
 
 }, [trainer]);
+
+useEffect(() => {
+  if (!trainer?.id) return;
+  const fetchUnavailable = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(
+        "https://fitness-app-seven-beryl.vercel.app/api/admin/trainers/unavailable",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        const dates = (data.data || [])
+          .filter((item) => item.trainer?.id === trainer.id && item.isAvailable === false)
+          .map((item) => item.date.split("T")[0]);
+        setUnavailableDates(dates);
+      }
+    } catch (err) {
+      console.error("Failed to fetch unavailable dates:", err);
+    }
+  };
+  fetchUnavailable();
+}, [trainer?.id]);
 
 useEffect(() => {
   setPayouts([]);
@@ -472,11 +496,11 @@ const filteredTrainerVideos = trainerVideos.filter(
 
 const formatDisplayDate = (dateString) => {
   const d = new Date(dateString);
-  const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   const year = d.getFullYear();
 
-  return `${day}/${month}/${year}`;
+  return `${month}/${day}/${year}`;
 };
 
 
@@ -787,9 +811,11 @@ const formatDisplayDate = (dateString) => {
       selectedDate &&
       date.toDateString() === selectedDate.toDateString();
 
+    const isUnavailable = unavailableDates.includes(formatted);
     let statusClass = "available";
     if (isBooked) statusClass = "booked";
     if (isHoliday) statusClass = "holiday";
+    if (isUnavailable) statusClass = "holiday";
 
     return (
       <div
@@ -1120,22 +1146,22 @@ const formatDisplayDate = (dateString) => {
                         {(payoutPage - 1) * payoutPageSize + idx + 1}
                       </td>
                       <td className="fw-semibold text-dark">
-                        ${payout.totalPayout ?? "—"}
+                        €{payout.totalPayout ?? "—"}
                       </td>
                       <td className="fw-semibold text-success">
-                        ${payout.netPayout ?? "—"}
+                        €{payout.netPayout ?? "—"}
                       </td>
                       <td className="small text-muted">
                         {payout.periodStart && payout.periodEnd
-                          ? `${new Date(payout.periodStart).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} – ${new Date(payout.periodEnd).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`
+                          ? `${new Date(payout.periodStart).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })} – ${new Date(payout.periodEnd).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })}`
                           : "—"}
                       </td>
                       <td className="text-muted">{payout.note || "—"}</td>
                       <td className="small text-muted">
                         {payout.createdAt
-                          ? new Date(payout.createdAt).toLocaleDateString("en-IN", {
+                          ? new Date(payout.createdAt).toLocaleDateString("en-US", {
+                              month: "2-digit",
                               day: "2-digit",
-                              month: "short",
                               year: "numeric",
                             })
                           : "—"}

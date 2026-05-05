@@ -359,17 +359,17 @@ const filteredCustomers = customers.filter((customer) => {
 
             <Dropdown.Menu className="shadow border-0 rounded-3 p-2">
 
-  <Dropdown.Item onClick={() => setFilterStatus("All")}>
+  <Dropdown.Item onClick={() => { setFilterStatus("All"); setCurrentPage(1); }}>
     <span className="filter-dot filter-all me-2"></span>
     All
   </Dropdown.Item>
 
-  <Dropdown.Item onClick={() => setFilterStatus("Active")}>
+  <Dropdown.Item onClick={() => { setFilterStatus("Active"); setCurrentPage(1); }}>
     <span className="filter-dot filter-active me-2"></span>
     Active
   </Dropdown.Item>
 
-  <Dropdown.Item onClick={() => setFilterStatus("Inactive")}>
+  <Dropdown.Item onClick={() => { setFilterStatus("Inactive"); setCurrentPage(1); }}>
     <span className="filter-dot filter-inactive me-2"></span>
     Inactive
   </Dropdown.Item>
@@ -662,9 +662,10 @@ const filteredCustomers = customers.filter((customer) => {
     <nav>
       <ul className="pagination pagination-sm justify-content-end mb-0">
 
-        <li className={`page-item ${currentPage === 1 && "disabled"}`}>
+        <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
           <button
             className="page-link"
+            disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
           >
             Previous
@@ -689,11 +690,12 @@ const filteredCustomers = customers.filter((customer) => {
 
         <li
           className={`page-item ${
-            currentPage === totalPages && "disabled"
+            currentPage === totalPages || totalPages === 0 ? "disabled" : ""
           }`}
         >
           <button
             className="page-link"
+            disabled={currentPage === totalPages || totalPages === 0}
             onClick={() => setCurrentPage(currentPage + 1)}
           >
             Next

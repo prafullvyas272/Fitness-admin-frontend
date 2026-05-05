@@ -65,9 +65,7 @@ export default function PTRequests() {
     setActionLoading(id + status);
     try {
       const token = localStorage.getItem("adminToken");
-      const url = `${BASE_URL}/api/customers/upt-requests/${id}/status`;
-      console.log("PATCH →", url, { status });
-      const res = await fetch(url, {
+      const res = await fetch(`${BASE_URL}/api/customers/upt-requests/${id}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -154,14 +152,12 @@ export default function PTRequests() {
           </Row>
 
           {/* Table */}
-          <Table responsive hover className="align-middle">
+          <Table responsive hover className="align-middle" style={{ minWidth: 800 }}>
             <thead className="bg-light">
               <tr className="text-muted text-uppercase small">
-                <th>#</th>
+                <th style={{ width: 40 }}>#</th>
                 <th>Customer</th>
-                <th>Customer Contact</th>
                 <th>Trainer</th>
-                <th>Trainer Contact</th>
                 <th>Message</th>
                 <th>Date</th>
                 <th className="text-center">Status</th>
@@ -171,14 +167,14 @@ export default function PTRequests() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-5">
+                  <td colSpan={7} className="text-center py-5">
                     <Spinner animation="border" size="sm" className="me-2" />
                     Loading requests...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-5 text-muted fw-semibold">
+                  <td colSpan={7} className="text-center py-5 text-muted fw-semibold">
                     No PT requests found
                   </td>
                 </tr>
@@ -188,38 +184,38 @@ export default function PTRequests() {
                     <td className="text-muted small">
                       {(currentPage - 1) * entriesPerPage + idx + 1}
                     </td>
-                    <td className="fw-semibold text-dark">
-                      {req.customer?.firstName} {req.customer?.lastName}
-                    </td>
                     <td>
+                      <div className="fw-semibold text-dark">
+                        {req.customer?.firstName} {req.customer?.lastName}
+                      </div>
                       <div className="small text-muted">{req.customer?.email}</div>
                       <div className="small text-muted">{req.customer?.phone}</div>
                     </td>
-                    <td className="fw-semibold">
-                      {req.trainer?.firstName} {req.trainer?.lastName}
-                    </td>
                     <td>
+                      <div className="fw-semibold">
+                        {req.trainer?.firstName} {req.trainer?.lastName}
+                      </div>
                       <div className="small text-muted">{req.trainer?.email}</div>
                       <div className="small text-muted">{req.trainer?.phone}</div>
                     </td>
                     <td
                       className="text-muted small"
-                      style={{ maxWidth: 160, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                      style={{ maxWidth: 120, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
                     >
                       {req.message || "—"}
                     </td>
-                    <td className="small text-muted">
+                    <td className="small text-muted" style={{ whiteSpace: "nowrap" }}>
                       {req.createdAt
-                        ? new Date(req.createdAt).toLocaleDateString("en-IN", {
+                        ? new Date(req.createdAt).toLocaleDateString("en-US", {
+                            month: "2-digit",
                             day: "2-digit",
-                            month: "short",
                             year: "numeric",
                           })
                         : "—"}
                     </td>
                     <td className="text-center">{statusBadge(req.status)}</td>
                     <td className="text-end">
-                      <div className="d-flex gap-2 justify-content-end">
+                      <div className="d-flex gap-2 justify-content-end flex-nowrap">
                         <Button
                           size="sm"
                           variant="outline-primary"

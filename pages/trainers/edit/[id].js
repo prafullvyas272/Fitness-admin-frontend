@@ -74,9 +74,16 @@ useEffect(() => {
     const details = selectedTrainer.userProfileDetails || {};
 
     const fullPhone = selectedTrainer.phone || "";
-    const countryMatch = fullPhone.match(/^\+\d{1,4}/);
-    const extractedCode = countryMatch ? countryMatch[0] : "+91";
-    const extractedNumber = fullPhone.replace(extractedCode, "");
+    const knownCodes = ["+971", "+49", "+91", "+61", "+44", "+51", "+1"];
+    let extractedCode = "+91";
+    let extractedNumber = fullPhone;
+    for (const code of knownCodes) {
+      if (fullPhone.startsWith(code)) {
+        extractedCode = code;
+        extractedNumber = fullPhone.slice(code.length);
+        break;
+      }
+    }
 
     const countryMap = {
   "+91": "IN",

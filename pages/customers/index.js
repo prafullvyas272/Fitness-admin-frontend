@@ -135,6 +135,41 @@ const handleEditOpen = (customer) => {
 };
 
 
+  // REMOVE TRAINER
+  const handleRemoveTrainer = async (customer) => {
+    const assignedTrainer = trainers.find((trainer) =>
+      trainer.assignedCustomers?.some((item) => item.customerId === customer.id)
+    );
+
+    if (!assignedTrainer) {
+      alert("No trainer assigned to this customer.");
+      return;
+    }
+
+    if (!confirm(`Remove ${assignedTrainer.firstName} ${assignedTrainer.lastName} from this customer?`)) return;
+
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/unassign-customer/${customer.id}`,
+        {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ trainerId: assignedTrainer.id }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || `Error ${res.status}`);
+
+      dispatch(fetchCustomers());
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   // ASSIGN TRAINER
   const handleAssignOpen = (customer) => {
     setSelectedCustomer(customer);
@@ -591,6 +626,17 @@ const filteredTrainers = trainers
   </Dropdown.Item>
 )}
 
+{trainers.some((trainer) =>
+  trainer.assignedCustomers?.some((item) => item.customerId === customer.id)
+) && (
+  <Dropdown.Item
+    className="text-danger"
+    onClick={() => handleRemoveTrainer(customer)}
+  >
+    <i className="fe fe-user-x me-2"></i>
+    Remove Trainer
+  </Dropdown.Item>
+)}
 
                         <Dropdown.Item
                           onClick={() => handleEditOpen(customer)}
