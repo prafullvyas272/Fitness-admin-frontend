@@ -1,4 +1,6 @@
-import { Card, Row, Col, Form, Button, Nav } from "react-bootstrap";
+import { Card, Row, Col, Form, Button, Nav, InputGroup } from "react-bootstrap";
+import Dropdown from "react-bootstrap/Dropdown";
+import ReactCountryFlag from "react-country-flag";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,12 +16,29 @@ export default function CreateCustomer() {
 
   const [activeTab, setActiveTab] = useState("profile");
 
+  const countryOptions = [
+    { code: "+91", country: "IN" },
+    { code: "+1", country: "US" },
+    { code: "+44", country: "GB" },
+    { code: "+971", country: "AE" },
+    { code: "+61", country: "AU" },
+  ];
+
+  const countryMap = {
+    "+971": "AE",
+    "+91": "IN",
+    "+61": "AU",
+    "+44": "GB",
+    "+1": "US",
+  };
+
   const [customer, setCustomer] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    countryCode: "+91", 
+    countryCode: "+91",
+    country: "IN",
     status: "Active",
     gender: "",
     avatarFile: null,
@@ -60,6 +79,7 @@ const { selectedCustomer, loading } = useSelector(
       email: selectedCustomer.email || "",
       phone: phoneNumber,
       countryCode,
+      country: countryMap[countryCode] || "IN",
       status: selectedCustomer.isActive ? "Active" : "Inactive",
       gender: selectedCustomer.gender || "",
       avatarFile: null,
@@ -311,24 +331,38 @@ const validatePhone = (phone) => {
 
 <Col md={6} className="mb-3">
   <Form.Label>Phone</Form.Label>
-
-  <div className="d-flex">
-
-    {/* Country Code */}
-    <Form.Select
-      name="countryCode"
-      value={customer.countryCode}
-      onChange={handleChange}
-      style={{ maxWidth: "120px", marginRight: "8px" }}
-    >
-      <option value="+91">🇮🇳 +91</option>
-      <option value="+1">🇺🇸 +1</option>
-      <option value="+44">🇬🇧 +44</option>
-      <option value="+971">🇦🇪 +971</option>
-      <option value="+61">🇦🇺 +61</option>
-    </Form.Select>
-
-    {/* Phone Number */}
+  <InputGroup>
+    <Dropdown>
+      <Dropdown.Toggle
+        variant="light"
+        style={{ minWidth: "120px" }}
+        className="d-flex align-items-center justify-content-center"
+      >
+        <ReactCountryFlag
+          countryCode={customer.country}
+          svg
+          style={{ width: "20px", marginRight: "8px" }}
+        />
+        {customer.countryCode}
+      </Dropdown.Toggle>
+      <Dropdown.Menu>
+        {countryOptions.map((c) => (
+          <Dropdown.Item
+            key={c.code}
+            onClick={() =>
+              setCustomer({ ...customer, countryCode: c.code, country: c.country })
+            }
+          >
+            <ReactCountryFlag
+              countryCode={c.country}
+              svg
+              style={{ width: "20px", marginRight: "10px" }}
+            />
+            {c.code}
+          </Dropdown.Item>
+        ))}
+      </Dropdown.Menu>
+    </Dropdown>
     <Form.Control
       name="phone"
       value={customer.phone}
@@ -338,7 +372,7 @@ const validatePhone = (phone) => {
         setCustomer({ ...customer, phone: value });
       }}
     />
-  </div>
+  </InputGroup>
 </Col>
 
 
