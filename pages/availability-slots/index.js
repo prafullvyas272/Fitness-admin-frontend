@@ -80,6 +80,11 @@ const timeToMinutes = (time) => {
   return moment(time, "h:mm A").hours() * 60 + moment(time, "h:mm A").minutes();
 };
 
+  // Only allow start times where start + 45 min stays within the same day (end <= 11:59 PM)
+  const startTimeOptions = timeOptions.filter(
+    (t) => timeToMinutes(t.value) + 45 < 1440
+  );
+
 // Returns true if slot A overlaps slot B
 const slotsOverlap = (startA, endA, startB, endB) => {
   const sA = timeToMinutes(startA);
@@ -278,10 +283,6 @@ const validateNoOverlaps = (slotList) => {
         return;
       }
 
-      if (moment(slot.endTime, "h:mm A").isSameOrBefore(moment(slot.startTime, "h:mm A"))) {
-        alert("End time must be greater than start time.");
-        return;
-      }
     }
 
     const overlapMsg = validateNoOverlaps(slots);
@@ -438,8 +439,8 @@ if (overlapMsg) {
                   >
                     <div style={{ width: "180px" }}>
                       <Select
-                        options={timeOptions}
-                        value={timeOptions.find((t) => t.value === slot.startTime)}
+                        options={startTimeOptions}
+                        value={startTimeOptions.find((t) => t.value === slot.startTime)}
                         onChange={(selected) => handleStartTimeChange(index, selected?.value || "")}
                         placeholder="Select Time"
                         menuPlacement="top"
@@ -458,26 +459,22 @@ if (overlapMsg) {
                       />
                     </div>
 
-                    <div style={{ width: "180px" }}>
-                      <Select
-                        options={timeOptions}
-                        value={timeOptions.find((t) => t.value === slot.endTime)}
-                        onChange={(selected) => handleEndTimeChange(index, selected?.value || "")}
-                        placeholder="Select Time"
-                        menuPlacement="top"
-                        menuPosition="fixed"
-                        styles={{
-                          control: (base) => ({
-                            ...base,
-                            minHeight: "38px",
-                            borderRadius: "8px",
-                          }),
-                          menu: (base) => ({
-                            ...base,
-                            zIndex: 9999,
-                          }),
-                        }}
-                      />
+                    <div
+                      style={{
+                        width: "180px",
+                        minHeight: "38px",
+                        borderRadius: "8px",
+                        border: "1px solid #dee2e6",
+                        background: "#f8f9fa",
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "0 12px",
+                        color: "#6c757d",
+                        fontSize: "14px",
+                        cursor: "not-allowed",
+                      }}
+                    >
+                      {slot.endTime || "Auto (45 min)"}
                     </div>
 
                     <span

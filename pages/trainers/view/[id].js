@@ -106,6 +106,9 @@ const holidayDates = ["2026-02-22"];
 
 const [unavailableDates, setUnavailableDates] = useState([]);
 
+const [trainerTimeSlots, setTrainerTimeSlots] = useState([]);
+const [trainerTimeSlotsLoading, setTrainerTimeSlotsLoading] = useState(false);
+
  /* ================= LOAD DATA ================= */
 
 useEffect(() => {
@@ -175,6 +178,12 @@ useEffect(() => {
 useEffect(() => {
   dispatch(fetchAllTrainerVideos());
 }, [dispatch]);
+
+useEffect(() => {
+  if (activeTab === "sessions" && selectedDate && trainer?.id) {
+    fetchTrainerTimeSlots(selectedDate);
+  }
+}, [selectedDate, activeTab, trainer?.id]);
 
 
 
@@ -408,7 +417,34 @@ const handlePostPayout = async () => {
   }
 };
 
-//New
+const fetchTrainerTimeSlots = async (date) => {
+  if (!trainer?.id || !date) return;
+  setTrainerTimeSlotsLoading(true);
+  try {
+    const token = localStorage.getItem("adminToken");
+    const formatted = formatDate(date);
+    const d = new Date(date);
+    const res = await fetch(
+      `https://fitness-app-seven-beryl.vercel.app/api/admin/trainer-time-slots?trainerId=${trainer.id}&date=${formatted}&day=${d.getDate()}&month=${d.getMonth() + 1}&year=${d.getFullYear()}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const data = await res.json();
+    if (res.ok) {
+      const all = [
+        ...(data.data?.upcomingSessions || []),
+        ...(data.data?.pastSessions || []),
+      ];
+      setTrainerTimeSlots(all);
+    } else {
+      setTrainerTimeSlots([]);
+    }
+  } catch (err) {
+    console.error("Failed to fetch trainer time slots:", err);
+    setTrainerTimeSlots([]);
+  } finally {
+    setTrainerTimeSlotsLoading(false);
+  }
+};
 
 /* ================= SESSIONS STATE ================= */
 
@@ -969,7 +1005,84 @@ const formatDisplayDate = (dateString) => {
 
       </>
     )}
-    
+
+    {/* ===== TRAINER CREATED SLOTS ===== */}
+    {selectedDate && (
+      <div className="mt-4">
+        <h5 className="fw-semibold mb-3" style={{ color: "#374151" }}>
+          Trainer Created Slots
+        </h5>
+
+        {trainerTimeSlotsLoading ? (
+          <div className="text-muted" style={{ fontSize: "14px" }}>Loading slots...</div>
+        ) : trainerTimeSlots.length === 0 ? (
+          <div
+            style={{
+              background: "#f9fafb",
+              border: "1px dashed #d1d5db",
+              borderRadius: "10px",
+              padding: "20px",
+              textAlign: "center",
+              color: "#9ca3af",
+              fontSize: "14px",
+            }}
+          >
+            No slots created for this date
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {trainerTimeSlots.map((slot, idx) => {
+              const start = new Date(slot.startTime);
+              const end = new Date(slot.endTime);
+              const isPast = end < new Date();
+              return (
+                <div
+                  key={slot.id || idx}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    background: "#fff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "10px",
+                    padding: "12px 16px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div
+                      style={{
+                        width: "10px",
+                        height: "10px",
+                        borderRadius: "50%",
+                        background: isPast ? "#9ca3af" : "#22c55e",
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ fontWeight: 600, fontSize: "14px", color: "#111827" }}>
+                      {start.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                      {" – "}
+                      {end.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      padding: "3px 10px",
+                      borderRadius: "20px",
+                      background: isPast ? "#f3f4f6" : "#dcfce7",
+                      color: isPast ? "#6b7280" : "#15803d",
+                    }}
+                  >
+                    {isPast ? "Past" : "Upcoming"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    )}
   </>
 )}
 
