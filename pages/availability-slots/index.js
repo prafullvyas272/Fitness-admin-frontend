@@ -486,7 +486,7 @@ if (overlapMsg) {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {selectedDate.toLocaleDateString("en-IN", { timeZone: IST_TZ })}
+                      {selectedDate.toLocaleDateString("en-US", { timeZone: IST_TZ, month: "2-digit", day: "2-digit", year: "numeric" })}
                     </span>
 
                     <Button
