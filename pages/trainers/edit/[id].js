@@ -38,7 +38,6 @@ const { trainers, selectedTrainer, loading } = useSelector(
   phone: "",
   hostGymName: "",
   hostGymAddress: "",
-  address: "",
   bio: "",
   gender: "",
   status: "Active",
@@ -71,7 +70,7 @@ useEffect(() => {
 
 useEffect(() => {
   if (selectedTrainer) {
-    const details = selectedTrainer.userProfileDetails || {};
+    const details = selectedTrainer.userProfileDetails?.[0] || {};
 
     const fullPhone = selectedTrainer.phone || "";
     const knownCodes = ["+971", "+49", "+91", "+61", "+44", "+51", "+1"];
@@ -104,8 +103,7 @@ const formattedTrainer = {
   phone: extractedNumber,
   hostGymName: details.hostGymName || "",
   hostGymAddress: details.hostGymAddress || "",
-  address: details.address || "",
-  bio: details.bio || "",
+  bio: details.bio || "N/A",
   gender: selectedTrainer.gender || "", 
   status: selectedTrainer.isActive ? "Active" : "Inactive",
   avatar: details.avatarUrl || "",
@@ -151,7 +149,6 @@ const formattedTrainer = {
     isActive: trainer.status === "Active",
     hostGymName: trainer.hostGymName,
     hostGymAddress: trainer.hostGymAddress,
-    address: trainer.address,
     bio: trainer.bio,
     gender: trainer.gender, 
   };
@@ -433,28 +430,6 @@ if (!selectedTrainer && loading) {
                     type="text"
                     name="hostGymAddress"
                     value={trainer.hostGymAddress}
-                    onChange={handleChange}
-                    className="bg-light border-0 custom-input"
-                  />
-                </InputGroup>
-              </Col>
-            </Row>
-
-            {/* ADDRESS */}
-            <Row className="mb-4 align-items-start">
-              <Col md={3} className="fw-semibold">
-                Address:
-              </Col>
-              <Col md={9}>
-                <InputGroup>
-                  <InputGroup.Text className="bg-light border-0 textarea-icon">
-                    <i className="fe fe-map"></i>
-                  </InputGroup.Text>
-                  <Form.Control
-                    as="textarea"
-                    rows={2}
-                    name="address"
-                    value={trainer.address}
                     onChange={handleChange}
                     className="bg-light border-0 custom-input"
                   />

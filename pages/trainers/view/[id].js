@@ -316,7 +316,7 @@ if (customerRes.ok) {
 
 const handleEditTrainer = () => {
   dispatch(setSelectedTrainer(trainer));
-router.push(`/trainers/view/${trainer.id}`);
+  router.push(`/trainers/edit/${trainer.id}`);
 };
 
 const handleDeleteTrainer = async () => {

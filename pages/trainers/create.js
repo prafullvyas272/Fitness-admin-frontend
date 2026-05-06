@@ -29,7 +29,6 @@ const [trainer, setTrainer] = useState({
   country: "IN",   // 🔥 IMPORTANT
   hostGymName: "",
   hostGymAddress: "",
-  address: "",
   bio: "",
   gender: "",
   status: "Active",
@@ -108,7 +107,6 @@ const [trainer, setTrainer] = useState({
     formData.append("password", "Trainer@123");
     formData.append("hostGymName", trainer.hostGymName);
     formData.append("hostGymAddress", trainer.hostGymAddress);
-    formData.append("address", trainer.address);
     formData.append("bio", trainer.bio);
     formData.append("gender", trainer.gender);
 
@@ -162,7 +160,6 @@ const countryOptions = [
         trainer.phone.trim() !== "" ||
         trainer.hostGymName.trim() !== "" ||
         trainer.hostGymAddress.trim() !== "" ||
-        trainer.address.trim() !== "" ||
         trainer.bio.trim() !== "" ||
         trainer.avatarFile;
 
@@ -397,27 +394,6 @@ const countryOptions = [
                     name="hostGymAddress"
                     placeholder="Enter Host gym address"
                     value={trainer.hostGymAddress}
-                    onChange={handleChange}
-                    className="bg-light border-0 custom-input"
-                  />
-                </InputGroup>
-              </Col>
-            </Row>
-
-            {/* ADDRESS */}
-            <Row className="mb-4 align-items-start">
-              <Col md={3} className="fw-semibold">Address:</Col>
-              <Col md={9}>
-                <InputGroup>
-                  <InputGroup.Text className="bg-light border-0 textarea-icon">
-                    <i className="fe fe-map"></i>
-                  </InputGroup.Text>
-                  <Form.Control
-                    as="textarea"
-                    rows={2}
-                    name="address"
-                    placeholder="Enter address"
-                    value={trainer.address}
                     onChange={handleChange}
                     className="bg-light border-0 custom-input"
                   />
