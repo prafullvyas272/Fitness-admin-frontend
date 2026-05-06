@@ -181,7 +181,7 @@ useEffect(() => {
 
 useEffect(() => {
   if (activeTab === "sessions" && selectedDate && trainer?.id) {
-    fetchTrainerTimeSlots(selectedDate);
+    fetchTrainerTimeSlots(selectedDate, trainer.id);
   }
 }, [selectedDate, activeTab, trainer?.id]);
 
@@ -417,15 +417,16 @@ const handlePostPayout = async () => {
   }
 };
 
-const fetchTrainerTimeSlots = async (date) => {
-  if (!trainer?.id || !date) return;
+const fetchTrainerTimeSlots = async (date, tid) => {
+  if (!tid || !date) return;
   setTrainerTimeSlotsLoading(true);
   try {
     const token = localStorage.getItem("adminToken");
     const formatted = formatDate(date);
     const d = new Date(date);
+    console.log("[trainer-time-slots] trainerId:", tid, "date:", formatted);
     const res = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/admin/trainer-time-slots?trainerId=${trainer.id}&date=${formatted}&day=${d.getDate()}&month=${d.getMonth() + 1}&year=${d.getFullYear()}`,
+      `https://fitness-app-seven-beryl.vercel.app/api/admin/trainer-time-slots?trainerId=${tid}&date=${formatted}&day=${d.getDate()}&month=${d.getMonth() + 1}&year=${d.getFullYear()}`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     const data = await res.json();
