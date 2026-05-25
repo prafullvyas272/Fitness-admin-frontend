@@ -331,7 +331,8 @@ if (overlapMsg) {
         }
       }
 
-      fetchMonthSlots();
+      await fetchMonthSlots();
+      await fetchSlotsForDate(selectedDate);
       alert("Slots saved successfully");
     } catch (err) {
       alert("Error saving");
