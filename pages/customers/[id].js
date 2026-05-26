@@ -1,8 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Row, Col, Card, Nav, Button, Modal, Form, Badge, Spinner } from "react-bootstrap";
+import { Row, Col, Modal, Form, Badge, Spinner } from "react-bootstrap";
 import { fetchTrainers } from "../../redux/slices/trainerSlice";
-
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchCustomerById,
@@ -12,163 +11,105 @@ import {
   fetchCustomerQuestionnaire,
 } from "../../redux/slices/customerSlice";
 
+const G = {
+  bg: "#111111", card: "#1a1a1a", gold: "#d4a017", goldLight: "#f5d76e",
+  divider: "rgba(212,160,23,0.2)", text: "#f1f1f1", muted: "#888888", input: "#222222",
+};
+
 export default function CustomerDetail() {
   const router = useRouter();
   const { id } = router.query;
-
   const dispatch = useDispatch();
 
-const { selectedCustomer: customer, loading, questionnaire, questionnaireLoading } = useSelector(
-  (state) => state.customers
-);
+  const { selectedCustomer: customer, loading, questionnaire, questionnaireLoading } = useSelector(
+    (state) => state.customers
+  );
 
   const [activeTab, setActiveTab] = useState("overview");
+  const [showAssign, setShowAssign] = useState(false);
+  const [selectedTrainer, setSelectedTrainer] = useState("");
+  const [trainerSearch, setTrainerSearch] = useState("");
 
-  const [showEdit, setShowEdit] = useState(false);
-const [showAssign, setShowAssign] = useState(false);
+  const { trainers: reduxTrainers } = useSelector((state) => state.trainers);
 
-const [editData, setEditData] = useState({});
-// const [trainers, setTrainers] = useState([]);
-const [selectedTrainer, setSelectedTrainer] = useState("");
-const [trainerSearch, setTrainerSearch] = useState("");
+  const [billingData, setBillingData] = useState(null);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [activating, setActivating] = useState(false);
 
-const { trainers: reduxTrainers } = useSelector(
-  (state) => state.trainers
-);
-
-// Billing state
-const [billingData, setBillingData] = useState(null);
-const [billingLoading, setBillingLoading] = useState(false);
-const [activating, setActivating] = useState(false);
-
-const fetchBilling = async () => {
-  if (!id) return;
-  setBillingLoading(true);
-  try {
-    const token = localStorage.getItem("adminToken");
-    const res = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/admin/customers/${id}/subscription`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    const data = await res.json();
-    if (res.ok) setBillingData(data.data || null);
-  } catch (err) {
-    console.error("Failed to fetch billing:", err);
-  } finally {
-    setBillingLoading(false);
-  }
-};
-
-const handleActivatePlan = async () => {
-  const planId = billingData?.assignedTrainer?.plan?.id;
-  if (!planId) return;
-  if (!confirm("Activate this plan for the customer?")) return;
-  setActivating(true);
-  try {
-    const token = localStorage.getItem("adminToken");
-    const res = await fetch(
-      `https://fitness-app-seven-beryl.vercel.app/api/admin/customers/${id}/activate-plan`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ planId }),
-      }
-    );
-    const data = await res.json();
-    if (res.ok) {
-      alert("Plan activated successfully ✅");
-      fetchBilling();
-    } else {
-      alert(data.message || "Activation failed");
+  const fetchBilling = async () => {
+    if (!id) return;
+    setBillingLoading(true);
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/admin/customers/${id}/subscription`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await res.json();
+      if (res.ok) setBillingData(data.data || null);
+    } catch (err) {
+      console.error("Failed to fetch billing:", err);
+    } finally {
+      setBillingLoading(false);
     }
-  } catch (err) {
-    alert("Activation failed: " + err.message);
-  } finally {
-    setActivating(false);
-  }
-};
+  };
 
-useEffect(() => {
-  if (id) {
-    dispatch(fetchCustomerById(id));
-    dispatch(fetchCustomerQuestionnaire(id));
-  }
-}, [id, dispatch]);
-
-useEffect(() => {
-  dispatch(fetchTrainers());
-}, [dispatch]);
-
-  
+  const handleActivatePlan = async () => {
+    const planId = billingData?.assignedTrainer?.plan?.id;
+    if (!planId) return;
+    if (!confirm("Activate this plan for the customer?")) return;
+    setActivating(true);
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/admin/customers/${id}/activate-plan`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ planId }),
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        alert("Plan activated successfully ✅");
+        fetchBilling();
+      } else {
+        alert(data.message || "Activation failed");
+      }
+    } catch (err) {
+      alert("Activation failed: " + err.message);
+    } finally {
+      setActivating(false);
+    }
+  };
 
   useEffect(() => {
-  if (customer) {
-    setEditData({
-      firstName: customer.firstName || "",
-      lastName: customer.lastName || "",
-      email: customer.email || "",
-      phone: customer.phone || "",
-      isActive: customer.isActive,
-    });
-  }
-}, [customer]);
+    if (id) {
+      dispatch(fetchCustomerById(id));
+      dispatch(fetchCustomerQuestionnaire(id));
+    }
+  }, [id, dispatch]);
 
-  /* ===============================
-     DELETE CUSTOMER
-  =============================== */
+  useEffect(() => {
+    dispatch(fetchTrainers());
+  }, [dispatch]);
+
   const handleDelete = async () => {
-  if (!confirm("Are you sure?")) return;
+    if (!confirm("Are you sure?")) return;
+    await dispatch(deleteCustomer(customer.id));
+    router.push("/customers");
+  };
 
-  await dispatch(deleteCustomer(customer.id));
-  router.push("/customers");
-};
-
-  /* ===============================
-     EDIT SAVE
-  =============================== */
-  const handleEditSave = async () => {
-  const formData = new FormData();
-
-  formData.append("firstName", editData.firstName);
-  formData.append("lastName", editData.lastName);
-  formData.append("email", editData.email);
-  formData.append("phone", editData.phone);
-  formData.append("isActive", editData.isActive);
-
-  await dispatch(
-    updateCustomer({
-      id: customer.id,
-      formData,
-    })
-  );
-
-  setShowEdit(false);
-};
-
-  /* ===============================
-     ASSIGN TRAINER SAVE
-  =============================== */
   const handleAssignSave = async () => {
-  await dispatch(
-    assignTrainer({
-      trainerId: selectedTrainer,
-      customerId: customer.id,
-    })
-  );
-
-  setShowAssign(false);
-};
+    await dispatch(assignTrainer({ trainerId: selectedTrainer, customerId: customer.id }));
+    setShowAssign(false);
+  };
 
   const filteredTrainers = reduxTrainers.filter((trainer) =>
-  `${trainer.firstName} ${trainer.lastName}`
-    .toLowerCase()
-    .includes(trainerSearch.toLowerCase())
-);
+    `${trainer.firstName} ${trainer.lastName}`.toLowerCase().includes(trainerSearch.toLowerCase())
+  );
 
-const questionMap = [
+  const questionMap = [
     { key: "heartCondition", label: "Heart condition or doctor restriction?" },
     { key: "chestPainDuringActivity", label: "Chest pain during activity?" },
     { key: "chestPainLastMonth", label: "Chest pain in last month (rest)?" },
@@ -180,433 +121,283 @@ const questionMap = [
     { key: "chronicMedicalCondition", label: "Any medical condition (diabetes, asthma etc)?" },
   ];
 
-   const formatDate = (dateStr) => {
+  const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-      year: "numeric",
-    });
+    return new Date(dateStr).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
   };
 
+  if (loading || !customer) {
+    return (
+      <div style={{ background: G.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ color: G.muted, fontSize: 15 }}>Loading customer...</span>
+      </div>
+    );
+  }
 
-if (loading || !customer) {
-  return <div className="p-4">Loading customer...</div>;
-}
+  const tabs = ["overview", "billing", "questionaries"];
+
+  const detailRow = (label, value) => (
+    <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${G.divider}` }}>
+      <span style={{ color: G.muted, fontSize: 14 }}>{label}</span>
+      <span style={{ color: G.text, fontSize: 14, fontWeight: 500 }}>{value}</span>
+    </div>
+  );
 
   return (
-    <div className="customer-detail-page p-4">
-      {/* Header */}
-      <div className="d-flex align-items-center gap-3 mb-4">
+    <div style={{ background: G.bg, minHeight: "100vh", padding: 24 }}>
+      <style>{`
+        .modal-gold .modal-content { background: ${G.card}; border: 1px solid ${G.divider}; color: ${G.text}; }
+        .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; }
+        .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; }
+        .modal-gold .modal-title { color: ${G.goldLight}; font-weight: 700; }
+        .modal-gold .btn-close { filter: invert(1) brightness(0.6); }
+        .modal-gold .modal-body { background: ${G.card} !important; }
+        .modal-gold .form-control { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; }
+        .modal-gold .form-control:focus { background: ${G.input} !important; box-shadow: none !important; }
+        .modal-gold .form-control::placeholder { color: #555 !important; }
+        .modal-gold .form-check-label { color: ${G.text}; }
+      `}</style>
 
-  {/* Back Button */}
-  <Button
-    variant="light"
-    className="border"
-    onClick={() => router.push("/customers")}
-  >
-    ← Back
-  </Button>
+      {/* HEADER */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+        <button
+          onClick={() => router.push("/customers")}
+          style={{ background: "transparent", border: `1px solid ${G.divider}`, color: G.text, padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}
+        >
+          ← Back
+        </button>
+        <div>
+          <h3 style={{ color: G.goldLight, fontWeight: 700, margin: 0 }}>Customer Profile</h3>
+          <small style={{ color: G.muted }}>View customer details</small>
+        </div>
+      </div>
 
-  {/* Title */}
-  <div>
-    <h3 className="fw-bold mb-0">Customer Profile</h3>
-    <small className="text-muted">View customer details</small>
-  </div>
+      {/* MAIN CARD */}
+      <div style={{ background: G.card, border: `1px solid ${G.divider}`, borderRadius: 14, padding: 24 }}>
+        <Row>
 
-</div>
+          {/* LEFT SIDE */}
+          <Col md={4} style={{ textAlign: "center", borderRight: `1px solid ${G.divider}`, paddingRight: 24 }}>
+            <img
+              src={customer.avatar || "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"}
+              alt="avatar"
+              style={{ width: 150, height: 150, objectFit: "cover", borderRadius: "50%", border: `3px solid ${G.gold}`, marginBottom: 16 }}
+            />
 
-      <Card className="shadow-sm border-0 rounded-3">
-  <Card.Body>
-    <Row>
+            <h5 style={{ color: G.text, fontWeight: 700, marginBottom: 4 }}>
+              {customer.firstName} {customer.lastName}
+            </h5>
 
-  {/* LEFT SIDE */}
-  <Col md={4} className="text-center border-end">
+            <p style={{ color: G.muted, fontSize: 14, marginBottom: 16 }}>{customer.email}</p>
 
-    <img
-      src={
-        customer.avatar ||
-        "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
-      }
-      alt="avatar"
-      style={{
-        width: 170,
-        height: 170,
-        objectFit: "cover",
-        borderRadius: "50%",
-        border: "4px solid #e9ecef",
-      }}
-      className="mb-3"
-    />
-
-    <h5 className="fw-bold">
-      {customer.firstName} {customer.lastName}
-    </h5>
-
-    <p className="text-muted mb-2">
-      {customer.email}
-    </p>
-
-    {/* SAME StatusPill STYLE */}
-    <div
-      className={`status-pill ${
-        customer.isActive ? "status-active" : "status-inactive"
-      }`}
-      style={{ display: "inline-flex", alignItems: "center" }}
-    >
-      <span
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: "50%",
-          backgroundColor: customer.isActive
-            ? "#22c55e"
-            : "#dc3545",
-          marginRight: 6,
-        }}
-      ></span>
-
-      <span className="fw-semibold">
-        {customer.isActive ? "Active" : "Inactive"}
-      </span>
-    </div>
-
-    <div className="d-flex justify-content-center gap-2 mt-4">
-      <Button
-        variant="outline-danger"
-        size="sm"
-        onClick={handleDelete}
-        style={{ minWidth: "100px" }}
-      >
-        Delete
-      </Button>
-
-      <Button
-        variant="primary"
-        size="sm"
-        onClick={() =>
-          router.push(`/customers/create?id=${customer.id}`)
-        }
-        style={{ minWidth: "120px" }}
-      >
-        Edit Profile
-      </Button>
-    </div>
-
-  </Col>
-
-
-        {/* RIGHT CONTENT BLOCK */}
-<Col md={8}>
-  <div className="content-card-custom">
-    <Nav
-      variant="tabs"
-      activeKey={activeTab}
-      onSelect={(k) => {
-        setActiveTab(k);
-        if (k === "billing") fetchBilling();
-      }}
-      className="custom-tabs"
-    >
-      <Nav.Item>
-        <Nav.Link eventKey="overview">Overview</Nav.Link>
-      </Nav.Item>
-      <Nav.Item>
-        <Nav.Link eventKey="billing">Billing</Nav.Link>
-      </Nav.Item>
-      <Nav.Item>
-  <Nav.Link eventKey="questionaries">Questionaries</Nav.Link>
-</Nav.Item>
-    </Nav>
-
-    <div className="tab-content-area">
-
-      {activeTab === "overview" && (
-        <>
-          <h5 className="mb-3">Profile Details</h5>
-
-          <div className="detail-row">
-            <div>Full Name</div>
-            <div>{customer.firstName} {customer.lastName}</div>
-          </div>
-
-          <div className="detail-row">
-            <div>Email</div>
-            <div>{customer.email}</div>
-          </div>
-
-          <div className="detail-row">
-            <div>Phone</div>
-            <div>{customer.phone}</div>
-          </div>
-
-          <div className="detail-row">
-  <div>Gender</div>
-  <div>
-    {customer.gender
-      ? customer.gender.charAt(0).toUpperCase() +
-        customer.gender.slice(1).toLowerCase()
-      : "N/A"}
-  </div>
-</div>
-
-          <div className="detail-row">
-            <div>Assigned Trainer</div>
-            <div>
-              {customer.assignedTrainers?.length > 0
-                ? "Assigned"
-                : "Not Assigned"}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 14px", borderRadius: 20, border: `1px solid ${customer.isActive ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`, background: customer.isActive ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)", marginBottom: 24 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: customer.isActive ? "#4ade80" : "#f87171" }}></span>
+              <span style={{ color: customer.isActive ? "#4ade80" : "#f87171", fontWeight: 600, fontSize: 13 }}>
+                {customer.isActive ? "Active" : "Inactive"}
+              </span>
             </div>
-          </div>
-        </>
-      )}
 
-      {activeTab === "billing" && (
-        <>
-          {billingLoading ? (
-            <div className="text-center py-5">
-              <Spinner animation="border" size="sm" className="me-2" />
-              Loading billing info...
+            <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+              <button
+                onClick={handleDelete}
+                style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.3)", color: "#f87171", padding: "6px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 600 }}
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => router.push(`/customers/create?id=${customer.id}`)}
+                style={{ background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: "#111", padding: "6px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+              >
+                Edit Profile
+              </button>
             </div>
-          ) : !billingData ? (
-            <div className="text-center text-muted py-5">No billing data found.</div>
-          ) : (
-            <>
-              {/* Current Subscription */}
-              <h6 className="fw-bold mb-3">Current Subscription</h6>
-              {billingData.subscription ? (
-                <div className="p-3 border rounded mb-4">
-                  <div className="detail-row">
-                    <div>Plan</div>
-                    <div className="fw-semibold">{billingData.subscription.plan?.name || "—"}</div>
-                  </div>
-                  <div className="detail-row">
-                    <div>Price</div>
-                    <div>€{billingData.subscription.plan?.price ?? "—"}</div>
-                  </div>
-                  <div className="detail-row">
-                    <div>Status</div>
-                    <div>
-                      {billingData.subscription.status === "ACTIVE" ? (
-                        <Badge bg="success">Active</Badge>
-                      ) : billingData.subscription.status === "CANCELLED" ? (
-                        <Badge bg="danger">Cancelled</Badge>
-                      ) : (
-                        <Badge bg="secondary">{billingData.subscription.status || "None"}</Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="detail-row">
-                    <div>Start Date</div>
-                    <div>
-                      {billingData.subscription.startDate
-                        ? new Date(billingData.subscription.startDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
-                        : "—"}
-                    </div>
-                  </div>
-                  <div className="detail-row">
-                    <div>End Date</div>
-                    <div>
-                      {billingData.subscription.endDate
-                        ? new Date(billingData.subscription.endDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
-                        : "—"}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-muted mb-4 p-3 border rounded bg-light">
-                  No active subscription.
-                </div>
-              )}
+          </Col>
 
-              {/* Trainer's Plan */}
-              {billingData.assignedTrainer?.plan && (
-                <>
-                  <h6 className="fw-bold mb-3">Trainer&apos;s Plan</h6>
-                  <div className="p-3 border rounded mb-3">
-                    <div className="detail-row">
-                      <div>Plan Name</div>
-                      <div className="fw-semibold">{billingData.assignedTrainer.plan.name}</div>
-                    </div>
-                    <div className="detail-row">
-                      <div>Price</div>
-                      <div>€{billingData.assignedTrainer.plan.price}</div>
-                    </div>
-                    {billingData.assignedTrainer.plan.description && (
-                      <div className="detail-row">
-                        <div>Description</div>
-                        <div>{billingData.assignedTrainer.plan.description}</div>
-                      </div>
-                    )}
-                    {billingData.assignedTrainer.plan.features?.length > 0 && (
-                      <div className="detail-row align-items-start">
-                        <div>Features</div>
-                        <ul className="mb-0 ps-3">
-                          {billingData.assignedTrainer.plan.features.map((f, i) => (
-                            <li key={i} className="small text-muted">{f}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {billingData.canActivate && (
-                      <div className="mt-3">
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          disabled={activating}
-                          onClick={handleActivatePlan}
-                        >
-                          {activating ? (
-                            <><Spinner animation="border" size="sm" className="me-2" />Activating...</>
-                          ) : (
-                            "Activate Plan"
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </>
-          )}
-        </>
-      )}
-       {activeTab === "questionaries" && (
-                    <>
-                      <h5 className="mb-4">PAR-Q Questionnaire</h5>
+          {/* RIGHT SIDE */}
+          <Col md={8} style={{ paddingLeft: 24 }}>
 
-                      {questionnaireLoading ? (
-                        <div className="text-muted py-4 text-center">Loading questionnaire...</div>
+            {/* CUSTOM TAB BAR */}
+            <div style={{ display: "flex", borderBottom: `1px solid ${G.divider}`, marginBottom: 20 }}>
+              {tabs.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => { setActiveTab(tab); if (tab === "billing") fetchBilling(); }}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    borderBottom: activeTab === tab ? `2px solid ${G.gold}` : "2px solid transparent",
+                    color: activeTab === tab ? G.goldLight : G.muted,
+                    padding: "10px 20px",
+                    cursor: "pointer",
+                    fontWeight: activeTab === tab ? 700 : 400,
+                    fontSize: 14,
+                    textTransform: "capitalize",
+                    marginBottom: -1,
+                  }}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
 
-                      ) : !questionnaire ? (
-                        <div className="text-muted py-4 text-center">
-                          No questionnaire submitted yet.
-                        </div>
-
-                      ) : (
-                        <div className="questionnaire-box">
-
-                          {/* Client info row */}
-                          <div className="detail-row mb-3">
-                            <div className="text-muted">Client Name</div>
-                            <div>{customer.firstName} {customer.lastName}</div>
-                          </div>
-                          <div className="detail-row mb-4">
-                            <div className="text-muted">Date of Birth</div>
-                            <div>{formatDate(questionnaire.dateOfBirth)}</div>
-                          </div>
-
-                          {/* Dynamic questions */}
-                          {questionMap.map((item) => (
-                            <div key={item.key} className="question-row">
-                              <div className="question-text">{item.label}</div>
-                              <div className={`answer-badge ${questionnaire[item.key] ? "answer-yes" : "answer-no"}`}>
-                                {questionnaire[item.key] ? "Yes" : "No"}
-                              </div>
-                            </div>
-                          ))}
-
-                          {/* Client Declaration */}
-                          <div className="mt-4 p-3 border rounded bg-light">
-                            <h6>Client Declaration</h6>
-                            <p className="text-muted mb-1">
-                              I confirm that the information provided is true and complete.
-                            </p>
-
-                            <div className="detail-row mt-2">
-                              <div>Client Signature</div>
-                              <div>{customer.firstName} {customer.lastName}</div>
-                            </div>
-
-                            <div className="detail-row">
-                              <div>Date Signed</div>
-                              <div>{formatDate(questionnaire.createdAt)}</div>
-                            </div>
-
-                            <div className="detail-row">
-                              <div>Trainer Name</div>
-                              <div>
-                                {customer.assignedTrainers?.[0]?.trainer
-                                  ? `${customer.assignedTrainers[0].trainer.firstName} ${customer.assignedTrainers[0].trainer.lastName}`
-                                  : customer.assignedTrainers?.[0]?.trainerId
-                                  ? reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId)
-                                    ? `${reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId).firstName} ${reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId).lastName}`
-                                    : "N/A"
-                                  : "Not Assigned"}
-                              </div>
-                            </div>
-
-                            <div className="detail-row">
-                              <div>Trainer Signature</div>
-                              <div>
-                                {customer.assignedTrainers?.[0]?.trainer
-                                  ? `${customer.assignedTrainers[0].trainer.firstName} ${customer.assignedTrainers[0].trainer.lastName}`
-                                  : customer.assignedTrainers?.[0]?.trainerId
-                                  ? reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId)
-                                    ? `${reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId).firstName} ${reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId).lastName}`
-                                    : "N/A"
-                                  : "Not Assigned"}
-                              </div>
-                            </div>
-                          </div>
-
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                </div>
+            {/* OVERVIEW TAB */}
+            {activeTab === "overview" && (
+              <div>
+                <h5 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 16 }}>Profile Details</h5>
+                {detailRow("Full Name", `${customer.firstName} ${customer.lastName}`)}
+                {detailRow("Email", customer.email)}
+                {detailRow("Phone", customer.phone)}
+                {detailRow("Gender", customer.gender ? customer.gender.charAt(0).toUpperCase() + customer.gender.slice(1).toLowerCase() : "N/A")}
+                {detailRow("Assigned Trainer", customer.assignedTrainers?.length > 0 ? "Assigned" : "Not Assigned")}
               </div>
-            </Col>
-          </Row>
-        </Card.Body>
-</Card>
+            )}
 
-      <Modal show={showEdit} onHide={() => setShowEdit(false)}>
-  <Modal.Header closeButton>
-    <Modal.Title>Edit Customer</Modal.Title>
-  </Modal.Header>
-  <Modal.Body>
-    <Form>
-      <Form.Control
-        className="mb-3"
-        placeholder="First Name"
-        value={editData.firstName || ""}
-        onChange={(e) =>
-          setEditData({ ...editData, firstName: e.target.value })
-        }
-      />
-      <Form.Control
-        className="mb-3"
-        placeholder="Last Name"
-        value={editData.lastName || ""}
-        onChange={(e) =>
-          setEditData({ ...editData, lastName: e.target.value })
-        }
-      />
-      <Form.Control
-        className="mb-3"
-        placeholder="Email"
-        value={editData.email || ""}
-        onChange={(e) =>
-          setEditData({ ...editData, email: e.target.value })
-        }
-      />
-      <Form.Control
-        className="mb-3"
-        placeholder="Phone"
-        value={editData.phone || ""}
-        onChange={(e) =>
-          setEditData({ ...editData, phone: e.target.value })
-        }
-      />
-      <Button onClick={handleEditSave}>Save Changes</Button>
-    </Form>
-  </Modal.Body>
-</Modal>
+            {/* BILLING TAB */}
+            {activeTab === "billing" && (
+              <div>
+                {billingLoading ? (
+                  <div style={{ textAlign: "center", padding: "40px 0", color: G.muted }}>
+                    <Spinner animation="border" size="sm" className="me-2" />
+                    Loading billing info...
+                  </div>
+                ) : !billingData ? (
+                  <div style={{ textAlign: "center", padding: "40px 0", color: G.muted }}>No billing data found.</div>
+                ) : (
+                  <>
+                    {/* Current Subscription */}
+                    <h6 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 12 }}>Current Subscription</h6>
+                    {billingData.subscription ? (
+                      <div style={{ border: `1px solid ${G.divider}`, borderRadius: 10, padding: 16, marginBottom: 20 }}>
+                        {detailRow("Plan", billingData.subscription.plan?.name || "—")}
+                        {detailRow("Price", `€${billingData.subscription.plan?.price ?? "—"}`)}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${G.divider}` }}>
+                          <span style={{ color: G.muted, fontSize: 14 }}>Status</span>
+                          <span>
+                            {billingData.subscription.status === "ACTIVE" ? (
+                              <Badge bg="success">Active</Badge>
+                            ) : billingData.subscription.status === "CANCELLED" ? (
+                              <Badge bg="danger">Cancelled</Badge>
+                            ) : (
+                              <Badge bg="secondary">{billingData.subscription.status || "None"}</Badge>
+                            )}
+                          </span>
+                        </div>
+                        {detailRow("Start Date", billingData.subscription.startDate ? new Date(billingData.subscription.startDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }) : "—")}
+                        {detailRow("End Date", billingData.subscription.endDate ? new Date(billingData.subscription.endDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }) : "—")}
+                      </div>
+                    ) : (
+                      <div style={{ border: `1px solid ${G.divider}`, borderRadius: 10, padding: 16, marginBottom: 20, color: G.muted, fontSize: 14 }}>
+                        No active subscription.
+                      </div>
+                    )}
 
- {/* ASSIGN MODAL */}
-      <Modal show={showAssign} onHide={() => setShowAssign(false)} centered>
+                    {/* Trainer's Plan */}
+                    {billingData.assignedTrainer?.plan && (
+                      <>
+                        <h6 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 12 }}>Trainer&apos;s Plan</h6>
+                        <div style={{ border: `1px solid ${G.divider}`, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+                          {detailRow("Plan Name", billingData.assignedTrainer.plan.name)}
+                          {detailRow("Price", `€${billingData.assignedTrainer.plan.price}`)}
+                          {billingData.assignedTrainer.plan.description && detailRow("Description", billingData.assignedTrainer.plan.description)}
+                          {billingData.assignedTrainer.plan.features?.length > 0 && (
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "12px 0", borderBottom: `1px solid ${G.divider}` }}>
+                              <span style={{ color: G.muted, fontSize: 14 }}>Features</span>
+                              <ul style={{ margin: 0, paddingLeft: 20 }}>
+                                {billingData.assignedTrainer.plan.features.map((f, i) => (
+                                  <li key={i} style={{ color: G.muted, fontSize: 13 }}>{f}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {billingData.canActivate && (
+                            <div style={{ marginTop: 16 }}>
+                              <button
+                                disabled={activating}
+                                onClick={handleActivatePlan}
+                                style={{ background: activating ? "#333" : `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: activating ? G.muted : "#111", padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: activating ? "not-allowed" : "pointer", fontSize: 13 }}
+                              >
+                                {activating ? (<><Spinner animation="border" size="sm" className="me-2" />Activating...</>) : "Activate Plan"}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* QUESTIONARIES TAB */}
+            {activeTab === "questionaries" && (
+              <div>
+                <h5 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 16 }}>PAR-Q Questionnaire</h5>
+
+                {questionnaireLoading ? (
+                  <div style={{ color: G.muted, textAlign: "center", padding: "40px 0" }}>Loading questionnaire...</div>
+                ) : !questionnaire ? (
+                  <div style={{ color: G.muted, textAlign: "center", padding: "40px 0" }}>No questionnaire submitted yet.</div>
+                ) : (
+                  <div>
+                    {detailRow("Client Name", `${customer.firstName} ${customer.lastName}`)}
+                    {detailRow("Date of Birth", formatDate(questionnaire.dateOfBirth))}
+
+                    <div style={{ marginTop: 16 }}>
+                      {questionMap.map((item) => (
+                        <div key={item.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: `1px solid rgba(212,160,23,0.1)` }}>
+                          <span style={{ color: G.text, fontSize: 13 }}>{item.label}</span>
+                          <span style={{
+                            padding: "2px 12px", borderRadius: 12, fontSize: 12, fontWeight: 600,
+                            background: questionnaire[item.key] ? "rgba(248,113,113,0.15)" : "rgba(74,222,128,0.15)",
+                            color: questionnaire[item.key] ? "#f87171" : "#4ade80",
+                            border: `1px solid ${questionnaire[item.key] ? "rgba(248,113,113,0.3)" : "rgba(74,222,128,0.3)"}`,
+                          }}>
+                            {questionnaire[item.key] ? "Yes" : "No"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Client Declaration */}
+                    <div style={{ marginTop: 20, border: `1px solid ${G.divider}`, borderRadius: 10, padding: 16 }}>
+                      <h6 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 8 }}>Client Declaration</h6>
+                      <p style={{ color: G.muted, fontSize: 13, marginBottom: 12 }}>
+                        I confirm that the information provided is true and complete.
+                      </p>
+                      {detailRow("Client Signature", `${customer.firstName} ${customer.lastName}`)}
+                      {detailRow("Date Signed", formatDate(questionnaire.createdAt))}
+                      {detailRow("Trainer Name", (() => {
+                        if (customer.assignedTrainers?.[0]?.trainer) {
+                          return `${customer.assignedTrainers[0].trainer.firstName} ${customer.assignedTrainers[0].trainer.lastName}`;
+                        }
+                        if (customer.assignedTrainers?.[0]?.trainerId) {
+                          const t = reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId);
+                          return t ? `${t.firstName} ${t.lastName}` : "N/A";
+                        }
+                        return "Not Assigned";
+                      })())}
+                      {detailRow("Trainer Signature", (() => {
+                        if (customer.assignedTrainers?.[0]?.trainer) {
+                          return `${customer.assignedTrainers[0].trainer.firstName} ${customer.assignedTrainers[0].trainer.lastName}`;
+                        }
+                        if (customer.assignedTrainers?.[0]?.trainerId) {
+                          const t = reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId);
+                          return t ? `${t.firstName} ${t.lastName}` : "N/A";
+                        }
+                        return "Not Assigned";
+                      })())}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+          </Col>
+        </Row>
+      </div>
+
+      {/* ASSIGN MODAL */}
+      <Modal show={showAssign} onHide={() => setShowAssign(false)} centered className="modal-gold">
         <Modal.Header closeButton>
           <Modal.Title>Assign Trainer</Modal.Title>
         </Modal.Header>
@@ -617,8 +408,7 @@ if (loading || !customer) {
             value={trainerSearch}
             onChange={(e) => setTrainerSearch(e.target.value)}
           />
-
-          <div style={{ maxHeight: "250px", overflowY: "auto" }}>
+          <div style={{ maxHeight: 250, overflowY: "auto" }}>
             {filteredTrainers.map((trainer) => (
               <Form.Check
                 key={trainer.id}
@@ -633,19 +423,21 @@ if (loading || !customer) {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAssign(false)}>
+          <button
+            onClick={() => setShowAssign(false)}
+            style={{ background: "transparent", border: `1px solid ${G.divider}`, color: G.text, padding: "6px 16px", borderRadius: 8, cursor: "pointer" }}
+          >
             Cancel
-          </Button>
-          <Button
-            variant="primary"
+          </button>
+          <button
             onClick={handleAssignSave}
             disabled={!selectedTrainer}
+            style={{ background: selectedTrainer ? `linear-gradient(135deg, ${G.gold}, #b8860b)` : "#333", border: "none", color: selectedTrainer ? "#111" : G.muted, padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: selectedTrainer ? "pointer" : "not-allowed" }}
           >
             Save
-          </Button>
+          </button>
         </Modal.Footer>
       </Modal>
-
     </div>
   );
 }

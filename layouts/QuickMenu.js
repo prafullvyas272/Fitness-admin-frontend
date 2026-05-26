@@ -54,122 +54,49 @@ const QuickMenu = () => {
         );
     }
 
-    const QuickMenuDesktop = () => {
-        return (
+    const UserDropdown = () => (
         <ListGroup as="ul" bsPrefix='navbar-nav' className="navbar-right-wrap ms-auto d-flex nav-top-wrap">
-            {/* <Dropdown as="li" className="stopevent">
-                <Dropdown.Toggle as="a"
-                    bsPrefix=' '
-                    id="dropdownNotification"
-                    className="btn btn-light btn-icon rounded-circle indicator indicator-primary text-muted">
-                    <i className="fe fe-bell"></i>
-                </Dropdown.Toggle>
-                <Dropdown.Menu
-                    className="dashboard-dropdown notifications-dropdown dropdown-menu-lg dropdown-menu-end py-0"
-                    aria-labelledby="dropdownNotification"
-                    align="end"
-                    show
-                    >
-                    <Dropdown.Item className="mt-3" bsPrefix=' ' as="div"  >
-                        <div className="border-bottom px-3 pt-0 pb-3 d-flex justify-content-between align-items-end">
-                            <span className="h4 mb-0">Notifications</span>
-                            <Link href="/" className="text-muted">
-                                <span className="align-middle">
-                                    <i className="fe fe-settings me-1"></i>
-                                </span>
-                            </Link>
-                        </div>
-                        <Notifications />
-                        <div className="border-top px-3 pt-3 pb-3">
-                            <Link href="/dashboard/notification-history" className="text-link fw-semi-bold">
-                                See all Notifications
-                            </Link>
-                        </div>
-                    </Dropdown.Item>
-                </Dropdown.Menu>
-            </Dropdown> */}
             <Dropdown as="li" className="ms-2">
-  <Dropdown.Toggle
-    as="a"
-    bsPrefix=" "
-    className="btn btn-light btn-icon rounded-circle text-muted"
-  >
-    <i className="fe fe-user"></i>
-  </Dropdown.Toggle>
-
-  <Dropdown.Menu align="end">
-    <Dropdown.Item
-      className="text-danger"
-      onClick={() => {
-        localStorage.removeItem("adminToken");
-        localStorage.removeItem("refreshToken");
-        router.push("/login");
-      }}
-    >
-      <i className="fe fe-power me-2"></i> Sign Out
-    </Dropdown.Item>
-  </Dropdown.Menu>
-</Dropdown>
-        </ListGroup>
-    )}
-
-    const QuickMenuMobile = () => {
-        return (
-        <ListGroup as="ul" bsPrefix='navbar-nav' className="navbar-right-wrap ms-auto d-flex nav-top-wrap">
-            {/* <Dropdown as="li" className="stopevent">
-                <Dropdown.Toggle as="a"
-                    bsPrefix=' '
-                    id="dropdownNotification"
-                    className="btn btn-light btn-icon rounded-circle indicator indicator-primary text-muted">
-                    <i className="fe fe-bell"></i>
+                <Dropdown.Toggle
+                    as="a"
+                    bsPrefix=" "
+                    style={{
+                        width: 36, height: 36, borderRadius: "50%", cursor: "pointer",
+                        background: "rgba(212,160,23,0.1)", border: "1px solid rgba(212,160,23,0.3)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                >
+                    <i className="fe fe-user" style={{ color: "#f5d76e", fontSize: 15 }}></i>
                 </Dropdown.Toggle>
-                <Dropdown.Menu
-                    className="dashboard-dropdown notifications-dropdown dropdown-menu-lg dropdown-menu-end py-0"
-                    aria-labelledby="dropdownNotification"
-                    align="end"
-                    >
-                    <Dropdown.Item className="mt-3" bsPrefix=' ' as="div"  >
-                        <div className="border-bottom px-3 pt-0 pb-3 d-flex justify-content-between align-items-end">
-                            <span className="h4 mb-0">Notifications</span>
-                            <Link href="/" className="text-muted">
-                                <span className="align-middle">
-                                    <i className="fe fe-settings me-1"></i>
-                                </span>
-                            </Link>
-                        </div>
-                        <Notifications />
-                        <div className="border-top px-3 pt-3 pb-3">
-                            <Link href="/dashboard/notification-history" className="text-link fw-semi-bold">
-                                See all Notifications
-                            </Link>
-                        </div>
-                    </Dropdown.Item>
-                </Dropdown.Menu>
-            </Dropdown> */}
-            <Dropdown as="li" className="ms-2">
-  <Dropdown.Toggle
-    as="a"
-    bsPrefix=" "
-    className="btn btn-light btn-icon rounded-circle text-muted"
-  >
-    <i className="fe fe-user"></i>
-  </Dropdown.Toggle>
 
-  <Dropdown.Menu align="end">
-    <Dropdown.Item
-      className="text-danger"
-      onClick={() => {
-        localStorage.removeItem("adminToken");
-        localStorage.removeItem("refreshToken");
-        router.push("/login");
-      }}
-    >
-      <i className="fe fe-power me-2"></i> Sign Out
-    </Dropdown.Item>
-  </Dropdown.Menu>
-</Dropdown>
+                <Dropdown.Menu
+                    align="end"
+                    style={{ background: "#1a1a1a", border: "1px solid rgba(212,160,23,0.25)", minWidth: 160, padding: "6px" }}
+                >
+                    <button
+                        onClick={() => {
+                            localStorage.removeItem("adminToken");
+                            localStorage.removeItem("refreshToken");
+                            router.push("/login");
+                        }}
+                        style={{
+                            width: "100%", background: "transparent", border: "none",
+                            color: "#f87171", fontSize: 13, padding: "8px 12px",
+                            borderRadius: 8, cursor: "pointer", textAlign: "left",
+                            display: "flex", alignItems: "center", gap: 8, transition: "background 0.15s",
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(248,113,113,0.1)"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                        <i className="fe fe-power"></i> Sign Out
+                    </button>
+                </Dropdown.Menu>
+            </Dropdown>
         </ListGroup>
-    )}
+    )
+
+    const QuickMenuDesktop = () => <UserDropdown />
+    const QuickMenuMobile = () => <UserDropdown />
 
     return (
         <Fragment>

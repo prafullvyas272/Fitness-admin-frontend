@@ -67,7 +67,7 @@ export const DashboardMenu = [
 
  {
   id: uuid(),
-  title: "Session Management",
+  title: "Manage Sessions",
   icon: "calendar",
   children: [
     {

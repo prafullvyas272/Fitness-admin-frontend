@@ -1,7 +1,30 @@
-// 
+//
 // user.scss
 // Use this to write your custom SCSS
 //
+
+// ===== GLOBAL BLACK-GOLD BACKGROUND OVERRIDES =====
+#db-wrapper,
+#page-content,
+.navbar-classic,
+.header {
+  background-color: #111111 !important;
+}
+
+.navbar-classic {
+  box-shadow: none !important;
+  border-bottom: none !important;
+}
+
+// ===== FIX: theme sets $headings-color: #212b36 (dark navy) which shows as blue on dark cards =====
+#page-content h1,
+#page-content h2,
+#page-content h3,
+#page-content h4,
+#page-content h5,
+#page-content h6 {
+  color: #f1f1f1;
+}
 /* Fix dropdown being cut */
 .dropdown-menu {
   z-index: 2000 !important;
@@ -328,17 +351,28 @@
   font-weight: 600;
 }
 
-.page-item.active .page-link {
-  background-color: #4e73df;
-  border-color: #4e73df;
-}
-
 .page-link {
-  color: #6c757d;
+  background-color: #1a1a1a !important;
+  border-color: rgba(212,160,23,0.25) !important;
+  color: #f5d76e !important;
 }
 
 .page-link:hover {
-  background-color: #f8f9fa;
+  background-color: rgba(212,160,23,0.08) !important;
+  color: #d4a017 !important;
+}
+
+.page-item.active .page-link {
+  background-color: #d4a017 !important;
+  border-color: #d4a017 !important;
+  color: #111111 !important;
+  font-weight: 700 !important;
+}
+
+.page-item.disabled .page-link {
+  background-color: #161616 !important;
+  border-color: rgba(212,160,23,0.15) !important;
+  color: #444444 !important;
 }
 
 //login page 
@@ -2548,4 +2582,79 @@ border-radius:6px;
 
 h5 {
   overflow: visible !important;
+}
+
+// ================= BLACK-GOLDEN SIDEBAR =================
+
+.navbar-vertical {
+  background-color: #111111 !important;
+  border-right: 1px solid rgba(212, 160, 23, 0.2) !important;
+
+  // Logo area
+  .navbar-brand.custom-brand {
+    border-bottom: 1px solid rgba(212, 160, 23, 0.15) !important;
+    padding: 1.25rem 1.5rem !important;
+  }
+
+  // Section group titles
+  .navbar-heading {
+    color: rgba(212, 160, 23, 0.5) !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.12rem !important;
+  }
+
+  // Nav links — default
+  .navbar-nav .nav-item .nav-link {
+    color: #888888 !important;
+    border-radius: 8px;
+    margin: 2px 10px;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.2s ease !important;
+
+    .nav-icon {
+      color: #888888 !important;
+      opacity: 1 !important;
+    }
+  }
+
+  // Nav links — hover
+  .navbar-nav .nav-item .nav-link:hover {
+    color: #f5d76e !important;
+    background: rgba(212, 160, 23, 0.08) !important;
+
+    .nav-icon {
+      color: #f5d76e !important;
+    }
+  }
+
+  // Nav links — active
+  .navbar-nav .nav-item .nav-link.active {
+    color: #111111 !important;
+    background: linear-gradient(135deg, #d4a017, #b8860b) !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3) !important;
+
+    .nav-icon {
+      color: #111111 !important;
+      opacity: 1 !important;
+    }
+  }
+
+  // Sub-nav links (children)
+  .navbar-nav .nav .nav-item .nav-link {
+    color: #666666 !important;
+    &:hover { color: #f5d76e !important; background: rgba(212, 160, 23, 0.06) !important; }
+    &.active { color: #f5d76e !important; background: transparent !important; font-weight: 600 !important; box-shadow: none !important; }
+  }
+
+  // Accordion chevron — tint gold only, let template handle positioning
+  .navbar-nav .nav-item .nav-link[data-bs-toggle="collapse"]:after {
+    -webkit-filter: brightness(0) saturate(100%) invert(72%) sepia(48%) saturate(500%) hue-rotate(5deg) brightness(95%) !important;
+    filter: brightness(0) saturate(100%) invert(72%) sepia(48%) saturate(500%) hue-rotate(5deg) brightness(95%) !important;
+  }
+
+  // SimpleBar scrollbar track
+  .simplebar-scrollbar::before {
+    background: rgba(212, 160, 23, 0.3) !important;
+  }
 }

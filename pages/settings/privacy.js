@@ -1,5 +1,18 @@
 import { useState } from "react";
-import { Card, Button, Modal, Form } from "react-bootstrap";
+import { Modal, Form } from "react-bootstrap";
+
+const G = {
+  bg:         "#111111",
+  card:       "#1a1a1a",
+  cardBorder: "1px solid rgba(212,160,23,0.25)",
+  gold:       "#d4a017",
+  goldLight:  "#f5d76e",
+  goldFaint:  "rgba(212,160,23,0.08)",
+  text:       "#f1f1f1",
+  muted:      "#888888",
+  divider:    "rgba(212,160,23,0.15)",
+  input:      "#222222",
+};
 
 export default function PrivacyPolicy() {
   const [content, setContent] = useState(
@@ -9,46 +22,117 @@ Personal data including names, contact details, and membership information is us
   );
 
   const [showModal, setShowModal] = useState(false);
+  const [draft, setDraft] = useState(content);
+
+  const handleEdit = () => {
+    setDraft(content);
+    setShowModal(true);
+  };
+
+  const handleSave = () => {
+    setContent(draft);
+    setShowModal(false);
+  };
 
   return (
-    <div className="p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Privacy Policy</h2>
-        <Button onClick={() => setShowModal(true)}>
-          Edit
-        </Button>
+    <div style={{ background: G.bg, minHeight: "100vh", padding: "28px" }}>
+      <style>{`
+        .modal-gold .modal-content { background: #1a1a1a; border: 1px solid ${G.divider}; color: ${G.text}; }
+        .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; }
+        .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; }
+        .modal-gold .btn-close { filter: invert(1); }
+        .modal-gold .modal-body { background: #1a1a1a !important; }
+        .inp-gold { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px !important; }
+        .inp-gold::placeholder { color: #555 !important; }
+        .inp-gold:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(212,160,23,0.15) !important; outline: none !important; }
+      `}</style>
+
+      {/* HEADER */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+        <div>
+          <h3 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 4 }}>Privacy Policy</h3>
+          <small style={{ color: G.muted }}>How we handle and protect your data</small>
+        </div>
+        <button
+          onClick={handleEdit}
+          style={{
+            background: `linear-gradient(135deg, ${G.gold}, #b8860b)`,
+            border: "none", color: "#111", padding: "8px 20px",
+            borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(212,160,23,0.3)",
+            display: "flex", alignItems: "center", gap: 8,
+          }}
+        >
+          <i className="fe fe-edit" style={{ fontSize: 14 }}></i>
+          Edit Policy
+        </button>
       </div>
 
-      <Card className="p-4">
-        {content.split("\n\n").map((para, index) => (
-          <p key={index}>{para}</p>
-        ))}
-      </Card>
+      {/* CONTENT CARD */}
+      <div style={{ background: G.card, border: G.cardBorder, borderRadius: 12, padding: "28px 32px" }}>
+        {/* Gold top accent bar */}
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${G.gold}, transparent)`, borderRadius: 4, marginBottom: 24 }} />
 
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        {content.split("\n\n").map((para, index) => (
+          <p
+            key={index}
+            style={{
+              color: index === 0 ? G.text : G.muted,
+              fontSize: 15,
+              lineHeight: 1.8,
+              marginBottom: 16,
+              borderBottom: index < content.split("\n\n").length - 1 ? `1px solid ${G.divider}` : "none",
+              paddingBottom: index < content.split("\n\n").length - 1 ? 16 : 0,
+            }}
+          >
+            {para}
+          </p>
+        ))}
+
+        <div style={{ marginTop: 24, paddingTop: 16, borderTop: `1px solid ${G.divider}`, display: "flex", alignItems: "center", gap: 8 }}>
+          <i className="fe fe-shield" style={{ color: G.gold, fontSize: 14 }}></i>
+          <small style={{ color: G.muted }}>Last updated: May 2025</small>
+        </div>
+      </div>
+
+      {/* EDIT MODAL */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered className="modal-gold">
         <Modal.Header closeButton>
-          <Modal.Title>Edit Privacy Policy</Modal.Title>
+          <Modal.Title style={{ color: G.goldLight, fontWeight: 700 }}>Edit Privacy Policy</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
           <Form.Control
             as="textarea"
             rows={8}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+            className="inp-gold"
+            style={{ resize: "vertical", fontSize: 14, lineHeight: 1.7 }}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
           />
         </Modal.Body>
 
         <Modal.Footer>
-          <Button
-            variant="secondary"
+          <button
             onClick={() => setShowModal(false)}
+            style={{
+              background: "#2a2a2a", border: `1px solid ${G.divider}`, color: G.text,
+              padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13,
+            }}
           >
             Cancel
-          </Button>
-          <Button onClick={() => setShowModal(false)}>
-            Save
-          </Button>
+          </button>
+          <button
+            onClick={handleSave}
+            style={{
+              background: `linear-gradient(135deg, ${G.gold}, #b8860b)`,
+              border: "none", color: "#111", padding: "8px 20px",
+              borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 13,
+              boxShadow: "0 4px 12px rgba(212,160,23,0.3)",
+            }}
+          >
+            Save Changes
+          </button>
         </Modal.Footer>
       </Modal>
     </div>

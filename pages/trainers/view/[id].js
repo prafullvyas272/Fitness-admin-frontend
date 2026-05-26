@@ -542,939 +542,486 @@ const formatDisplayDate = (dateString) => {
 
 
 
+  const G = {
+    bg:        "#111111",
+    card:      "#1a1a1a",
+    cardBorder:"1px solid rgba(212,160,23,0.25)",
+    gold:      "#d4a017",
+    goldLight: "#f5d76e",
+    goldFaint: "rgba(212,160,23,0.08)",
+    text:      "#f1f1f1",
+    muted:     "#888888",
+    divider:   "rgba(212,160,23,0.15)",
+    input:     "#222222",
+  };
+
+  const goldBtn = {
+    background: `linear-gradient(135deg, ${G.gold}, #b8860b)`,
+    border: "none", color: "#111", fontWeight: 700,
+    borderRadius: 8, padding: "6px 18px", cursor: "pointer", fontSize: 13,
+  };
+  const ghostBtn = {
+    background: "transparent", border: `1px solid ${G.divider}`,
+    color: G.text, borderRadius: 8, padding: "6px 18px",
+    cursor: "pointer", fontSize: 13,
+  };
+  const dangerBtn = {
+    background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
+    color: "#f87171", borderRadius: 8, padding: "6px 18px",
+    cursor: "pointer", fontSize: 13,
+  };
+
   return (
-    <div className="p-4">
-  {/* BACK BUTTON */}
-<div className="mb-3">
-  <Button
-    variant="outline-secondary"
-    className="px-3 rounded-3"
-    onClick={() => router.push("/trainers")}
-  >
-    ← Back
-  </Button>
-</div>
+    <div style={{ background: G.bg, minHeight: "100vh", padding: 24 }}>
+      <style>{`
+        .vw-tab { background: transparent; border: none; padding: 10px 18px; font-size: 14px; font-weight: 500; color: ${G.muted}; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .vw-tab:hover { color: ${G.goldLight}; }
+        .vw-tab.active { color: ${G.goldLight}; border-bottom-color: ${G.gold}; font-weight: 600; }
+        .vw-tr td { background: ${G.card} !important; border-bottom: 1px solid ${G.divider} !important; color: ${G.text} !important; padding: 13px 14px !important; }
+        .vw-tr:hover td { background: ${G.goldFaint} !important; }
+        .vw-th { background: #161616 !important; color: ${G.goldLight} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 11px; letter-spacing: 0.8px; padding: 12px 14px !important; }
+        table { background: ${G.card} !important; }
+        .vw-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px !important; }
+        .vw-inp:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(212,160,23,0.15) !important; }
+        .vw-inp option { background: #1a1a1a; }
+        .modal-gold .modal-content { background: #1a1a1a; border: 1px solid ${G.divider}; color: ${G.text}; }
+        .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; }
+        .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; }
+        .modal-gold .modal-title { color: ${G.goldLight}; font-weight: 700; }
+        .modal-gold .btn-close { filter: invert(1); }
+        .modal-gold .form-label { color: ${G.muted}; font-size: 13px; }
+        .modal-gold .form-control { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px; }
+        .modal-gold .form-control:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(212,160,23,0.15) !important; }
+        .vw-stat { background: #1e1e1e; border: 1px solid ${G.divider}; border-radius: 12px; padding: 20px; }
+        .vw-stat p { color: ${G.muted}; font-size: 13px; margin-bottom: 6px; }
+        .vw-stat h2 { color: ${G.goldLight}; font-size: 36px; font-weight: 700; margin: 0; }
+        .vw-booking { background: #1e1e1e; border: 1px solid ${G.divider}; border-radius: 12px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .vw-booking-name { font-weight: 600; color: ${G.goldLight}; margin-bottom: 4px; }
+        .vw-booking-meta { display: flex; gap: 16px; font-size: 13px; color: ${G.muted}; flex-wrap: wrap; }
+        .vw-video-card { background: #1e1e1e; border: 1px solid ${G.divider}; border-radius: 12px; overflow: hidden; }
+        .vw-video-card h6 { color: ${G.text}; font-size: 13px; margin: 0; }
+        .vw-video-info { padding: 10px 12px; }
+        .calendar-card { background: #1e1e1e !important; border-radius: 16px; padding: 20px; border: 1px solid ${G.divider}; }
+        .calendar-header h4 { color: ${G.text} !important; }
+        .calendar-nav { background: #2a2a2a !important; color: ${G.goldLight} !important; border: 1px solid ${G.divider} !important; }
+        .calendar-nav:hover { background: ${G.goldFaint} !important; }
+        .calendar-weekdays div { color: ${G.gold} !important; font-size: 13px; }
+        .calendar-cell { color: #aaa !important; border-radius: 8px; }
+        .calendar-cell:hover { background: ${G.goldFaint} !important; color: ${G.goldLight} !important; }
+        .calendar-cell.selected { background: ${G.gold} !important; color: #111 !important; font-weight: 700 !important; }
+        .calendar-cell.booked { color: #4ade80 !important; font-weight: 600 !important; }
+        .calendar-cell.holiday { color: #f87171 !important; font-weight: 600 !important; }
+        .calendar-legend { color: ${G.muted} !important; }
+        .pg-gold .page-link { background: #1a1a1a; border-color: ${G.divider}; color: ${G.goldLight}; }
+        .pg-gold .page-link:hover { background: ${G.goldFaint}; color: ${G.gold}; }
+        .pg-gold .page-item.active .page-link { background: ${G.gold}; border-color: ${G.gold}; color: #111; font-weight: 700; }
+        .pg-gold .page-item.disabled .page-link { background: #161616; color: #444; border-color: ${G.divider}; }
+      `}</style>
 
-{/* PAGE TITLE */}
-<h3 className="fw-bold mb-4">Trainer Profile</h3>
+      {/* BACK */}
+      <div className="mb-3">
+        <button style={ghostBtn} onClick={() => router.push("/trainers")}>← Back</button>
+      </div>
+      <h3 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 20 }}>Trainer Profile</h3>
 
+      {/* MAIN CARD */}
+      <div style={{ background: G.card, border: G.cardBorder, borderRadius: 14, overflow: "visible" }}>
 
+        {/* TABS */}
+        <div style={{ borderBottom: `1px solid ${G.divider}`, padding: "0 24px", display: "flex", gap: 4 }}>
+          {[
+            { key: "profile",   label: "Overview" },
+            { key: "customers", label: `Customers (${trainer.assignedCustomersAsTrainer?.length || 0})` },
+            { key: "sessions",  label: "Manage Sessions" },
+            { key: "videos",    label: "Videos" },
+            { key: "payout",    label: "Payout", onClick: () => { setActiveTab("payout"); fetchPayouts("weekly","","",1); } },
+          ].map(({ key, label, onClick }) => (
+            <button
+              key={key}
+              className={`vw-tab ${activeTab === key ? "active" : ""}`}
+              onClick={onClick || (() => setActiveTab(key))}
+            >{label}</button>
+          ))}
+        </div>
 
-      <Card className="shadow-sm border-0 rounded-3">
-        <Card.Body>
+        <div style={{ padding: 24 }}>
 
-          {/* TABS */}
- {/* ================= NAV TABS ================= */}
-<ul className="nav nav-tabs custom-tabs mb-4">
-
-  <li className="nav-item">
-    <button
-      className={`nav-link ${activeTab === "profile" ? "active fw-semibold" : ""}`}
-      onClick={() => setActiveTab("profile")}
-    >
-      Overview
-    </button>
-  </li>
-
-  <li className="nav-item">
-    <button
-      className={`nav-link ${activeTab === "customers" ? "active fw-semibold" : ""}`}
-      onClick={() => setActiveTab("customers")}
-    >
-    Customers ({trainer.assignedCustomersAsTrainer?.length || 0})
-    </button>
-  </li>
-
-  <li className="nav-item">
-  <button
-    className={`nav-link ${
-      activeTab === "sessions" ? "active fw-semibold" : ""
-    }`}
-    onClick={() => setActiveTab("sessions")}
-  >
-    Session Management
-  </button>
-</li>
-
-<li className="nav-item">
-  <button
-    className={`nav-link ${
-      activeTab === "videos" ? "active fw-semibold" : ""
-    }`}
-    onClick={() => setActiveTab("videos")}
-  >
-    Videos
-  </button>
-</li>
-
-<li className="nav-item">
-  <button
-    className={`nav-link ${
-      activeTab === "payout" ? "active fw-semibold" : ""
-    }`}
-    onClick={() => {
-      setActiveTab("payout");
-      fetchPayouts("weekly", "", "", 1);
-    }}
-  >
-    Payout
-  </button>
-</li>
-
-</ul>
-
-
-          {/* ================= PROFILE ================= */}
+          {/* ===== OVERVIEW ===== */}
           {activeTab === "profile" && (
             <Row>
-
-              {/* LEFT SIDE IMAGE */}
-              <Col md={4} className="text-center border-end">
+              <Col md={4} className="text-center" style={{ borderRight: `1px solid ${G.divider}` }}>
                 <img
-  src={
-    trainer.userProfileDetails?.[0]?.avatarUrl ||
-    "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
-  }
-  alt="avatar"
-  onClick={() => setShowImageModal(true)}
-  style={{
-    width: 170,
-    height: 170,
-    objectFit: "cover",
-    borderRadius: "50%",
-    border: "4px solid #e9ecef",
-    cursor: "pointer",
-    transition: "0.3s",
-  }}
-  className="mb-3"
-/>
-
-                <h5 className="fw-bold">
-                  {trainer.firstName} {trainer.lastName}
-                </h5>
-
-                <p className="text-muted mb-2">
-                  {trainer.email}
-                </p>
-
+                  src={trainer.userProfileDetails?.[0]?.avatarUrl || "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"}
+                  alt="avatar"
+                  onClick={() => setShowImageModal(true)}
+                  style={{ width: 170, height: 170, objectFit: "cover", borderRadius: "50%", border: `4px solid ${G.gold}`, cursor: "pointer", transition: "0.3s" }}
+                  className="mb-3"
+                />
+                <h5 style={{ color: G.goldLight, fontWeight: 700 }}>{trainer.firstName} {trainer.lastName}</h5>
+                <p style={{ color: G.muted, marginBottom: 10 }}>{trainer.email}</p>
                 <StatusPill isActive={trainer.isActive} />
                 <div className="d-flex justify-content-center gap-2 mt-4">
-  <Button
-    variant="outline-danger"
-    size="sm"
-    onClick={handleDeleteTrainer}
-    style={{ minWidth: "100px" }}
-  >
-    Delete
-  </Button>
-
-  <Button
-    variant="primary"
-    size="sm"
-    onClick={handleEditTrainer}
-    style={{ minWidth: "120px" }}
-  >
-    Edit Profile
-  </Button>
-</div>
-
+                  <button style={dangerBtn} onClick={handleDeleteTrainer}>Delete</button>
+                  <button style={goldBtn} onClick={handleEditTrainer}>Edit Profile</button>
+                </div>
               </Col>
 
-              {/* RIGHT SIDE DETAILS */}
               <Col md={8} className="ps-4">
-
-                {/* BIO ON TOP */}
-                <h5 className="fw-bold mb-2">Bio:</h5>
-                <p className=" mb-4">
-                  {displayValue(trainer.userProfileDetails?.[0]?.bio)}
-                </p>
-<br />
-                <h5 className="fw-bold mb-2">Profile Details:</h5>
-<br />
-                <Row className="mb-3">
-                  <Col md={4} className="fw-semibold">Full Name:</Col>
-                  <Col md={8}>
-                    {trainer.firstName} {trainer.lastName}
-                  </Col>
-                </Row>
-
-                <Row className="mb-3">
-                  <Col md={4} className="fw-semibold">Phone:</Col>
-                  <Col md={8}>{displayValue(trainer.phone)}</Col>
-                </Row>
-
-                <Row className="mb-3">
-  <Col md={4} className="fw-semibold">Gender:</Col>
-  <Col md={8}>
-    {trainer.gender
-      ? trainer.gender.charAt(0).toUpperCase() +
-        trainer.gender.slice(1).toLowerCase()
-      : "N/A"}
-  </Col>
-</Row>
-
-                <Row className="mb-3">
-                  <Col md={4} className="fw-semibold">Host Gym:</Col>
-                  <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.hostGymName)}</Col>
-                </Row>
-
-                <Row className="mb-3">
-                  <Col md={4} className="fw-semibold">Gym Address:</Col>
-                  <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.hostGymAddress)}</Col>
-                </Row>
-
-                {/* <Row>
-                  <Col md={4} className="fw-semibold">Address:</Col>
-                  <Col md={8}>{displayValue(trainer.userProfileDetails?.[0]?.address)}</Col>
-                </Row> */}
-
+                <h5 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 6 }}>Bio:</h5>
+                <p style={{ color: G.muted, marginBottom: 24 }}>{displayValue(trainer.userProfileDetails?.[0]?.bio)}</p>
+                <h5 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 16 }}>Profile Details:</h5>
+                {[
+                  ["Full Name", `${trainer.firstName} ${trainer.lastName}`],
+                  ["Phone", displayValue(trainer.phone)],
+                  ["Gender", trainer.gender ? trainer.gender.charAt(0).toUpperCase() + trainer.gender.slice(1).toLowerCase() : "N/A"],
+                  ["Host Gym", displayValue(trainer.userProfileDetails?.[0]?.hostGymName)],
+                  ["Gym Address", displayValue(trainer.userProfileDetails?.[0]?.hostGymAddress)],
+                ].map(([label, value]) => (
+                  <Row key={label} className="mb-3">
+                    <Col md={4} style={{ color: G.muted, fontWeight: 600, fontSize: 13 }}>{label}:</Col>
+                    <Col md={8} style={{ color: G.text, fontSize: 14 }}>{value}</Col>
+                  </Row>
+                ))}
               </Col>
             </Row>
           )}
 
-          {/* ================= CUSTOMER LIST ================= */}
+          {/* ===== CUSTOMERS ===== */}
           {activeTab === "customers" && (
             <>
-              <h5 className="fw-bold mb-3">Customer List</h5>
-
-              <Table responsive hover className="align-middle">
-                <thead className="bg-light">
-                  <tr className="text-muted text-uppercase small">
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th className="text-center">Status</th>
-    <th className="text-center">Assigned Trainer</th>
-    <th className="text-center">Action</th>
+              <h5 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 16 }}>Customer List</h5>
+              <Table responsive className="align-middle mb-0">
+                <thead>
+                  <tr>
+                    {["Name","Email","Phone","Status","Assigned Trainer","Action"].map(h => (
+                      <th key={h} className="vw-th">{h.toUpperCase()}</th>
+                    ))}
                   </tr>
                 </thead>
-
-<tbody>
-  {assignedCustomers.length === 0 ? (
-    <tr>
-      <td colSpan="6" className="text-center py-4 text-muted">
-        No customers assigned
-      </td>
-    </tr>
-  ) : (
-    assignedCustomers.map((item) => {
-      const customer = item.customer;
-
-      return (
-        <tr key={customer.id}>
-          <td className="fw-semibold">
-            {customer.firstName} {customer.lastName}
-          </td>
-          <td>{customer.email}</td>
-          <td>{customer.phone}</td>
-          <td>
-            <StatusPill isActive={item.isActive} />
-          </td>
-          <td>Assigned</td>
-          <td className="text-end">
-            <Button
-              size="sm"
-              variant="outline-danger"
-              onClick={() =>
-                removeTrainerFromCustomer(customer.id)
-              }
-            >
-              Remove Trainer
-            </Button>
-          </td>
-        </tr>
-      );
-    })
-  )}
-</tbody>
-
+                <tbody>
+                  {assignedCustomers.length === 0 ? (
+                    <tr><td colSpan={6} className="text-center py-5" style={{ background: G.card, color: G.muted }}>No customers assigned</td></tr>
+                  ) : assignedCustomers.map((item) => {
+                    const customer = item.customer;
+                    return (
+                      <tr key={customer.id} className="vw-tr">
+                        <td style={{ fontWeight: 600 }}>{customer.firstName} {customer.lastName}</td>
+                        <td>{customer.email}</td>
+                        <td>{customer.phone}</td>
+                        <td><StatusPill isActive={item.isActive} /></td>
+                        <td>Assigned</td>
+                        <td className="text-end">
+                          <button style={dangerBtn} onClick={() => removeTrainerFromCustomer(customer.id)}>Remove Trainer</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
               </Table>
             </>
           )}
 
-                    {/* ================= SESSIONS SECTION ================= */}
+          {/* ===== SESSIONS ===== */}
           {activeTab === "sessions" && (
-  <>
-    {/* <h5 className="fw-bold mb-4">Trainer Sessions</h5> */}
-
-    {/* ================= CALENDAR CARD ================= */}
-    <div className="calendar-card">
-
-      {/* Month Header */}
-      <div className="calendar-header">
-        <button
-          className="calendar-nav"
-          onClick={() => changeMonth(-1)}
-        >
-          ‹
-        </button>
-
-        <h4 className="mb-0 fw-semibold">
-          {currentMonth.toLocaleString("default", {
-            month: "long",
-            year: "numeric",
-          })}
-        </h4>
-
-        <button
-          className="calendar-nav"
-          onClick={() => changeMonth(1)}
-        >
-          ›
-        </button>
-      </div>
-
-      {/* Weekday Row */}
-      <div className="calendar-weekdays">
-        {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => (
-          <div key={day}>{day}</div>
-        ))}
-      </div>
-
-      {/* Calendar Grid */}
-{/* Calendar Grid */}
-<div className="calendar-grid">
-  {generateCalendarDays().map((date, index) => {
-    if (!date) return <div key={index}></div>;
-
-    const formatted = formatDate(date);
-
-    const isBooked = bookedDates.includes(formatted);
-    const isHoliday = holidayDates.includes(formatted);
-    const isToday =
-      date.toDateString() === new Date().toDateString();
-
-    const isSelected =
-      selectedDate &&
-      date.toDateString() === selectedDate.toDateString();
-
-    const isUnavailable = unavailableDates.includes(formatted);
-    let statusClass = "available";
-    if (isBooked) statusClass = "booked";
-    if (isHoliday) statusClass = "holiday";
-    if (isUnavailable) statusClass = "holiday";
-
-    return (
-      <div
-        key={index}
-        className={`calendar-cell 
-          ${statusClass}
-          ${isSelected ? "selected" : ""}
-        `}
-        onClick={() => setSelectedDate(date)}
-      >
-        {date.getDate()}
-      </div>
-    );
-  })}
-</div>
-
-{/* Legend */}
-<div className="calendar-legend">
-  <span className="legend-item booked-dot">Booked</span>
-  <span className="legend-item available-dot">Available</span>
-  <span className="legend-item holiday-dot">Holiday</span>
-</div>
-
-
-      {/* Hours Section */}
-      <div className="stats-wrapper">
-
-  <div className="stats-card">
-    <p className="stats-label">
-      Hours remaining for this week
-    </p>
-    <h2 className="stats-value">
-      45
-    </h2>
-  </div>
-
-  <div className="stats-card">
-    <p className="stats-label">
-      Total Booking hours for this week
-    </p>
-    <h2 className="stats-value">
-      {weeklyAssignedHours.toFixed(1)}
-    </h2>
-  </div>
-
-</div>
-
-
-    </div>
-
-    {/* ================= WEEKLY STRIP ================= */}
-   {selectedDate && (
-  <>
-    {/* Show heading only if slots exist */}
-    {sessions.filter((booking) => {
-  const bookingDate =
-  booking.timeSlot.startTime.split("T")[0];
-
-  return (
-    bookingDate === formatDate(selectedDate) &&
-    !booking.isCancelled
-  );
-}).length > 0 && (
-      <h5 className="fw-semibold mt-4 mb-3 booked-heading">
-        Booked Slots
-      </h5>
-    )}
-
-    <div className="booking-wrapper">
-
-
-  {sessions
-  .filter((booking) => {
-    const bookingDate = formatDate(
-      new Date(booking.timeSlot.startTime)
-    );
-
-    return (
-      bookingDate === formatDate(selectedDate) &&
-      !booking.isCancelled
-    );
-  })
-  .map((booking) => {
-
-
-      return (
-        <div key={booking.id} className="booking-card">
-
-          {/* LEFT SECTION */}
-          <div className="booking-left">
-
-  <div className="avatar-wrapper">
-    <img
-      src="https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
-      className="booking-avatar"
-      alt="avatar"
-    />
-
-  </div>
-
-  <div className="booking-content">
-    <h6 className="booking-name">
-  {booking.customer.firstName} {booking.customer.lastName}
-</h6>
-
-<div className="booking-meta">
-  <span>
-    📅 {formatDisplayDate(booking.timeSlot.startTime)}
-  </span>
-
-  <span>
-   ⏰ {new Date(booking.timeSlot.startTime).toLocaleTimeString("en-US", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: true,
-})}
--
-{new Date(booking.timeSlot.endTime).toLocaleTimeString("en-US", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: true,
-})}
-  </span>
-
-  <span className="d-flex align-items-center gap-1">
-  <GeoAltFill size={14} style={{ color: "#dc3545" }} />
-  {booking.trainer.userProfileDetails?.[0]?.hostGymName || "Gym"}
-</span>
-</div>
-  </div>
-
-</div>
-
-
-
-
-          {/* RIGHT SECTION */}
-          {/* <div className="booking-actions">
-  <button className="btn-cancel">
-    Cancel
-  </button> */}
-{/* </div> */}
-
-
-        </div>
-      );
-    })}
-    
-
-</div>
-
-      </>
-    )}
-
-    {/* ===== TRAINER CREATED SLOTS ===== */}
-    {selectedDate && (
-      <div className="mt-4">
-        <h5 className="fw-semibold mb-3" style={{ color: "#374151" }}>
-          Trainer Created Slots
-        </h5>
-
-        {trainerTimeSlotsLoading ? (
-          <div className="text-muted" style={{ fontSize: "14px" }}>Loading slots...</div>
-        ) : trainerTimeSlots.length === 0 ? (
-          <div
-            style={{
-              background: "#f9fafb",
-              border: "1px dashed #d1d5db",
-              borderRadius: "10px",
-              padding: "20px",
-              textAlign: "center",
-              color: "#9ca3af",
-              fontSize: "14px",
-            }}
-          >
-            No slots created for this date
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {trainerTimeSlots.map((slot, idx) => {
-              const start = new Date(slot.startTime);
-              const end = new Date(slot.endTime);
-              const isPast = end < new Date();
-              return (
-                <div
-                  key={slot.id || idx}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    background: "#fff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "10px",
-                    padding: "12px 16px",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <div
-                      style={{
-                        width: "10px",
-                        height: "10px",
-                        borderRadius: "50%",
-                        background: isPast ? "#9ca3af" : "#22c55e",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <span style={{ fontWeight: 600, fontSize: "14px", color: "#111827" }}>
-                      {start.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}
-                      {" – "}
-                      {end.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}
-                    </span>
-                  </div>
-                  <span
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: 500,
-                      padding: "3px 10px",
-                      borderRadius: "20px",
-                      background: isPast ? "#f3f4f6" : "#dcfce7",
-                      color: isPast ? "#6b7280" : "#15803d",
-                    }}
-                  >
-                    {isPast ? "Past" : "Upcoming"}
-                  </span>
+            <>
+              <div className="calendar-card">
+                <div className="calendar-header">
+                  <button className="calendar-nav" onClick={() => changeMonth(-1)}>‹</button>
+                  <h4 className="mb-0 fw-semibold">
+                    {currentMonth.toLocaleString("default", { month: "long", year: "numeric" })}
+                  </h4>
+                  <button className="calendar-nav" onClick={() => changeMonth(1)}>›</button>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    )}
-  </>
-)}
-
-{activeTab === "videos" && (
-  <>
-    <h5 className="fw-bold mb-4">Assigned Videos</h5>
-
-    {trainerLoading ? (
-      <div className="empty-state">Loading videos...</div>
-    ) : trainerWorkouts.length === 0 ? (
-      <div className="empty-state">No videos assigned</div>
-    ) : (
-      <div className="video-grid">
-        {trainerWorkouts.map((video) => (
-          <div key={video.id} className="video-card">
-            <div className="video-thumb">
-              <video src={video.videoUrl} />
-
-              <div className="video-overlay">
-                <div
-                  className="play-btn"
-                  onClick={() => setPreviewVideo(video)}
-                >
-                  ▶
+                <div className="calendar-weekdays">
+                  {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => <div key={d}>{d}</div>)}
                 </div>
-              </div>
-            </div>
-
-            <div className="video-info">
-              <h6>{video.title}</h6>
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-
-    <h5 className="fw-bold mb-4 mt-5">Trainer Uploaded Videos</h5>
-
-    {trainerVideosLoading ? (
-      <div className="empty-state">Loading trainer videos...</div>
-    ) : filteredTrainerVideos.length === 0 ? (
-      <div className="empty-state">
-        No videos uploaded by this trainer
-      </div>
-    ) : (
-      <div className="video-grid">
-        {filteredTrainerVideos.map((video) => (
-          <div key={video.id} className="video-card">
-            <div className="video-thumb">
-              <img src={video.thumbnail} alt="thumbnail" />
-            </div>
-
-            <div className="video-info">
-              <h6>{video.title}</h6>
-
-              <p style={{ fontSize: "12px", color: "#777" }}>
-                {video.trainer?.firstName} {video.trainer?.lastName}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-  </>
-)}
-
-        {/* ================= PAYOUT TAB ================= */}
-        {activeTab === "payout" && (
-          <>
-            {/* Header */}
-            <Row className="align-items-center mb-4">
-              <Col>
-                <h5 className="fw-bold mb-0">Payout History</h5>
-                <small className="text-muted">View and process trainer payouts</small>
-              </Col>
-              <Col className="text-end">
-                <Button
-                  variant="primary"
-                  onClick={() => setShowPayoutModal(true)}
-                >
-                  Process Payout
-                </Button>
-              </Col>
-            </Row>
-
-            {/* Period Filter */}
-            <Row className="mb-4 align-items-end">
-              <Col xs="auto">
-                <div className="d-flex gap-2">
-                  {["weekly", "monthly", "custom"].map((p) => (
-                    <Button
-                      key={p}
-                      size="sm"
-                      variant={payoutPeriod === p ? "primary" : "outline-secondary"}
-                      onClick={() => {
-                        setPayoutPeriod(p);
-                        setPayoutPage(1);
-                        if (p !== "custom") {
-                          fetchPayouts(p, "", "", 1);
-                        }
-                      }}
-                    >
-                      {p.charAt(0).toUpperCase() + p.slice(1)}
-                    </Button>
+                <div className="calendar-grid">
+                  {generateCalendarDays().map((date, index) => {
+                    if (!date) return <div key={index}></div>;
+                    const formatted = formatDate(date);
+                    const isBooked = bookedDates.includes(formatted);
+                    const isHoliday = holidayDates.includes(formatted);
+                    const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+                    const isUnavailable = unavailableDates.includes(formatted);
+                    let statusClass = "available";
+                    if (isBooked) statusClass = "booked";
+                    if (isHoliday || isUnavailable) statusClass = "holiday";
+                    return (
+                      <div key={index} className={`calendar-cell ${statusClass} ${isSelected ? "selected" : ""}`} onClick={() => setSelectedDate(date)}>
+                        {date.getDate()}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="calendar-legend">
+                  <span className="legend-item booked-dot">Booked</span>
+                  <span className="legend-item available-dot">Available</span>
+                  <span className="legend-item holiday-dot">Holiday</span>
+                </div>
+                <div style={{ display: "flex", gap: 16, marginTop: 24, flexWrap: "wrap" }}>
+                  {[
+                    ["Hours remaining for this week", "45"],
+                    ["Total Booking hours for this week", weeklyAssignedHours.toFixed(1)],
+                  ].map(([label, val]) => (
+                    <div key={label} className="vw-stat" style={{ flex: 1, minWidth: 200 }}>
+                      <p>{label}</p>
+                      <h2>{val}</h2>
+                    </div>
                   ))}
                 </div>
-              </Col>
+              </div>
 
-              {payoutPeriod === "custom" && (
+              {selectedDate && (
                 <>
-                  <Col xs="auto">
-                    <Form.Control
-                      type="date"
-                      size="sm"
-                      value={payoutStartDate}
-                      onChange={(e) => setPayoutStartDate(e.target.value)}
-                    />
-                  </Col>
-                  <Col xs="auto">
-                    <Form.Control
-                      type="date"
-                      size="sm"
-                      value={payoutEndDate}
-                      onChange={(e) => setPayoutEndDate(e.target.value)}
-                    />
-                  </Col>
-                  <Col xs="auto">
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      disabled={!payoutStartDate || !payoutEndDate}
-                      onClick={() => {
-                        setPayoutPage(1);
-                        fetchPayouts("custom", payoutStartDate, payoutEndDate, 1);
-                      }}
-                    >
-                      Apply
-                    </Button>
-                  </Col>
+                  {sessions.filter(b => b.timeSlot.startTime.split("T")[0] === formatDate(selectedDate) && !b.isCancelled).length > 0 && (
+                    <h5 style={{ color: G.goldLight, fontWeight: 600, marginTop: 24, marginBottom: 12 }}>Booked Slots</h5>
+                  )}
+                  {sessions.filter(b => formatDate(new Date(b.timeSlot.startTime)) === formatDate(selectedDate) && !b.isCancelled).map((booking) => (
+                    <div key={booking.id} className="vw-booking">
+                      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                        <img src="https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png" alt="avatar"
+                          style={{ width: 48, height: 48, borderRadius: "50%", border: `2px solid ${G.gold}`, objectFit: "cover" }} />
+                        <div>
+                          <div className="vw-booking-name">{booking.customer.firstName} {booking.customer.lastName}</div>
+                          <div className="vw-booking-meta">
+                            <span>📅 {formatDisplayDate(booking.timeSlot.startTime)}</span>
+                            <span>⏰ {new Date(booking.timeSlot.startTime).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:true})} - {new Date(booking.timeSlot.endTime).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:true})}</span>
+                            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                              <GeoAltFill size={13} style={{ color: "#f87171" }} />
+                              {booking.trainer.userProfileDetails?.[0]?.hostGymName || "Gym"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="mt-4">
+                    <h5 style={{ color: G.goldLight, fontWeight: 600, marginBottom: 12 }}>Trainer Created Slots</h5>
+                    {trainerTimeSlotsLoading ? (
+                      <p style={{ color: G.muted, fontSize: 14 }}>Loading slots...</p>
+                    ) : trainerTimeSlots.length === 0 ? (
+                      <div style={{ background: "#1e1e1e", border: `1px dashed ${G.divider}`, borderRadius: 10, padding: 20, textAlign: "center", color: G.muted, fontSize: 14 }}>
+                        No slots created for this date
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {trainerTimeSlots.map((slot, idx) => {
+                          const start = new Date(slot.startTime);
+                          const end = new Date(slot.endTime);
+                          const isPast = end < new Date();
+                          return (
+                            <div key={slot.id || idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1e1e1e", border: `1px solid ${G.divider}`, borderRadius: 10, padding: "12px 16px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                <div style={{ width: 10, height: 10, borderRadius: "50%", background: isPast ? "#555" : "#4ade80", flexShrink: 0 }} />
+                                <span style={{ fontWeight: 600, fontSize: 14, color: G.text }}>
+                                  {start.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:true})} – {end.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:true})}
+                                </span>
+                              </div>
+                              <span style={{ fontSize: 12, fontWeight: 500, padding: "3px 10px", borderRadius: 20, background: isPast ? "#2a2a2a" : "rgba(74,222,128,0.1)", color: isPast ? "#555" : "#4ade80" }}>
+                                {isPast ? "Past" : "Upcoming"}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
-            </Row>
+            </>
+          )}
 
-            {/* Payout Table */}
-            <Table responsive hover className="align-middle">
-              <thead className="bg-light">
-                <tr className="text-muted text-uppercase small">
-                  <th>#</th>
-                  <th>Total Payout</th>
-                  <th>Net Payout</th>
-                  <th>Period</th>
-                  <th>Note</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payoutLoading ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-5">
-                      <Spinner animation="border" size="sm" className="me-2" />
-                      Loading payouts...
-                    </td>
-                  </tr>
-                ) : payouts.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-5 text-muted fw-semibold">
-                      No payouts found for this period
-                    </td>
-                  </tr>
-                ) : (
-                  payouts.map((payout, idx) => (
-                    <tr key={payout.id || idx}>
-                      <td className="text-muted small">
-                        {(payoutPage - 1) * payoutPageSize + idx + 1}
-                      </td>
-                      <td className="fw-semibold text-dark">
-                        €{payout.totalPayout ?? "—"}
-                      </td>
-                      <td className="fw-semibold text-success">
-                        €{payout.netPayout ?? "—"}
-                      </td>
-                      <td className="small text-muted">
-                        {payout.periodStart && payout.periodEnd
-                          ? `${new Date(payout.periodStart).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })} – ${new Date(payout.periodEnd).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })}`
-                          : "—"}
-                      </td>
-                      <td className="text-muted">{payout.note || "—"}</td>
-                      <td className="small text-muted">
-                        {payout.createdAt
-                          ? new Date(payout.createdAt).toLocaleDateString("en-US", {
-                              month: "2-digit",
-                              day: "2-digit",
-                              year: "numeric",
-                            })
-                          : "—"}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </Table>
+          {/* ===== VIDEOS ===== */}
+          {activeTab === "videos" && (
+            <>
+              <h5 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 20 }}>Assigned Videos</h5>
+              {trainerLoading ? (
+                <p style={{ color: G.muted }}>Loading videos...</p>
+              ) : trainerWorkouts.length === 0 ? (
+                <p style={{ color: G.muted }}>No videos assigned</p>
+              ) : (
+                <div className="video-grid">
+                  {trainerWorkouts.map((video) => (
+                    <div key={video.id} className="vw-video-card">
+                      <div className="video-thumb">
+                        <video src={video.videoUrl} />
+                        <div className="video-overlay">
+                          <div className="play-btn" onClick={() => setPreviewVideo(video)}>▶</div>
+                        </div>
+                      </div>
+                      <div className="vw-video-info"><h6>{video.title}</h6></div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-            {/* Pagination */}
-            {!payoutLoading && payouts.length > 0 && (
-              <Row className="mt-3 align-items-center">
-                <Col md={6} className="text-muted small">
-                  Page {payoutPage} · {payouts.length} records
+              <h5 style={{ color: G.goldLight, fontWeight: 700, margin: "32px 0 20px" }}>Trainer Uploaded Videos</h5>
+              {trainerVideosLoading ? (
+                <p style={{ color: G.muted }}>Loading trainer videos...</p>
+              ) : filteredTrainerVideos.length === 0 ? (
+                <p style={{ color: G.muted }}>No videos uploaded by this trainer</p>
+              ) : (
+                <div className="video-grid">
+                  {filteredTrainerVideos.map((video) => (
+                    <div key={video.id} className="vw-video-card">
+                      <div className="video-thumb">
+                        <img src={video.thumbnail} alt="thumbnail" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      </div>
+                      <div className="vw-video-info">
+                        <h6>{video.title}</h6>
+                        <p style={{ fontSize: 12, color: G.muted, margin: "4px 0 0" }}>{video.trainer?.firstName} {video.trainer?.lastName}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ===== PAYOUT ===== */}
+          {activeTab === "payout" && (
+            <>
+              <Row className="align-items-center mb-4">
+                <Col>
+                  <h5 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 4 }}>Payout History</h5>
+                  <small style={{ color: G.muted }}>View and process trainer payouts</small>
                 </Col>
-                <Col md={6} className="text-end">
-                  <div className="d-flex justify-content-end gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline-secondary"
-                      disabled={payoutPage === 1}
-                      onClick={() => {
-                        const newPage = payoutPage - 1;
-                        setPayoutPage(newPage);
-                        fetchPayouts(payoutPeriod, payoutStartDate, payoutEndDate, newPage);
-                      }}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline-secondary"
-                      disabled={payoutPage >= Math.ceil(payoutTotal / payoutPageSize)}
-                      onClick={() => {
-                        const newPage = payoutPage + 1;
-                        setPayoutPage(newPage);
-                        fetchPayouts(payoutPeriod, payoutStartDate, payoutEndDate, newPage);
-                      }}
-                    >
-                      Next
-                    </Button>
-                  </div>
+                <Col className="text-end">
+                  <button style={goldBtn} onClick={() => setShowPayoutModal(true)}>Process Payout</button>
                 </Col>
               </Row>
-            )}
-          </>
-        )}
 
-        </Card.Body>
-      </Card>
+              <Row className="mb-4 align-items-end">
+                <Col xs="auto">
+                  <div className="d-flex gap-2">
+                    {["weekly","monthly","custom"].map((p) => (
+                      <button
+                        key={p}
+                        style={payoutPeriod === p ? goldBtn : ghostBtn}
+                        onClick={() => { setPayoutPeriod(p); setPayoutPage(1); if (p !== "custom") fetchPayouts(p,"","",1); }}
+                      >
+                        {p.charAt(0).toUpperCase() + p.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </Col>
+                {payoutPeriod === "custom" && (
+                  <>
+                    <Col xs="auto"><input type="date" className="vw-inp" style={{ padding: "5px 10px" }} value={payoutStartDate} onChange={(e) => setPayoutStartDate(e.target.value)} /></Col>
+                    <Col xs="auto"><input type="date" className="vw-inp" style={{ padding: "5px 10px" }} value={payoutEndDate} onChange={(e) => setPayoutEndDate(e.target.value)} /></Col>
+                    <Col xs="auto">
+                      <button style={goldBtn} disabled={!payoutStartDate || !payoutEndDate} onClick={() => { setPayoutPage(1); fetchPayouts("custom",payoutStartDate,payoutEndDate,1); }}>Apply</button>
+                    </Col>
+                  </>
+                )}
+              </Row>
 
-      {/* ================= MODAL ================= */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Assign Trainer</Modal.Title>
-        </Modal.Header>
+              <Table responsive className="align-middle mb-0">
+                <thead>
+                  <tr>{["#","Total Payout","Net Payout","Period","Note","Date"].map(h => <th key={h} className="vw-th">{h.toUpperCase()}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {payoutLoading ? (
+                    <tr><td colSpan={6} className="text-center py-5" style={{ background: G.card, color: G.muted }}>
+                      <Spinner animation="border" size="sm" style={{ color: G.gold }} className="me-2" />Loading payouts...
+                    </td></tr>
+                  ) : payouts.length === 0 ? (
+                    <tr><td colSpan={6} className="text-center py-5" style={{ background: G.card, color: G.muted, fontWeight: 600 }}>No payouts found for this period</td></tr>
+                  ) : payouts.map((payout, idx) => (
+                    <tr key={payout.id || idx} className="vw-tr">
+                      <td style={{ color: G.muted }}>{(payoutPage-1)*payoutPageSize+idx+1}</td>
+                      <td style={{ fontWeight: 600, color: G.goldLight }}>€{payout.totalPayout ?? "—"}</td>
+                      <td style={{ fontWeight: 600, color: "#4ade80" }}>€{payout.netPayout ?? "—"}</td>
+                      <td style={{ color: G.muted, fontSize: 13 }}>
+                        {payout.periodStart && payout.periodEnd
+                          ? `${new Date(payout.periodStart).toLocaleDateString("en-US",{month:"2-digit",day:"2-digit",year:"numeric"})} – ${new Date(payout.periodEnd).toLocaleDateString("en-US",{month:"2-digit",day:"2-digit",year:"numeric"})}`
+                          : "—"}
+                      </td>
+                      <td style={{ color: G.muted }}>{payout.note || "—"}</td>
+                      <td style={{ color: G.muted, fontSize: 13 }}>{payout.createdAt ? new Date(payout.createdAt).toLocaleDateString("en-US",{month:"2-digit",day:"2-digit",year:"numeric"}) : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
 
+              {!payoutLoading && payouts.length > 0 && (
+                <Row className="mt-3 align-items-center">
+                  <Col md={6} style={{ color: G.muted, fontSize: 13 }}>Page {payoutPage} · {payouts.length} records</Col>
+                  <Col md={6} className="text-end">
+                    <div className="d-flex justify-content-end gap-2">
+                      <button style={ghostBtn} disabled={payoutPage===1} onClick={() => { const p=payoutPage-1; setPayoutPage(p); fetchPayouts(payoutPeriod,payoutStartDate,payoutEndDate,p); }}>Previous</button>
+                      <button style={ghostBtn} disabled={payoutPage>=Math.ceil(payoutTotal/payoutPageSize)} onClick={() => { const p=payoutPage+1; setPayoutPage(p); fetchPayouts(payoutPeriod,payoutStartDate,payoutEndDate,p); }}>Next</button>
+                    </div>
+                  </Col>
+                </Row>
+              )}
+            </>
+          )}
+
+        </div>
+      </div>
+
+      {/* ASSIGN TRAINER MODAL */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered className="modal-gold">
+        <Modal.Header closeButton><Modal.Title>Assign Trainer</Modal.Title></Modal.Header>
         <Modal.Body>
-          <Form.Select
-            value={selectedTrainerId}
-            onChange={(e) =>
-              setSelectedTrainerId(Number(e.target.value))
-            }
-          >
+          <select className="vw-inp" style={{ width: "100%", padding: "8px 12px" }} value={selectedTrainerId} onChange={(e) => setSelectedTrainerId(Number(e.target.value))}>
             <option value="">Select Trainer</option>
-            {allTrainers.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.firstName} {t.lastName}
-              </option>
-            ))}
-          </Form.Select>
+            {allTrainers.map((t) => <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>)}
+          </select>
         </Modal.Body>
-
         <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setShowModal(false)}
-          >
-            Cancel
-          </Button>
-<Button
-  variant="primary"
-  onClick={() => assignToThisTrainer(selectedCustomer.id)}
-  disabled={!selectedCustomer}
->
-  Assign to This Trainer
-</Button>
+          <button style={ghostBtn} onClick={() => setShowModal(false)}>Cancel</button>
+          <button style={goldBtn} onClick={() => assignToThisTrainer(selectedCustomer.id)} disabled={!selectedCustomer}>Assign to This Trainer</button>
         </Modal.Footer>
-</Modal>
+      </Modal>
 
-<Modal
-  show={!!previewVideo}
-  onHide={() => setPreviewVideo(null)}
-  centered
->
-  <video
-    src={previewVideo?.videoUrl}
-    controls
-    autoPlay
-    style={{ width: "100%" }}
-  />
-</Modal>
+      {/* VIDEO PREVIEW MODAL */}
+      <Modal show={!!previewVideo} onHide={() => setPreviewVideo(null)} centered>
+        <video src={previewVideo?.videoUrl} controls autoPlay style={{ width: "100%" }} />
+      </Modal>
 
-{/* PROCESS PAYOUT MODAL */}
-<Modal show={showPayoutModal} onHide={() => setShowPayoutModal(false)} centered>
-  <Modal.Header closeButton>
-    <Modal.Title>Process Payout</Modal.Title>
-  </Modal.Header>
-  <Modal.Body>
-    <Form.Group className="mb-3">
-      <Form.Label>Total Payout <span className="text-danger">*</span></Form.Label>
-      <Form.Control
-        type="number"
-        min="0"
-        placeholder="e.g. 1200"
-        value={payoutForm.totalPayout}
-        onChange={(e) => setPayoutForm({ ...payoutForm, totalPayout: e.target.value })}
-      />
-    </Form.Group>
-    <Form.Group className="mb-3">
-      <Form.Label>Net Payout <span className="text-danger">*</span></Form.Label>
-      <Form.Control
-        type="number"
-        min="0"
-        placeholder="e.g. 750"
-        value={payoutForm.netPayout}
-        onChange={(e) => setPayoutForm({ ...payoutForm, netPayout: e.target.value })}
-      />
-    </Form.Group>
-    <Row className="mb-3">
-      <Col>
-        <Form.Label>Period Start <span className="text-danger">*</span></Form.Label>
-        <Form.Control
-          type="date"
-          value={payoutForm.periodStart}
-          onChange={(e) => setPayoutForm({ ...payoutForm, periodStart: e.target.value })}
-        />
-      </Col>
-      <Col>
-        <Form.Label>Period End <span className="text-danger">*</span></Form.Label>
-        <Form.Control
-          type="date"
-          value={payoutForm.periodEnd}
-          onChange={(e) => setPayoutForm({ ...payoutForm, periodEnd: e.target.value })}
-        />
-      </Col>
-    </Row>
-    <Form.Group>
-      <Form.Label>Note <span className="text-muted small">(optional)</span></Form.Label>
-      <Form.Control
-        type="text"
-        placeholder="e.g. April payout"
-        value={payoutForm.note}
-        onChange={(e) => setPayoutForm({ ...payoutForm, note: e.target.value })}
-      />
-    </Form.Group>
-  </Modal.Body>
-  <Modal.Footer>
-    <Button variant="secondary" onClick={() => setShowPayoutModal(false)}>
-      Cancel
-    </Button>
-    <Button
-      variant="primary"
-      onClick={handlePostPayout}
-      disabled={payoutPosting || !payoutForm.totalPayout || !payoutForm.netPayout || !payoutForm.periodStart || !payoutForm.periodEnd}
-    >
-      {payoutPosting ? (
-        <><Spinner animation="border" size="sm" className="me-2" />Processing...</>
-      ) : (
-        "Confirm Payout"
-      )}
-    </Button>
-  </Modal.Footer>
-</Modal>
+      {/* PROCESS PAYOUT MODAL */}
+      <Modal show={showPayoutModal} onHide={() => setShowPayoutModal(false)} centered className="modal-gold">
+        <Modal.Header closeButton><Modal.Title>Process Payout</Modal.Title></Modal.Header>
+        <Modal.Body>
+          {[
+            { label: "Total Payout *", key: "totalPayout", placeholder: "e.g. 1200", type: "number" },
+            { label: "Net Payout *",   key: "netPayout",   placeholder: "e.g. 750",  type: "number" },
+          ].map(({ label, key, placeholder, type }) => (
+            <Form.Group key={key} className="mb-3">
+              <Form.Label>{label}</Form.Label>
+              <Form.Control type={type} min="0" placeholder={placeholder} value={payoutForm[key]} onChange={(e) => setPayoutForm({ ...payoutForm, [key]: e.target.value })} />
+            </Form.Group>
+          ))}
+          <Row className="mb-3">
+            {[["Period Start *","periodStart"],["Period End *","periodEnd"]].map(([label,key]) => (
+              <Col key={key}>
+                <Form.Label>{label}</Form.Label>
+                <Form.Control type="date" value={payoutForm[key]} onChange={(e) => setPayoutForm({ ...payoutForm, [key]: e.target.value })} />
+              </Col>
+            ))}
+          </Row>
+          <Form.Group>
+            <Form.Label>Note <span style={{ color: G.muted }}>(optional)</span></Form.Label>
+            <Form.Control type="text" placeholder="e.g. April payout" value={payoutForm.note} onChange={(e) => setPayoutForm({ ...payoutForm, note: e.target.value })} />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <button style={ghostBtn} onClick={() => setShowPayoutModal(false)}>Cancel</button>
+          <button style={goldBtn} onClick={handlePostPayout} disabled={payoutPosting || !payoutForm.totalPayout || !payoutForm.netPayout || !payoutForm.periodStart || !payoutForm.periodEnd}>
+            {payoutPosting ? <><Spinner animation="border" size="sm" className="me-2" />Processing...</> : "Confirm Payout"}
+          </button>
+        </Modal.Footer>
+      </Modal>
 
-{/* IMAGE PREVIEW MODAL */}
-<Modal
-  show={showImageModal}
-  onHide={() => setShowImageModal(false)}
-  centered
-  size="lg"
->
-  <Modal.Body className="text-center p-0">
-    <img
-      src={
-        trainer.userProfileDetails?.[0]?.avatarUrl ||
-        "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"
-      }
-      alt="preview"
-      style={{
-        width: "100%",
-        maxHeight: "80vh",
-        objectFit: "contain",
-      }}
-    />
-  </Modal.Body>
-</Modal>
-      
+      {/* IMAGE PREVIEW MODAL */}
+      <Modal show={showImageModal} onHide={() => setShowImageModal(false)} centered size="lg">
+        <Modal.Body className="text-center p-0" style={{ background: "#000" }}>
+          <img src={trainer.userProfileDetails?.[0]?.avatarUrl || "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"} alt="preview" style={{ width: "100%", maxHeight: "80vh", objectFit: "contain" }} />
+        </Modal.Body>
+      </Modal>
 
     </div>
   );

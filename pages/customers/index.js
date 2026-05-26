@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { Table, Modal, Badge, Dropdown, Form, Button } from "react-bootstrap";
+import { Table, Modal, Dropdown, Form } from "react-bootstrap";
 import { useRouter } from "next/router";
-import { Card, Row, Col } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchCustomers,
@@ -10,479 +9,303 @@ import {
   assignTrainer,
 } from "../../redux/slices/customerSlice";
 
+const G = {
+  bg: "#111111", card: "#1a1a1a", gold: "#d4a017", goldLight: "#f5d76e",
+  divider: "rgba(212,160,23,0.2)", text: "#f1f1f1", muted: "#888888", input: "#222222",
+};
 
 export default function AllCustomers() {
 
   const [trainers, setTrainers] = useState([]);
-
   const [filterType, setFilterType] = useState("All");
-
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
-
-  const [showView, setShowView] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
   const [showAssign, setShowAssign] = useState(false);
-
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [editData, setEditData] = useState({});
   const [selectedTrainer, setSelectedTrainer] = useState("");
   const [bulkMode, setBulkMode] = useState(false);
-const [selectedCustomers, setSelectedCustomers] = useState([]);
+  const [selectedCustomers, setSelectedCustomers] = useState([]);
 
-  //redux
   const dispatch = useDispatch();
+  const { customers, loading } = useSelector((state) => state.customers);
 
-const { customers, loading } = useSelector(
-  (state) => state.customers
-);
-
-  //searc box
   const [trainerSearch, setTrainerSearch] = useState("");
-
-  //pagination logic
   const [currentPage, setCurrentPage] = useState(1);
-const [entriesPerPage, setEntriesPerPage] = useState(10);
-const [search, setSearch] = useState("");
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [search, setSearch] = useState("");
 
   const router = useRouter();
 
-  // Load customers + trainers
+  useEffect(() => {
+    dispatch(fetchCustomers());
+  }, [dispatch]);
 
-// To this:
-useEffect(() => {
-  dispatch(fetchCustomers());
-}, [dispatch]);
+  useEffect(() => {
+    const fetchTrainers = async () => {
+      const token = localStorage.getItem("adminToken");
+      const response = await fetch(
+        "https://fitness-app-seven-beryl.vercel.app/api/trainers",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await response.json();
+      if (response.ok) setTrainers(data.data);
+    };
+    fetchTrainers();
+  }, []);
 
-useEffect(() => {
-  const fetchTrainers = async () => {
-    const token = localStorage.getItem("adminToken");
+  const handleView = (customer) => {
+    router.push(`/customers/${customer.id}`);
+  };
 
-    const response = await fetch(
-      "https://fitness-app-seven-beryl.vercel.app/api/trainers",
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    const data = await response.json();
-
-    if (response.ok) {
-      setTrainers(data.data);
+  const handleBulkDelete = async () => {
+    if (selectedCustomers.length === 0) return;
+    const confirmDelete = confirm("Are you sure you want to delete selected customers?");
+    if (!confirmDelete) return;
+    setBulkDeleteLoading(true);
+    try {
+      const token = localStorage.getItem("adminToken");
+      const results = await Promise.all(
+        selectedCustomers.map((id) =>
+          fetch(`https://fitness-app-seven-beryl.vercel.app/api/customers/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(async (res) => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || `Failed to delete customer ${id}`);
+            return id;
+          })
+        )
+      );
+      results.forEach((id) => {
+        dispatch({ type: "customers/deleteCustomer/fulfilled", payload: id });
+      });
+      setSelectedCustomers([]);
+      setBulkMode(false);
+      alert("Deleted successfully ✅");
+    } catch (err) {
+      alert(`Delete failed: ${err.message}`);
+    } finally {
+      setBulkDeleteLoading(false);
     }
   };
 
-  fetchTrainers();
-}, []);
+  const handleEditOpen = (customer) => {
+    router.push(`/customers/create?id=${customer.id}`);
+  };
 
-
-  // VIEW
-const handleView = (customer) => {
-  router.push(`/customers/${customer.id}`);
-};
-
-const handleBulkDelete = async () => {
-  if (selectedCustomers.length === 0) return;
-
-  const confirmDelete = confirm("Are you sure you want to delete selected customers?");
-  if (!confirmDelete) return;
-
-  setBulkDeleteLoading(true);
-
-  try {
-    const token = localStorage.getItem("adminToken");
-
-    const results = await Promise.all(
-      selectedCustomers.map((id) =>
-        fetch(
-          `https://fitness-app-seven-beryl.vercel.app/api/customers/${id}`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        ).then(async (res) => {
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.message || `Failed to delete customer ${id}`);
-          }
-          return id;
-        })
-      )
-    );
-
-    // Only remove from Redux if API succeeded
-    results.forEach((id) => {
-  dispatch({ type: "customers/deleteCustomer/fulfilled", payload: id });
-});
-
-    setSelectedCustomers([]);
-    setBulkMode(false);
-    alert("Deleted successfully ✅");
-
-  } catch (err) {
-    console.error("Bulk delete error:", err.message);
-    alert(`Delete failed: ${err.message}`);
-  } finally {
-    setBulkDeleteLoading(false);
-  }
-};
-
-  // EDIT
- // EDIT (Redirect to create page in edit mode)
-const handleEditOpen = (customer) => {
-  router.push(`/customers/create?id=${customer.id}`);
-};
-
-
-  // REMOVE TRAINER
   const handleRemoveTrainer = async (customer) => {
     const assignedTrainer = trainers.find((trainer) =>
       trainer.assignedCustomers?.some((item) => item.customerId === customer.id)
     );
-
-    if (!assignedTrainer) {
-      alert("No trainer assigned to this customer.");
-      return;
-    }
-
+    if (!assignedTrainer) { alert("No trainer assigned to this customer."); return; }
     if (!confirm(`Remove ${assignedTrainer.firstName} ${assignedTrainer.lastName} from this customer?`)) return;
-
     try {
       const token = localStorage.getItem("adminToken");
       const res = await fetch(
         `https://fitness-app-seven-beryl.vercel.app/api/unassign-customer/${customer.id}`,
         {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ trainerId: assignedTrainer.id }),
-      });
-
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ trainerId: assignedTrainer.id }),
+        }
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || `Error ${res.status}`);
-
       dispatch(fetchCustomers());
     } catch (err) {
       alert(err.message);
     }
   };
 
-  // ASSIGN TRAINER
   const handleAssignOpen = (customer) => {
     setSelectedCustomer(customer);
-
-    // Find assigned trainer from trainers list
     const assignedTrainer = trainers.find((trainer) =>
-      trainer.assignedCustomers?.some(
-        (item) => item.customerId === customer.id
-      )
+      trainer.assignedCustomers?.some((item) => item.customerId === customer.id)
     );
-
-    if (assignedTrainer) {
-      setSelectedTrainer(assignedTrainer.id);
-    } else {
-      setSelectedTrainer("");
-    }
-
+    setSelectedTrainer(assignedTrainer ? assignedTrainer.id : "");
     setShowAssign(true);
   };
 
- const handleAssignSave = async () => {
-  await dispatch(
-    assignTrainer({
-      trainerId: selectedTrainer,
-      customerId: selectedCustomer.id,
-    })
-  );
+  const handleAssignSave = async () => {
+    await dispatch(assignTrainer({ trainerId: selectedTrainer, customerId: selectedCustomer.id }));
+    setShowAssign(false);
+  };
 
-  setShowAssign(false);
-};
-
-
-const filteredCustomers = customers
-  .filter((customer) => {
-    const fullName =
-      `${customer.firstName} ${customer.lastName}`.toLowerCase();
-
+  const filteredCustomers = customers.filter((customer) => {
+    const fullName = `${customer.firstName} ${customer.lastName}`.toLowerCase();
     const matchesSearch =
       fullName.includes(search.toLowerCase()) ||
       customer.email.toLowerCase().includes(search.toLowerCase());
-
     let matchesFilter = true;
-
-    if (filterType === "Active") {
-      matchesFilter = customer.isActive === true;
-    }
-
-    if (filterType === "Inactive") {
-      matchesFilter = customer.isActive === false;
-    }
-
-    if (filterType === "Premium") {
-      matchesFilter = customer.plan === "Premium"; // adjust if needed
-    }
-
-    if (filterType === "Free") {
-      matchesFilter = customer.plan === "Free"; // adjust if needed
-    }
-
+    if (filterType === "Active") matchesFilter = customer.isActive === true;
+    if (filterType === "Inactive") matchesFilter = customer.isActive === false;
+    if (filterType === "Premium") matchesFilter = customer.plan === "Premium";
+    if (filterType === "Free") matchesFilter = customer.plan === "Free";
     return matchesSearch && matchesFilter;
   });
-const indexOfLastCustomer = currentPage * entriesPerPage;
-const indexOfFirstCustomer = indexOfLastCustomer - entriesPerPage;
 
-const currentCustomers = filteredCustomers.slice(
-  indexOfFirstCustomer,
-  indexOfLastCustomer
-);
+  const indexOfLastCustomer = currentPage * entriesPerPage;
+  const indexOfFirstCustomer = indexOfLastCustomer - entriesPerPage;
+  const currentCustomers = filteredCustomers.slice(indexOfFirstCustomer, indexOfLastCustomer);
+  const totalPages = Math.ceil(filteredCustomers.length / entriesPerPage);
 
-const totalPages = Math.ceil(
-  filteredCustomers.length / entriesPerPage
-);
-
-const filteredTrainers = trainers
-  .filter((trainer) =>
-    `${trainer.firstName} ${trainer.lastName}`
-      .toLowerCase()
-      .includes(trainerSearch.toLowerCase())
-  )
-  .sort((a, b) => {
-    // Move selected trainer to top
-    if (a.id === selectedTrainer) return -1;
-    if (b.id === selectedTrainer) return 1;
-    return 0;
-  });
-
+  const filteredTrainers = trainers
+    .filter((trainer) =>
+      `${trainer.firstName} ${trainer.lastName}`.toLowerCase().includes(trainerSearch.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (a.id === selectedTrainer) return -1;
+      if (b.id === selectedTrainer) return 1;
+      return 0;
+    });
 
   return (
-  <div className="p-4">
-    {/* Full page loader overlay */}
-{bulkDeleteLoading && (
-  <div
-    style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
-      backgroundColor: "rgba(0, 0, 0, 0.4)",
-      zIndex: 9999,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: "16px",
-    }}
-  >
-    <div
-      className="spinner-border text-light"
-      role="status"
-      style={{ width: "48px", height: "48px" }}
-    />
-    <p style={{ color: "#fff", fontWeight: "600", fontSize: "16px", margin: 0 }}>
-      Deleting customers...
-    </p>
-  </div>
-)}
+    <div style={{ background: G.bg, minHeight: "100vh", padding: 24 }}>
+      <style>{`
+        table { background: ${G.card} !important; }
+        .table-responsive { background: ${G.card} !important; }
+        .cu-thead th { background: #1f1f1f !important; color: ${G.muted} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 11px; letter-spacing: 0.8px; padding: 12px 16px; }
+        .cu-tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-bottom: 1px solid ${G.divider} !important; padding: 14px 16px; vertical-align: middle; }
+        .cu-tbody tr:hover td { background: #202020 !important; }
+        .cu-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px; }
+        .cu-inp:focus { background: ${G.input} !important; color: ${G.text} !important; box-shadow: none !important; }
+        .cu-inp::placeholder { color: #555 !important; }
+        .cu-inp option { background: #1a1a1a; }
+        .cu-ddm { background: #1e1e1e !important; border: 1px solid ${G.divider} !important; }
+        .cu-ddm .dropdown-item { color: ${G.text} !important; font-size: 13px; }
+        .cu-ddm .dropdown-item:hover { background: rgba(212,160,23,0.08) !important; color: ${G.goldLight} !important; }
+        .cu-ddm .dropdown-item.active, .cu-ddm .dropdown-item:active { background: rgba(212,160,23,0.15) !important; color: ${G.goldLight} !important; }
+        .cu-ddm .dropdown-divider { border-color: ${G.divider} !important; }
+        .cu-tbody .status-pill { background: transparent !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; }
+        .cu-tbody .status-pill .fw-semibold { color: ${G.text} !important; }
+        .cu-pg .page-link { background: #1a1a1a !important; border-color: ${G.divider} !important; color: ${G.muted} !important; }
+        .cu-pg .page-item.active .page-link { background: ${G.gold} !important; border-color: ${G.gold} !important; color: #111 !important; font-weight: 600; }
+        .cu-pg .page-item.disabled .page-link { background: #161616 !important; color: #444 !important; }
+        .cu-pg .page-link:hover { background: rgba(212,160,23,0.1) !important; color: ${G.goldLight} !important; }
+        .modal-gold .modal-content { background: ${G.card}; border: 1px solid ${G.divider}; color: ${G.text}; }
+        .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; }
+        .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; }
+        .modal-gold .modal-title { color: ${G.goldLight}; font-weight: 700; }
+        .modal-gold .btn-close { filter: invert(1) brightness(0.6); }
+        .modal-gold .modal-body { background: ${G.card} !important; }
+        .modal-gold .form-control { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; }
+        .modal-gold .form-control:focus { background: ${G.input} !important; box-shadow: none !important; }
+        .modal-gold .form-control::placeholder { color: #555 !important; }
+        .modal-gold .form-check-label { color: ${G.text}; }
+        .modal-gold .form-check-input { background-color: #333; border-color: ${G.divider}; }
+        @keyframes cu-spin { to { transform: rotate(360deg); } }
+      `}</style>
 
-    {/* HEADER */}
-    <Row className="align-items-center mb-4">
-  <Col>
-    <h3 className="fw-bold mb-1">All Customers</h3>
-    <small className="text-muted">Manage all customers</small>
-  </Col>
+      {/* BULK DELETE LOADER */}
+      {bulkDeleteLoading && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
+          <div style={{ width: 52, height: 52, border: "5px solid #333", borderTop: `5px solid ${G.gold}`, borderRadius: "50%", animation: "cu-spin 0.8s linear infinite" }} />
+          <p style={{ color: G.text, fontWeight: 600, fontSize: 15, margin: 0 }}>Deleting customers...</p>
+        </div>
+      )}
 
-  <Col className="text-end d-flex justify-content-end align-items-center gap-2">
+      {/* HEADER */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+        <div>
+          <h3 style={{ color: G.goldLight, fontWeight: 700, margin: 0 }}>All Customers</h3>
+          <small style={{ color: G.muted }}>Manage all customers</small>
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
 
-  {/* FILTER DROPDOWN */}
-  <Dropdown align="end">
-  <Dropdown.Toggle
-    as="button"
-    className="btn btn-light border d-flex align-items-center justify-content-center"
-    style={{ width: 42, height: 42 }}
-  >
-    <i className="fe fe-filter text-secondary"></i>
-  </Dropdown.Toggle>
+          {/* FILTER DROPDOWN */}
+          <Dropdown align="end">
+            <Dropdown.Toggle as="button" style={{ background: G.card, border: `1px solid ${G.divider}`, borderRadius: 8, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <i className="fe fe-filter" style={{ color: G.muted }}></i>
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="cu-ddm" align="end" style={{ width: 180 }}>
+              {["All", "Active", "Inactive", "Premium", "Free"].map((type) => (
+                <Dropdown.Item key={type} active={filterType === type} onClick={() => setFilterType(type)}>
+                  {type}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
 
-    <Dropdown.Menu
-  align="end"
-  className="shadow border-0 rounded-3 py-2"
-  style={{ width: 180 }}
->
+          {/* BULK DELETE TOGGLE */}
+          <button
+            onClick={() => { setBulkMode(!bulkMode); setSelectedCustomers([]); }}
+            style={{ background: bulkMode ? "rgba(248,113,113,0.12)" : G.card, border: `1px solid ${bulkMode ? "rgba(248,113,113,0.4)" : G.divider}`, borderRadius: 8, width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+          >
+            <i className="fe fe-trash" style={{ color: bulkMode ? "#f87171" : G.muted }}></i>
+          </button>
 
-      <Dropdown.Item
-  active={filterType === "All"}
-  onClick={() => setFilterType("All")}
-  className={`filter-item ${
-    filterType === "All" ? "active-filter" : ""
-  }`}
->
-  <span className="filter-dot filter-all me-2"></span>
-  All
-</Dropdown.Item>
+          {/* CREATE BUTTON */}
+          <button
+            onClick={() => router.push("/customers/create")}
+            style={{ background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: "#111", padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14 }}
+          >
+            + Create Customer
+          </button>
+        </div>
+      </div>
 
-<Dropdown.Item
-  active={filterType === "Active"}
-  onClick={() => setFilterType("Active")}
-  className={`filter-item ${
-    filterType === "Active" ? "active-filter" : ""
-  }`}
->
-  <span className="filter-dot filter-active me-2"></span>
-  Active
-</Dropdown.Item>
-
-<Dropdown.Item
-  active={filterType === "Inactive"}
-  onClick={() => setFilterType("Inactive")}
-  className={`filter-item ${
-    filterType === "Inactive" ? "active-filter" : ""
-  }`}
->
-  <span className="filter-dot filter-inactive me-2"></span>
-  Inactive
-</Dropdown.Item>
-
-<Dropdown.Item
-  active={filterType === "Premium"}
-  onClick={() => setFilterType("Premium")}
-  className={`filter-item ${
-    filterType === "Premium" ? "active-filter" : ""
-  }`}
->
-  <span className="filter-dot filter-premium me-2"></span>
-  Premium
-</Dropdown.Item>
-
-<Dropdown.Item
-  active={filterType === "Free"}
-  onClick={() => setFilterType("Free")}
-  className={`filter-item ${
-    filterType === "Free" ? "active-filter" : ""
-  }`}
->
-  <span className="filter-dot filter-free me-2"></span>
-  Free
-</Dropdown.Item>
-
-    </Dropdown.Menu>
-  </Dropdown>
-
-{/* BULK DELETE BUTTON */}
-<Button
-  variant="light"
-  className={`btn border icon-square-btn delete-toggle-btn ${
-    bulkMode ? "active-delete" : ""
-  }`}
-  onClick={() => {
-    setBulkMode(!bulkMode);
-    setSelectedCustomers([]);
-  }}
->
-  <i className="fe fe-trash text-secondary"></i>
-</Button>
-  {/* CREATE BUTTON */}
-  <Button
-    variant="primary"
-    className="px-4"
-    onClick={() => router.push("/customers/create")}
-  >
-    + Create Customer
-  </Button>
-
-</Col>
-</Row>
-
-    {/* CARD */}
-    <Card className="shadow-sm border-0 rounded-3">
-      <Card.Body>
+      {/* MAIN CARD */}
+      <div style={{ background: G.card, border: `1px solid ${G.divider}`, borderRadius: 14, padding: 24 }}>
 
         {/* SHOW + SEARCH ROW */}
-        <Row className="mb-3 align-items-center">
-          <Col md={6} className="d-flex align-items-center gap-2">
-            <span className="text-muted small">Show</span>
-
-            <Form.Select
-  size="sm"
-  style={{ width: 80 }}
-  value={entriesPerPage}
-  onChange={(e) => {
-    setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  }}
->
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ color: G.muted, fontSize: 13 }}>Show</span>
+            <Form.Select size="sm" style={{ width: 80 }} value={entriesPerPage} className="cu-inp"
+              onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }}>
               <option value={5}>5</option>
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
             </Form.Select>
+            <span style={{ color: G.muted, fontSize: 13 }}>entries</span>
+          </div>
+          <Form.Control
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+            style={{ width: 220 }}
+            size="sm"
+            className="cu-inp"
+          />
+        </div>
 
-            <span className="text-muted small">entries</span>
-          </Col>
+        {/* BULK DELETE BUTTON */}
+        {bulkMode && selectedCustomers.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <button
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteLoading}
+              style={{ background: "rgba(248,113,113,0.12)", border: "1px solid rgba(248,113,113,0.4)", color: "#f87171", padding: "6px 18px", borderRadius: 8, fontWeight: 600, cursor: "pointer", fontSize: 13 }}
+            >
+              {bulkDeleteLoading ? "Deleting..." : `Delete Selected (${selectedCustomers.length})`}
+            </button>
+          </div>
+        )}
 
-          <Col md={6} className="text-end">
-            <Form.Control
-  placeholder="Search..."
-  value={search}
-  onChange={(e) => {
-    setSearch(e.target.value);
-    setCurrentPage(1);
-  }}
-  style={{ width: 220, display: "inline-block" }}
-  size="sm"
-/>
-          </Col>
-        </Row>
-{bulkMode && selectedCustomers.length > 0 && (
-  <div className="mb-3">
-    <Button
-      variant="danger"
-      onClick={handleBulkDelete}
-      disabled={bulkDeleteLoading}
-    >
-      {bulkDeleteLoading ? (
-        <>
-          <span
-            className="spinner-border spinner-border-sm me-2"
-            role="status"
-            aria-hidden="true"
-          ></span>
-          Deleting...
-        </>
-      ) : (
-        `Delete Selected (${selectedCustomers.length})`
-      )}
-    </Button>
-  </div>
-)}
         {/* TABLE */}
-        <Table responsive hover className="align-middle">
-          <thead className="bg-light">
-            <tr className="text-muted text-uppercase small">
-  {bulkMode && <th style={{ width: 40 }}></th>}
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Gender</th> 
-              <th className="text-center">Status</th>
-              <th>Trainer</th>
-              <th className="text-end">Action</th>
+        <Table responsive className="align-middle mb-0">
+          <thead className="cu-thead">
+            <tr>
+              {bulkMode && <th style={{ width: 40 }}></th>}
+              <th>NAME</th>
+              <th>EMAIL</th>
+              <th>PHONE</th>
+              <th>GENDER</th>
+              <th className="text-center">STATUS</th>
+              <th>TRAINER</th>
+              <th className="text-end">ACTION</th>
             </tr>
           </thead>
-
-          <tbody>
+          <tbody className="cu-tbody">
             {loading ? (
-  <tr>
-    <td colSpan={bulkMode ? 7 : 6} className="text-center py-4 text-muted fw-semibold">
-      Loading customers...
-    </td>
-  </tr>
-) : currentCustomers.length === 0 ? (
               <tr>
-                <td colSpan="6" className="text-center py-4 text-muted fw-semibold">
+                <td colSpan={bulkMode ? 8 : 7} style={{ textAlign: "center", padding: "32px 0", color: G.muted }}>
+                  Loading customers...
+                </td>
+              </tr>
+            ) : currentCustomers.length === 0 ? (
+              <tr>
+                <td colSpan={bulkMode ? 8 : 7} style={{ textAlign: "center", padding: "32px 0", color: G.muted }}>
                   No Customers Found
                 </td>
               </tr>
@@ -490,323 +313,203 @@ const filteredTrainers = trainers
               currentCustomers.map((customer) => (
                 <tr key={customer.id}>
                   {bulkMode && (
-  <td>
-    <Form.Check
-      type="checkbox"
-      checked={selectedCustomers.includes(customer.id)}
-      onChange={(e) => {
-        if (e.target.checked) {
-          setSelectedCustomers([
-            ...selectedCustomers,
-            customer.id,
-          ]);
-        } else {
-          setSelectedCustomers(
-            selectedCustomers.filter(
-              (id) => id !== customer.id
-            )
-          );
-        }
-      }}
-    />
-  </td>
-)}
+                    <td>
+                      <Form.Check
+                        type="checkbox"
+                        checked={selectedCustomers.includes(customer.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCustomers([...selectedCustomers, customer.id]);
+                          } else {
+                            setSelectedCustomers(selectedCustomers.filter((id) => id !== customer.id));
+                          }
+                        }}
+                      />
+                    </td>
+                  )}
 
-                  <td className="fw-semibold text-dark">
-                    {customer.firstName} {customer.lastName}
-                  </td>
+                  <td style={{ fontWeight: 600 }}>{customer.firstName} {customer.lastName}</td>
+                  <td>{customer.email}</td>
+                  <td>{customer.phone}</td>
+                  <td>{customer.gender ? customer.gender.toLowerCase() : "—"}</td>
 
-                  <td className="text-dark">
-                    {customer.email}
-                  </td>
-
-                  <td className="text-dark">
-                    {customer.phone}
-                  </td>
-
-                  <td>
-  {customer.gender
-    ? customer.gender.toLowerCase()
-    : "—"}
-</td>
-
-                  <td className="text-center align-middle">
-  <Dropdown>
-    <Dropdown.Toggle
-      as="button"
-      className={`status-pill ${
-        customer.isActive ? "status-active" : "status-inactive"
-      }`}
-    >
-      <span
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: "50%",
-          backgroundColor: customer.isActive
-            ? "#22c55e"
-            : "#dc3545",
-        }}
-      ></span>
-
-      <span className="fw-semibold text-dark">
-        {customer.isActive ? "Active" : "Inactive"}
-      </span>
-
-      <i className="fe fe-chevron-down small text-muted"></i>
-    </Dropdown.Toggle>
-
-    <Dropdown.Menu className="shadow border-0 rounded-3">
-      <Dropdown.Item
-  onClick={() =>
-    dispatch(toggleCustomerStatus({ id: customer.id, isActive: true }))
-  }
->
-  <span className="text-success me-2">●</span>
-  Active
-</Dropdown.Item>
-
-<Dropdown.Item
-  onClick={() =>
-    dispatch(toggleCustomerStatus({ id: customer.id, isActive: false }))
-  }
->
-  <span className="text-danger me-2">●</span>
-  Inactive
-</Dropdown.Item>
-
-    </Dropdown.Menu>
-  </Dropdown>
-</td>
-
-                  <td>
-  {(() => {
-    const assignedTrainer = trainers.find((trainer) =>
-      trainer.assignedCustomers?.some(
-        (item) => item.customerId === customer.id
-      )
-    );
-
-    return assignedTrainer
-      ? `${assignedTrainer.firstName} ${assignedTrainer.lastName}`
-      : "Not Assigned";
-  })()}
-</td>
-
-                  <td className="text-end">
-                    <Dropdown align="end">
-                      <Dropdown.Toggle
-                        as="button"
-                        className="btn btn-sm btn-light border-0"
-                      >
-                        <i className="fe fe-more-vertical text-secondary"></i>
+                  <td className="text-center">
+                    <Dropdown>
+                      <Dropdown.Toggle as="button" className={`status-pill ${customer.isActive ? "status-active" : "status-inactive"}`}>
+                        <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: customer.isActive ? "#4ade80" : "#f87171" }}></span>
+                        <span className="fw-semibold">{customer.isActive ? "Active" : "Inactive"}</span>
+                        <i className="fe fe-chevron-down small" style={{ color: G.muted }}></i>
                       </Dropdown.Toggle>
-
-                      <Dropdown.Menu className="shadow border-0 rounded-3">
-                        <Dropdown.Item onClick={() => handleView(customer)}>
-                          <i className="fe fe-eye me-2 text-secondary"></i>
-                          View
+                      <Dropdown.Menu className="cu-ddm">
+                        <Dropdown.Item onClick={() => dispatch(toggleCustomerStatus({ id: customer.id, isActive: true }))}>
+                          <span style={{ color: "#4ade80", marginRight: 8 }}>●</span>Active
                         </Dropdown.Item>
-
-{customer.isActive && (
-  <Dropdown.Item
-    onClick={() => handleAssignOpen(customer)}
-  >
-    <i className="fe fe-user-plus me-2 text-secondary"></i>
-
-    {(() => {
-      const isAssigned = trainers.some((trainer) =>
-        trainer.assignedCustomers?.some(
-          (item) => item.customerId === customer.id
-        )
-      );
-
-      return isAssigned ? "Change Trainer" : "Assign Trainer";
-    })()}
-  </Dropdown.Item>
-)}
-
-{trainers.some((trainer) =>
-  trainer.assignedCustomers?.some((item) => item.customerId === customer.id)
-) && (
-  <Dropdown.Item
-    className="text-danger"
-    onClick={() => handleRemoveTrainer(customer)}
-  >
-    <i className="fe fe-user-x me-2"></i>
-    Remove Trainer
-  </Dropdown.Item>
-)}
-
-                        <Dropdown.Item
-                          onClick={() => handleEditOpen(customer)}
-                        >
-                          <i className="fe fe-edit me-2 text-secondary"></i>
-                          Edit
-                        </Dropdown.Item>
-
-                        <Dropdown.Divider />
-
-                        <Dropdown.Item
-                          className="text-dark"
-                          onClick={async () => {
-  if (!confirm("Delete this customer?")) return;
-  await dispatch(deleteCustomer(customer.id));
-}}
-                        >
-                          <i className="fe fe-trash me-2"></i>
-                          Delete
+                        <Dropdown.Item onClick={() => dispatch(toggleCustomerStatus({ id: customer.id, isActive: false }))}>
+                          <span style={{ color: "#f87171", marginRight: 8 }}>●</span>Inactive
                         </Dropdown.Item>
                       </Dropdown.Menu>
                     </Dropdown>
                   </td>
 
+                  <td>
+                    {(() => {
+                      const assignedTrainer = trainers.find((trainer) =>
+                        trainer.assignedCustomers?.some((item) => item.customerId === customer.id)
+                      );
+                      return assignedTrainer
+                        ? `${assignedTrainer.firstName} ${assignedTrainer.lastName}`
+                        : <span style={{ color: G.muted, fontSize: 13 }}>Not Assigned</span>;
+                    })()}
+                  </td>
+
+                  <td className="text-end">
+                    <Dropdown align="end">
+                      <Dropdown.Toggle as="button" style={{ background: "transparent", border: `1px solid ${G.divider}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer" }}>
+                        <i className="fe fe-more-vertical" style={{ color: G.muted }}></i>
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu className="cu-ddm">
+                        <Dropdown.Item onClick={() => handleView(customer)}>
+                          <i className="fe fe-eye me-2" style={{ color: G.muted }}></i>View
+                        </Dropdown.Item>
+
+                        {customer.isActive && (
+                          <Dropdown.Item onClick={() => handleAssignOpen(customer)}>
+                            <i className="fe fe-user-plus me-2" style={{ color: G.muted }}></i>
+                            {(() => {
+                              const isAssigned = trainers.some((trainer) =>
+                                trainer.assignedCustomers?.some((item) => item.customerId === customer.id)
+                              );
+                              return isAssigned ? "Change Trainer" : "Assign Trainer";
+                            })()}
+                          </Dropdown.Item>
+                        )}
+
+                        {trainers.some((trainer) =>
+                          trainer.assignedCustomers?.some((item) => item.customerId === customer.id)
+                        ) && (
+                          <Dropdown.Item style={{ color: "#f87171" }} onClick={() => handleRemoveTrainer(customer)}>
+                            <i className="fe fe-user-x me-2"></i>Remove Trainer
+                          </Dropdown.Item>
+                        )}
+
+                        <Dropdown.Item onClick={() => handleEditOpen(customer)}>
+                          <i className="fe fe-edit me-2" style={{ color: G.muted }}></i>Edit
+                        </Dropdown.Item>
+
+                        <Dropdown.Divider />
+
+                        <Dropdown.Item
+                          style={{ color: "#f87171" }}
+                          onClick={async () => {
+                            if (!confirm("Delete this customer?")) return;
+                            await dispatch(deleteCustomer(customer.id));
+                          }}
+                        >
+                          <i className="fe fe-trash me-2"></i>Delete
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </Table>
 
-        {/* PAGINATION STYLE (UI ONLY) */}
-        <Row className="mt-4 align-items-center">
-  <Col md={6} className="text-muted small">
-    Showing {filteredCustomers.length === 0 ? 0 : indexOfFirstCustomer + 1} to{" "}
-    {Math.min(indexOfLastCustomer, filteredCustomers.length)} of{" "}
-    {filteredCustomers.length} entries
-  </Col>
+        {/* PAGINATION */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
+          <span style={{ color: G.muted, fontSize: 13 }}>
+            Showing {filteredCustomers.length === 0 ? 0 : indexOfFirstCustomer + 1} to{" "}
+            {Math.min(indexOfLastCustomer, filteredCustomers.length)} of {filteredCustomers.length} entries
+          </span>
+          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+            {[
+              { label: "Previous", page: currentPage - 1, disabled: currentPage === 1 },
+              ...[...Array(totalPages)].map((_, i) => ({ label: i + 1, page: i + 1, disabled: false })),
+              { label: "Next", page: currentPage + 1, disabled: currentPage === totalPages || totalPages === 0 },
+            ].map((btn, i) => {
+              const isActive = btn.label === currentPage;
+              return (
+                <button key={i} disabled={btn.disabled}
+                  onClick={() => !btn.disabled && setCurrentPage(btn.page)}
+                  style={{
+                    padding: "5px 12px", borderRadius: 6, fontSize: 13,
+                    cursor: btn.disabled ? "not-allowed" : "pointer",
+                    fontWeight: isActive ? 700 : 400,
+                    border: `1px solid ${G.divider}`,
+                    background: isActive ? G.gold : "#1a1a1a",
+                    color: btn.disabled ? "#444" : isActive ? "#111" : G.goldLight,
+                    opacity: btn.disabled ? 0.5 : 1,
+                    transition: "all 0.15s ease",
+                  }}>
+                  {btn.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-  <Col md={6} className="text-end">
-    <nav>
-      <ul className="pagination pagination-sm justify-content-end mb-0">
-
-        <li className={`page-item ${currentPage === 1 && "disabled"}`}>
-          <button
-            className="page-link"
-            onClick={() => setCurrentPage(currentPage - 1)}
-          >
-            Previous
-          </button>
-        </li>
-
-        {[...Array(totalPages)].map((_, i) => (
-          <li
-            key={i}
-            className={`page-item ${
-              currentPage === i + 1 ? "active" : ""
-            }`}
-          >
-            <button
-              className="page-link"
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          </li>
-        ))}
-
-        <li
-          className={`page-item ${
-            currentPage === totalPages && "disabled"
-          }`}
-        >
-          <button
-            className="page-link"
-            onClick={() => setCurrentPage(currentPage + 1)}
-          >
-            Next
-          </button>
-        </li>
-
-      </ul>
-    </nav>
-  </Col>
-</Row>
-
-      </Card.Body>
-    </Card>
-
-    {/* ASSIGN TRAINER MODAL (UNCHANGED) */}
-    <Modal show={showAssign} onHide={() => setShowAssign(false)} centered>
-  <Modal.Header closeButton>
-    <Modal.Title>
-      {(() => {
-        const isAssigned = trainers.some((trainer) =>
-          trainer.assignedCustomers?.some(
-            (item) => item.customerId === selectedCustomer?.id
-          )
-        );
-
-        return isAssigned ? "Change Trainer" : "Assign Trainer";
-      })()}
-    </Modal.Title>
-  </Modal.Header>
-
-  <Modal.Body>
-
-    {/* 🔎 SEARCH BAR */}
-    <Form.Control
-      type="text"
-      placeholder="Search trainer..."
-      className="mb-3"
-      value={trainerSearch}
-      onChange={(e) => setTrainerSearch(e.target.value)}
-    />
-
-    {/* TRAINER LIST */}
-    <div
-  style={{
-    maxHeight: "250px",
-    overflowY: "auto",
-    paddingLeft: "4px",
-  }}
->
-
-      {filteredTrainers.length === 0 ? (
-        <p className="text-muted text-center">No trainers found</p>
-      ) : (
-        filteredTrainers.map((trainer) => (
-          <Form.Check
-            key={trainer.id}
-            type="radio"
-            name="trainerSelect"
-            label={`${trainer.firstName} ${trainer.lastName}`}
-            value={trainer.id}
-            checked={selectedTrainer === trainer.id}
-            onChange={() => setSelectedTrainer(trainer.id)}
-            className="mb-2"
+      {/* ASSIGN TRAINER MODAL */}
+      <Modal show={showAssign} onHide={() => setShowAssign(false)} centered className="modal-gold">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {(() => {
+              const isAssigned = trainers.some((trainer) =>
+                trainer.assignedCustomers?.some((item) => item.customerId === selectedCustomer?.id)
+              );
+              return isAssigned ? "Change Trainer" : "Assign Trainer";
+            })()}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Control
+            type="text"
+            placeholder="Search trainer..."
+            className="mb-3"
+            value={trainerSearch}
+            onChange={(e) => setTrainerSearch(e.target.value)}
           />
-        ))
-      )}
+          <div style={{ maxHeight: 250, overflowY: "auto", paddingLeft: 4 }}>
+            {filteredTrainers.length === 0 ? (
+              <p style={{ color: G.muted, textAlign: "center", margin: 0 }}>No trainers found</p>
+            ) : (
+              filteredTrainers.map((trainer) => (
+                <Form.Check
+                  key={trainer.id}
+                  type="radio"
+                  name="trainerSelect"
+                  label={`${trainer.firstName} ${trainer.lastName}`}
+                  value={trainer.id}
+                  checked={selectedTrainer === trainer.id}
+                  onChange={() => setSelectedTrainer(trainer.id)}
+                  className="mb-2"
+                />
+              ))
+            )}
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <button
+            onClick={() => setShowAssign(false)}
+            style={{ background: "transparent", border: `1px solid ${G.divider}`, color: G.text, padding: "6px 16px", borderRadius: 8, cursor: "pointer" }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleAssignSave}
+            disabled={!selectedTrainer}
+            style={{ background: selectedTrainer ? `linear-gradient(135deg, ${G.gold}, #b8860b)` : "#333", border: "none", color: selectedTrainer ? "#111" : G.muted, padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: selectedTrainer ? "pointer" : "not-allowed" }}
+          >
+            {(() => {
+              const isAssigned = trainers.some((trainer) =>
+                trainer.assignedCustomers?.some((item) => item.customerId === selectedCustomer?.id)
+              );
+              return isAssigned ? "Change Trainer" : "Assign Trainer";
+            })()}
+          </button>
+        </Modal.Footer>
+      </Modal>
     </div>
-
-  </Modal.Body>
-
-  <Modal.Footer>
-    <Button
-      variant="secondary"
-      onClick={() => setShowAssign(false)}
-    >
-      Cancel
-    </Button>
-
-    <Button
-      variant="primary"
-      onClick={handleAssignSave}
-      disabled={!selectedTrainer}
-    >
-      {(() => {
-        const isAssigned = trainers.some((trainer) =>
-          trainer.assignedCustomers?.some(
-            (item) => item.customerId === selectedCustomer?.id
-          )
-        );
-
-        return isAssigned ? "Change Trainer" : "Assign Trainer";
-      })()}
-    </Button>
-  </Modal.Footer>
-</Modal>
-
-  </div>
-);
+  );
 }

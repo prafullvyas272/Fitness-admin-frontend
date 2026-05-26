@@ -3,7 +3,10 @@ import QuickMenu from "layouts/QuickMenu";
 
 const NavbarTop = () => {
   return (
-    <Navbar className="navbar-classic navbar navbar-expand-lg">
+    <Navbar
+      className="navbar-classic navbar navbar-expand-lg"
+      style={{ background: '#111111', boxShadow: 'none' }}
+    >
       <div className="d-flex justify-content-end w-100">
         <Nav className="navbar-right-wrap d-flex nav-top-wrap">
           <QuickMenu />

@@ -11,16 +11,16 @@ const DefaultDashboardLayout = (props) => {
 	const ToggleMenu = () => {
 		return setShowMenu(!showMenu);
 	};	
-	return (		
-		<div id="db-wrapper" className={`${showMenu ? '' : 'toggled'}`}>
+	return (
+		<div id="db-wrapper" className={`${showMenu ? '' : 'toggled'}`} style={{ background: '#111111' }}>
 			<div className="navbar-vertical navbar">
 				<NavbarVertical
 					showMenu={showMenu}
 					onClick={(value) => setShowMenu(value)}
 				/>
 			</div>
-			<div id="page-content">
-				<div className="header">
+			<div id="page-content" style={{ background: '#111111' }}>
+				<div className="header" style={{ background: '#111111', borderBottom: '1px solid rgba(212,160,23,0.15)' }}>
 					<NavbarTop
 						data={{
 							showMenu: showMenu,
@@ -29,14 +29,10 @@ const DefaultDashboardLayout = (props) => {
 					/>
 				</div>
 				{props.children}
-				<div className='px-6 border-top py-3'>
+				<div style={{ borderTop: '1px solid rgba(212,160,23,0.15)', padding: '12px 24px', background: '#111111' }}>
 					<Row>
-						<Col sm={6} className='text-center text-sm-start mb-2 mb-sm-0'>
-							{/* <p className='m-0'>Made by <a href='https://codescandy.com/' target='_blank'>Codescandy</a></p> */}
-							</Col>
-						<Col sm={6} className='text-center text-sm-end'>
-							{/* <p className='m-0'>Destributed by <a href='https://themewagon.com/' target='_blank'>ThemeWagon</a></p> */}
-						</Col>
+						<Col sm={6} className='text-center text-sm-start mb-2 mb-sm-0'></Col>
+						<Col sm={6} className='text-center text-sm-end'></Col>
 					</Row>
 				</div>
 			</div>
