@@ -336,45 +336,41 @@ const filteredCustomers = customers.filter((customer) => {
 });
 
   const G = {
-    bg:         "#111111",
-    card:       "#1a1a1a",
-    cardBorder: "1px solid rgba(212,160,23,0.25)",
-    gold:       "#d4a017",
-    goldLight:  "#f5d76e",
-    goldFaint:  "rgba(212,160,23,0.08)",
-    text:       "#f1f1f1",
+    bg:         "#0a0a0a",
+    card:       "#0d0d0d",
+    cardBorder: "1px solid #1e1e1e",
+    gold:       "#f8e396",
+    goldLight:  "#f8e396",
+    goldFaint:  "rgba(248,227,150,0.07)",
+    text:       "#ffffff",
     muted:      "#888888",
-    rowHover:   "rgba(212,160,23,0.06)",
-    divider:    "rgba(212,160,23,0.15)",
-    input:      "#222222",
+    rowHover:   "#111111",
+    divider:    "#1e1e1e",
+    input:      "#111111",
   };
 
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: "24px" }}>
       <style>{`
-        .tr-gold td { background: ${G.card} !important; border-bottom: 1px solid ${G.divider} !important; color: ${G.text} !important; }
+        .tr-gold td { background: ${G.card} !important; border-bottom: 1px solid #141414 !important; color: ${G.text} !important; }
         .tr-gold:hover td { background: ${G.rowHover} !important; }
         table { background: ${G.card} !important; }
         .table-responsive { background: ${G.card} !important; }
-        tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-color: ${G.divider} !important; }
-        .th-gold { background: #161616 !important; color: ${G.goldLight} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 11px; letter-spacing: 0.8px; }
-        .pg-gold .page-link { background: #1a1a1a; border-color: ${G.divider}; color: ${G.goldLight}; }
-        .pg-gold .page-link:hover { background: ${G.goldFaint}; color: ${G.gold}; }
-        .pg-gold .page-item.active .page-link { background: ${G.gold}; border-color: ${G.gold}; color: #111; font-weight: 700; }
-        .pg-gold .page-item.disabled .page-link { background: #161616; color: #444; border-color: ${G.divider}; }
-        .inp-gold { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px !important; }
-        .inp-gold::placeholder { color: #555 !important; }
-        .inp-gold:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(212,160,23,0.15) !important; outline: none !important; }
-        .inp-gold option { background: #1a1a1a; color: ${G.text}; }
-        .ddm-gold { background: #1e1e1e !important; border: 1px solid ${G.divider} !important; }
+        tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-color: #141414 !important; }
+        .th-gold { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px; letter-spacing: 1.2px; font-weight: 700; }
+        .inp-gold { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px !important; }
+        .inp-gold::placeholder { color: #2a2a2a !important; }
+        .inp-gold:focus { border-color: rgba(248,227,150,0.25) !important; outline: none !important; }
+        .inp-gold option { background: #111111; color: #cccccc; }
+        .ddm-gold { background: #0d0d0d !important; border: 1px solid ${G.divider} !important; }
         .ddm-gold .dropdown-item { color: ${G.text} !important; font-size: 13px; }
-        .ddm-gold .dropdown-item:hover { background: ${G.goldFaint} !important; color: ${G.goldLight} !important; }
+        .ddm-gold .dropdown-item:hover { background: #111111 !important; color: ${G.goldLight} !important; }
         .ddm-gold .dropdown-divider { border-color: ${G.divider} !important; }
-        .modal-gold .modal-content { background: #1a1a1a; border: 1px solid ${G.divider}; color: ${G.text}; }
+        .modal-gold .modal-content { background: #0d0d0d; border: 1px solid ${G.divider}; color: ${G.text}; }
         .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; }
         .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; }
         .modal-gold .btn-close { filter: invert(1); }
-        .modal-gold .modal-body { background: #1a1a1a !important; }
+        .modal-gold .modal-body { background: #0d0d0d !important; }
         .modal-gold .form-check-label { color: ${G.text}; }
       `}</style>
 
@@ -392,7 +388,7 @@ const filteredCustomers = customers.filter((customer) => {
             <Dropdown.Toggle
               as="button"
               style={{
-                width: 42, height: 42, background: "#1a1a1a",
+                width: 42, height: 42, background: "#111111",
                 border: `1px solid ${G.divider}`, borderRadius: 8,
                 display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
               }}
@@ -417,7 +413,7 @@ const filteredCustomers = customers.filter((customer) => {
             onClick={() => { setSelectionMode(!selectionMode); setSelectedIds([]); }}
             style={{
               width: 42, height: 42, borderRadius: 8, cursor: "pointer",
-              background: selectionMode ? "rgba(212,160,23,0.15)" : "#1a1a1a",
+              background: selectionMode ? "rgba(248,227,150,0.1)" : "#111111",
               border: selectionMode ? `1px solid ${G.gold}` : `1px solid ${G.divider}`,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
@@ -428,10 +424,9 @@ const filteredCustomers = customers.filter((customer) => {
           {/* CREATE */}
           <Link href="/trainers/create">
             <button style={{
-              background: `linear-gradient(135deg, ${G.gold}, #b8860b)`,
-              color: "#111", border: "none", padding: "0 20px", height: 42,
-              borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: "pointer",
-              boxShadow: "0 4px 12px rgba(212,160,23,0.3)",
+              background: G.gold,
+              color: "#000", border: "none", padding: "0 20px", height: 42,
+              borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: "pointer",
             }}>
               + Create Trainer
             </button>
@@ -631,9 +626,9 @@ const filteredCustomers = customers.filter((customer) => {
                       onClick={() => !btn.disabled && setCurrentPage(btn.page)}
                       style={{
                         padding: "5px 12px", borderRadius: 6, fontSize: 13, cursor: btn.disabled ? "not-allowed" : "pointer",
-                        fontWeight: isActive ? 700 : 400, border: `1px solid ${G.divider}`,
-                        background: isActive ? G.gold : "#1a1a1a",
-                        color: btn.disabled ? "#444" : isActive ? "#111" : G.goldLight,
+                        fontWeight: isActive ? 700 : 400, border: `1px solid #2a2a2a`,
+                        background: isActive ? G.gold : "transparent",
+                        color: btn.disabled ? "#444" : isActive ? "#000" : "#888888",
                         opacity: btn.disabled ? 0.5 : 1,
                         transition: "all 0.15s ease",
                       }}
@@ -704,9 +699,9 @@ const filteredCustomers = customers.filter((customer) => {
             <button
               onClick={handleAssignCustomers}
               style={{
-                background: `linear-gradient(135deg, ${G.gold}, #b8860b)`,
-                border: "none", color: "#111", padding: "8px 18px",
-                borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 13,
+                background: G.gold,
+                border: "none", color: "#000", padding: "8px 18px",
+                borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 12,
               }}
             >Assign Selected</button>
           </Modal.Footer>
@@ -722,7 +717,7 @@ const filteredCustomers = customers.filter((customer) => {
         }}>
           <div style={{
             width: 52, height: 52, borderRadius: "50%",
-            border: `5px solid rgba(212,160,23,0.2)`,
+            border: `5px solid rgba(248,227,150,0.2)`,
             borderTop: `5px solid ${G.gold}`,
             animation: "spin 0.8s linear infinite",
           }} />

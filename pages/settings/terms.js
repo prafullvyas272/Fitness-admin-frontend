@@ -2,16 +2,16 @@ import { useState } from "react";
 import { Modal, Form } from "react-bootstrap";
 
 const G = {
-  bg:         "#111111",
-  card:       "#1a1a1a",
-  cardBorder: "1px solid rgba(212,160,23,0.25)",
-  gold:       "#d4a017",
-  goldLight:  "#f5d76e",
-  goldFaint:  "rgba(212,160,23,0.08)",
-  text:       "#f1f1f1",
+  bg:         "#0a0a0a",
+  card:       "#0d0d0d",
+  cardBorder: "1px solid #1e1e1e",
+  gold:       "#f8e396",
+  goldLight:  "#f8e396",
+  goldFaint:  "rgba(248,227,150,0.07)",
+  text:       "#ffffff",
   muted:      "#888888",
-  divider:    "rgba(212,160,23,0.15)",
-  input:      "#222222",
+  divider:    "#1e1e1e",
+  input:      "#111111",
 };
 
 const SECTIONS = [
@@ -47,14 +47,14 @@ Management reserves the right to suspend memberships for policy violations.`
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: "28px" }}>
       <style>{`
-        .modal-gold .modal-content { background: #1a1a1a; border: 1px solid ${G.divider}; color: ${G.text}; }
+        .modal-gold .modal-content { background: #0d0d0d; border: 1px solid ${G.divider}; color: ${G.text}; }
         .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; }
         .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; }
         .modal-gold .btn-close { filter: invert(1); }
-        .modal-gold .modal-body { background: #1a1a1a !important; }
+        .modal-gold .modal-body { background: #0d0d0d !important; }
         .inp-gold { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px !important; }
         .inp-gold::placeholder { color: #555 !important; }
-        .inp-gold:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(212,160,23,0.15) !important; outline: none !important; }
+        .inp-gold:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(248,227,150,0.15) !important; outline: none !important; }
       `}</style>
 
       {/* HEADER */}
@@ -66,10 +66,10 @@ Management reserves the right to suspend memberships for policy violations.`
         <button
           onClick={handleEdit}
           style={{
-            background: `linear-gradient(135deg, ${G.gold}, #b8860b)`,
+            background: `${G.gold}`,
             border: "none", color: "#111", padding: "8px 20px",
             borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: "pointer",
-            boxShadow: "0 4px 12px rgba(212,160,23,0.3)",
+            boxShadow: "0 4px 12px rgba(248,227,150,0.3)",
             display: "flex", alignItems: "center", gap: 8,
           }}
         >
@@ -151,10 +151,10 @@ Management reserves the right to suspend memberships for policy violations.`
           <button
             onClick={handleSave}
             style={{
-              background: `linear-gradient(135deg, ${G.gold}, #b8860b)`,
+              background: `${G.gold}`,
               border: "none", color: "#111", padding: "8px 20px",
               borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 13,
-              boxShadow: "0 4px 12px rgba(212,160,23,0.3)",
+              boxShadow: "0 4px 12px rgba(248,227,150,0.3)",
             }}
           >
             Save Changes

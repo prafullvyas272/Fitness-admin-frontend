@@ -1,12 +1,9 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import {
-  Card,
   Row,
   Col,
   Table,
-  Badge,
-  Button,
   Form,
   Modal,
   Spinner,
@@ -18,8 +15,8 @@ import { GeoAltFill } from "react-bootstrap-icons";
 import { removeCustomerFromTrainer } from "../../../redux/slices/trainerSlice";
 
 import { fetchTrainerBookings }  from "../../../redux/slices/sessionSlice";
-import { 
-  setSelectedTrainer 
+import {
+  setSelectedTrainer
 } from "../../../redux/slices/trainerSlice";
 import {
   fetchTrainerWorkouts,
@@ -77,7 +74,7 @@ const trainer = selectedTrainer;
   const [showModal, setShowModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedTrainerId, setSelectedTrainerId] = useState("");
-  
+
 
   const [showImageModal, setShowImageModal] = useState(false);
   const [previewVideo, setPreviewVideo] = useState(null);
@@ -116,7 +113,6 @@ useEffect(() => {
 
   const existingTrainer = trainers.find((t) => t.id === id);
 
-  // ✅ If trainer exists AND has full details
   if (
     existingTrainer &&
     existingTrainer.userProfileDetails &&
@@ -124,7 +120,6 @@ useEffect(() => {
   ) {
     dispatch(setSelectedTrainer(existingTrainer));
   } else {
-    // ❗ Fetch full trainer details
     dispatch(fetchTrainerById(id));
   }
 
@@ -186,19 +181,21 @@ useEffect(() => {
 }, [selectedDate, activeTab, trainer?.id]);
 
 
-
-
-
-
-
-
   if (!trainer && loading) {
-  return <div className="p-4">Loading trainer data...</div>;
+  return (
+    <div style={{ background: "#0a0a0a", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <span style={{ color: "#888888", fontSize: 15 }}>Loading trainer data...</span>
+    </div>
+  );
 }
 
 
 if (!trainer) {
-  return <div className="p-4 text-danger">Trainer not found</div>;
+  return (
+    <div style={{ background: "#0a0a0a", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <span style={{ color: "#ff6b6b", fontSize: 15 }}>Trainer not found</span>
+    </div>
+  );
 }
 
 
@@ -208,22 +205,25 @@ const assignedCustomers =
 
 const StatusPill = ({ isActive }) => (
   <div
-    className={`status-pill ${
-      isActive ? "status-active" : "status-inactive"
-    }`}
-    style={{ display: "inline-flex", alignItems: "center" }}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      padding: "3px 10px",
+      borderRadius: 20,
+      background: isActive ? "rgba(34,197,94,0.1)" : "rgba(220,50,50,0.15)",
+      border: isActive ? "1px solid rgba(74,222,128,0.3)" : "1px solid rgba(255,107,107,0.3)",
+    }}
   >
     <span
       style={{
         width: 8,
         height: 8,
         borderRadius: "50%",
-        backgroundColor: isActive ? "#22c55e" : "#dc3545",
+        backgroundColor: isActive ? "#4ade80" : "#ff6b6b",
         marginRight: 6,
       }}
     ></span>
-
-    <span className="fw-semibold">
+    <span style={{ fontWeight: 600, fontSize: 12, color: isActive ? "#4ade80" : "#ff6b6b" }}>
       {isActive ? "Active" : "Inactive"}
     </span>
   </div>
@@ -255,7 +255,7 @@ const assignToThisTrainer = async (customerId) => {
       throw new Error(data.message);
     }
 
-    alert("Customer Assigned ✅");
+    alert("Customer Assigned");
 
     // refresh customers
     const customerRes = await fetch(
@@ -541,33 +541,37 @@ const formatDisplayDate = (dateString) => {
 };
 
 
-
   const G = {
-    bg:        "#111111",
-    card:      "#1a1a1a",
-    cardBorder:"1px solid rgba(212,160,23,0.25)",
-    gold:      "#d4a017",
-    goldLight: "#f5d76e",
-    goldFaint: "rgba(212,160,23,0.08)",
-    text:      "#f1f1f1",
-    muted:     "#888888",
-    divider:   "rgba(212,160,23,0.15)",
-    input:     "#222222",
+    bg:         "#0a0a0a",
+    card:       "#0d0d0d",
+    cardBorder: "1px solid #1e1e1e",
+    gold:       "#f8e396",
+    goldLight:  "#f8e396",
+    goldFaint:  "rgba(248,227,150,0.07)",
+    text:       "#ffffff",
+    muted:      "#888888",
+    divider:    "#1e1e1e",
+    input:      "#111111",
   };
 
   const goldBtn = {
-    background: `linear-gradient(135deg, ${G.gold}, #b8860b)`,
-    border: "none", color: "#111", fontWeight: 700,
+    background: "#f8e396",
+    border: "none", color: "#000", fontWeight: 700,
     borderRadius: 8, padding: "6px 18px", cursor: "pointer", fontSize: 13,
   };
   const ghostBtn = {
-    background: "transparent", border: `1px solid ${G.divider}`,
-    color: G.text, borderRadius: 8, padding: "6px 18px",
+    background: "transparent", border: "1px solid rgba(248,227,150,0.4)",
+    color: "#f8e396", borderRadius: 8, padding: "6px 18px",
+    cursor: "pointer", fontSize: 13,
+  };
+  const cancelBtn = {
+    background: "transparent", border: "1px solid #222",
+    color: "#666", borderRadius: 8, padding: "6px 18px",
     cursor: "pointer", fontSize: 13,
   };
   const dangerBtn = {
-    background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
-    color: "#f87171", borderRadius: 8, padding: "6px 18px",
+    background: "rgba(220,50,50,0.15)", border: "1px solid rgba(255,107,107,0.3)",
+    color: "#ff6b6b", borderRadius: 8, padding: "6px 18px",
     cursor: "pointer", fontSize: 13,
   };
 
@@ -577,50 +581,55 @@ const formatDisplayDate = (dateString) => {
         .vw-tab { background: transparent; border: none; padding: 10px 18px; font-size: 14px; font-weight: 500; color: ${G.muted}; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
         .vw-tab:hover { color: ${G.goldLight}; }
         .vw-tab.active { color: ${G.goldLight}; border-bottom-color: ${G.gold}; font-weight: 600; }
-        .vw-tr td { background: ${G.card} !important; border-bottom: 1px solid ${G.divider} !important; color: ${G.text} !important; padding: 13px 14px !important; }
-        .vw-tr:hover td { background: ${G.goldFaint} !important; }
-        .vw-th { background: #161616 !important; color: ${G.goldLight} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 11px; letter-spacing: 0.8px; padding: 12px 14px !important; }
+        .vw-tr td { background: ${G.card} !important; border-bottom: 1px solid #141414 !important; color: ${G.text} !important; padding: 13px 14px !important; }
+        .vw-tr:hover td { background: #111111 !important; }
+        .vw-th { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 10px; letter-spacing: 1.2px; padding: 12px 14px !important; font-weight: 700 !important; }
         table { background: ${G.card} !important; }
-        .vw-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px !important; }
-        .vw-inp:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(212,160,23,0.15) !important; }
-        .vw-inp option { background: #1a1a1a; }
-        .modal-gold .modal-content { background: #1a1a1a; border: 1px solid ${G.divider}; color: ${G.text}; }
-        .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; }
-        .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; }
+        .vw-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px !important; }
+        .vw-inp:focus { border-color: rgba(248,227,150,0.25) !important; box-shadow: none !important; outline: none !important; }
+        .vw-inp option { background: ${G.card}; color: #cccccc; }
+        .modal-gold .modal-content { background: ${G.card}; border: 1px solid ${G.divider}; color: ${G.text}; }
+        .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; background: ${G.card}; }
+        .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; background: ${G.card}; }
         .modal-gold .modal-title { color: ${G.goldLight}; font-weight: 700; }
-        .modal-gold .btn-close { filter: invert(1); }
+        .modal-gold .modal-body { background: ${G.card}; }
+        .modal-gold .btn-close { filter: invert(1) brightness(0.6); }
         .modal-gold .form-label { color: ${G.muted}; font-size: 13px; }
-        .modal-gold .form-control { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px; }
-        .modal-gold .form-control:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(212,160,23,0.15) !important; }
-        .vw-stat { background: #1e1e1e; border: 1px solid ${G.divider}; border-radius: 12px; padding: 20px; }
+        .modal-gold .form-control { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px; }
+        .modal-gold .form-control:focus { border-color: rgba(248,227,150,0.25) !important; box-shadow: none !important; }
+        .modal-gold .form-control::placeholder { color: #2a2a2a !important; }
+        .vw-stat { background: #111111; border: 1px solid ${G.divider}; border-radius: 12px; padding: 20px; }
         .vw-stat p { color: ${G.muted}; font-size: 13px; margin-bottom: 6px; }
         .vw-stat h2 { color: ${G.goldLight}; font-size: 36px; font-weight: 700; margin: 0; }
-        .vw-booking { background: #1e1e1e; border: 1px solid ${G.divider}; border-radius: 12px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .vw-booking { background: #111111; border: 1px solid ${G.divider}; border-radius: 12px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .vw-booking-name { font-weight: 600; color: ${G.goldLight}; margin-bottom: 4px; }
         .vw-booking-meta { display: flex; gap: 16px; font-size: 13px; color: ${G.muted}; flex-wrap: wrap; }
-        .vw-video-card { background: #1e1e1e; border: 1px solid ${G.divider}; border-radius: 12px; overflow: hidden; }
+        .vw-video-card { background: #111111; border: 1px solid ${G.divider}; border-radius: 12px; overflow: hidden; }
         .vw-video-card h6 { color: ${G.text}; font-size: 13px; margin: 0; }
         .vw-video-info { padding: 10px 12px; }
-        .calendar-card { background: #1e1e1e !important; border-radius: 16px; padding: 20px; border: 1px solid ${G.divider}; }
-        .calendar-header h4 { color: ${G.text} !important; }
-        .calendar-nav { background: #2a2a2a !important; color: ${G.goldLight} !important; border: 1px solid ${G.divider} !important; }
+        .calendar-card { background: #111111 !important; border-radius: 16px; padding: 24px 28px; border: 1px solid ${G.divider}; }
+        .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .calendar-header h4 { color: ${G.text} !important; margin: 0; font-size: 16px; font-weight: 600; }
+        .calendar-nav { background: transparent !important; color: ${G.goldLight} !important; border: 1px solid ${G.divider} !important; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; line-height: 1; }
         .calendar-nav:hover { background: ${G.goldFaint} !important; }
-        .calendar-weekdays div { color: ${G.gold} !important; font-size: 13px; }
-        .calendar-cell { color: #aaa !important; border-radius: 8px; }
+        .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 6px; text-align: center; }
+        .calendar-weekdays div { color: ${G.gold} !important; font-size: 12px; font-weight: 600; padding: 6px 0; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .calendar-cell { color: #aaaaaa !important; border-radius: 8px; width: 100%; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: 400; transition: all 0.15s; }
         .calendar-cell:hover { background: ${G.goldFaint} !important; color: ${G.goldLight} !important; }
-        .calendar-cell.selected { background: ${G.gold} !important; color: #111 !important; font-weight: 700 !important; }
+        .calendar-cell.selected { background: ${G.gold} !important; color: #000 !important; font-weight: 700 !important; }
         .calendar-cell.booked { color: #4ade80 !important; font-weight: 600 !important; }
-        .calendar-cell.holiday { color: #f87171 !important; font-weight: 600 !important; }
-        .calendar-legend { color: ${G.muted} !important; }
-        .pg-gold .page-link { background: #1a1a1a; border-color: ${G.divider}; color: ${G.goldLight}; }
-        .pg-gold .page-link:hover { background: ${G.goldFaint}; color: ${G.gold}; }
-        .pg-gold .page-item.active .page-link { background: ${G.gold}; border-color: ${G.gold}; color: #111; font-weight: 700; }
-        .pg-gold .page-item.disabled .page-link { background: #161616; color: #444; border-color: ${G.divider}; }
+        .calendar-cell.holiday { color: #ff6b6b !important; font-weight: 600 !important; }
+        .calendar-legend { display: flex; gap: 20px; margin-top: 16px; padding-top: 14px; border-top: 1px solid ${G.divider}; font-size: 12px; color: ${G.muted} !important; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .booked-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #4ade80; display: inline-block; }
+        .available-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: ${G.muted}; display: inline-block; }
+        .holiday-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #ff6b6b; display: inline-block; }
       `}</style>
 
       {/* BACK */}
       <div className="mb-3">
-        <button style={ghostBtn} onClick={() => router.push("/trainers")}>← Back</button>
+        <button style={cancelBtn} onClick={() => router.push("/trainers")}>← Back</button>
       </div>
       <h3 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 20 }}>Trainer Profile</h3>
 
@@ -679,7 +688,7 @@ const formatDisplayDate = (dateString) => {
                 ].map(([label, value]) => (
                   <Row key={label} className="mb-3">
                     <Col md={4} style={{ color: G.muted, fontWeight: 600, fontSize: 13 }}>{label}:</Col>
-                    <Col md={8} style={{ color: G.text, fontSize: 14 }}>{value}</Col>
+                    <Col md={8} style={{ color: "#cccccc", fontSize: 14 }}>{value}</Col>
                   </Row>
                 ))}
               </Col>
@@ -705,11 +714,11 @@ const formatDisplayDate = (dateString) => {
                     const customer = item.customer;
                     return (
                       <tr key={customer.id} className="vw-tr">
-                        <td style={{ fontWeight: 600 }}>{customer.firstName} {customer.lastName}</td>
-                        <td>{customer.email}</td>
-                        <td>{customer.phone}</td>
+                        <td style={{ fontWeight: 600, color: G.text }}>{customer.firstName} {customer.lastName}</td>
+                        <td style={{ color: "#cccccc" }}>{customer.email}</td>
+                        <td style={{ color: "#cccccc" }}>{customer.phone}</td>
                         <td><StatusPill isActive={item.isActive} /></td>
-                        <td>Assigned</td>
+                        <td style={{ color: "#cccccc" }}>Assigned</td>
                         <td className="text-end">
                           <button style={dangerBtn} onClick={() => removeTrainerFromCustomer(customer.id)}>Remove Trainer</button>
                         </td>
@@ -758,7 +767,7 @@ const formatDisplayDate = (dateString) => {
                   <span className="legend-item available-dot">Available</span>
                   <span className="legend-item holiday-dot">Holiday</span>
                 </div>
-                <div style={{ display: "flex", gap: 16, marginTop: 24, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 16, marginTop: 20, flexWrap: "wrap" }}>
                   {[
                     ["Hours remaining for this week", "45"],
                     ["Total Booking hours for this week", weeklyAssignedHours.toFixed(1)],
@@ -784,10 +793,10 @@ const formatDisplayDate = (dateString) => {
                         <div>
                           <div className="vw-booking-name">{booking.customer.firstName} {booking.customer.lastName}</div>
                           <div className="vw-booking-meta">
-                            <span>📅 {formatDisplayDate(booking.timeSlot.startTime)}</span>
-                            <span>⏰ {new Date(booking.timeSlot.startTime).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:true})} - {new Date(booking.timeSlot.endTime).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:true})}</span>
+                            <span>{formatDisplayDate(booking.timeSlot.startTime)}</span>
+                            <span>{new Date(booking.timeSlot.startTime).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:true})} - {new Date(booking.timeSlot.endTime).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:true})}</span>
                             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                              <GeoAltFill size={13} style={{ color: "#f87171" }} />
+                              <GeoAltFill size={13} style={{ color: "#ff6b6b" }} />
                               {booking.trainer.userProfileDetails?.[0]?.hostGymName || "Gym"}
                             </span>
                           </div>
@@ -801,7 +810,7 @@ const formatDisplayDate = (dateString) => {
                     {trainerTimeSlotsLoading ? (
                       <p style={{ color: G.muted, fontSize: 14 }}>Loading slots...</p>
                     ) : trainerTimeSlots.length === 0 ? (
-                      <div style={{ background: "#1e1e1e", border: `1px dashed ${G.divider}`, borderRadius: 10, padding: 20, textAlign: "center", color: G.muted, fontSize: 14 }}>
+                      <div style={{ background: "#111111", border: `1px dashed ${G.divider}`, borderRadius: 10, padding: 20, textAlign: "center", color: G.muted, fontSize: 14 }}>
                         No slots created for this date
                       </div>
                     ) : (
@@ -811,14 +820,14 @@ const formatDisplayDate = (dateString) => {
                           const end = new Date(slot.endTime);
                           const isPast = end < new Date();
                           return (
-                            <div key={slot.id || idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#1e1e1e", border: `1px solid ${G.divider}`, borderRadius: 10, padding: "12px 16px" }}>
+                            <div key={slot.id || idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#111111", border: `1px solid ${G.divider}`, borderRadius: 10, padding: "12px 16px" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                <div style={{ width: 10, height: 10, borderRadius: "50%", background: isPast ? "#555" : "#4ade80", flexShrink: 0 }} />
+                                <div style={{ width: 10, height: 10, borderRadius: "50%", background: isPast ? "#555555" : "#4ade80", flexShrink: 0 }} />
                                 <span style={{ fontWeight: 600, fontSize: 14, color: G.text }}>
                                   {start.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:true})} – {end.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:true})}
                                 </span>
                               </div>
-                              <span style={{ fontSize: 12, fontWeight: 500, padding: "3px 10px", borderRadius: 20, background: isPast ? "#2a2a2a" : "rgba(74,222,128,0.1)", color: isPast ? "#555" : "#4ade80" }}>
+                              <span style={{ fontSize: 12, fontWeight: 500, padding: "3px 10px", borderRadius: 20, background: isPast ? "#111111" : "rgba(74,222,128,0.1)", color: isPast ? "#555555" : "#4ade80" }}>
                                 {isPast ? "Past" : "Upcoming"}
                               </span>
                             </div>
@@ -972,7 +981,7 @@ const formatDisplayDate = (dateString) => {
           </select>
         </Modal.Body>
         <Modal.Footer>
-          <button style={ghostBtn} onClick={() => setShowModal(false)}>Cancel</button>
+          <button style={cancelBtn} onClick={() => setShowModal(false)}>Cancel</button>
           <button style={goldBtn} onClick={() => assignToThisTrainer(selectedCustomer.id)} disabled={!selectedCustomer}>Assign to This Trainer</button>
         </Modal.Footer>
       </Modal>
@@ -1009,7 +1018,7 @@ const formatDisplayDate = (dateString) => {
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <button style={ghostBtn} onClick={() => setShowPayoutModal(false)}>Cancel</button>
+          <button style={cancelBtn} onClick={() => setShowPayoutModal(false)}>Cancel</button>
           <button style={goldBtn} onClick={handlePostPayout} disabled={payoutPosting || !payoutForm.totalPayout || !payoutForm.netPayout || !payoutForm.periodStart || !payoutForm.periodEnd}>
             {payoutPosting ? <><Spinner animation="border" size="sm" className="me-2" />Processing...</> : "Confirm Payout"}
           </button>
@@ -1018,7 +1027,7 @@ const formatDisplayDate = (dateString) => {
 
       {/* IMAGE PREVIEW MODAL */}
       <Modal show={showImageModal} onHide={() => setShowImageModal(false)} centered size="lg">
-        <Modal.Body className="text-center p-0" style={{ background: "#000" }}>
+        <Modal.Body className="text-center p-0" style={{ background: "#000000" }}>
           <img src={trainer.userProfileDetails?.[0]?.avatarUrl || "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"} alt="preview" style={{ width: "100%", maxHeight: "80vh", objectFit: "contain" }} />
         </Modal.Body>
       </Modal>

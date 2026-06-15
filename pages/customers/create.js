@@ -11,8 +11,9 @@ import {
 } from "../../redux/slices/customerSlice";
 
 const G = {
-  bg: "#111111", card: "#1a1a1a", gold: "#d4a017", goldLight: "#f5d76e",
-  divider: "rgba(212,160,23,0.2)", text: "#f1f1f1", muted: "#888888", input: "#222222",
+  bg: "#0a0a0a", card: "#0d0d0d", gold: "#f8e396", goldLight: "#f8e396",
+  divider: "#1e1e1e", text: "#ffffff", muted: "#888888", input: "#111111",
+  cardBorder: "1px solid #1e1e1e", goldFaint: "rgba(248,227,150,0.07)",
 };
 
 export default function CreateCustomer() {
@@ -127,7 +128,7 @@ export default function CreateCustomer() {
         .dk-inp { background: ${G.input} !important; border: none !important; color: ${G.text} !important; }
         .dk-inp:focus { background: ${G.input} !important; color: ${G.text} !important; box-shadow: none !important; }
         .dk-inp::placeholder { color: #555 !important; }
-        .dk-inp option { background: #1a1a1a; color: ${G.text}; }
+        .dk-inp option { background: #0d0d0d; color: ${G.text}; }
         .dk-ig-text { background: #2a2a2a !important; border: none !important; color: ${G.gold} !important; }
         .dk-ig { background: #222 !important; border: 1px solid ${G.divider} !important; border-radius: 8px !important; overflow: hidden; }
         .dk-ig .form-control { background: ${G.input} !important; border: none !important; color: ${G.text} !important; }
@@ -135,7 +136,7 @@ export default function CreateCustomer() {
         .dk-ig .form-control::placeholder { color: #555 !important; }
         .dk-ddm { background: #1e1e1e !important; border: 1px solid ${G.divider} !important; }
         .dk-ddm .dropdown-item { color: ${G.text} !important; font-size: 13px; }
-        .dk-ddm .dropdown-item:hover { background: rgba(212,160,23,0.08) !important; color: ${G.goldLight} !important; }
+        .dk-ddm .dropdown-item:hover { background: rgba(248,227,150,0.07) !important; color: ${G.goldLight} !important; }
         .dk-flag-toggle { background: #2a2a2a !important; border: none !important; color: ${G.text} !important; border-right: 1px solid ${G.divider} !important; }
         .dk-flag-toggle:hover, .dk-flag-toggle:focus { background: #333 !important; }
         .dk-label { color: ${G.muted}; font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block; }
@@ -162,7 +163,7 @@ export default function CreateCustomer() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          style={{ background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: "#111", padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: loading ? 0.7 : 1 }}
+          style={{ background: `${G.gold}`, border: "none", color: "#111", padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: loading ? 0.7 : 1 }}
         >
           {loading ? "Saving..." : id ? "Update Customer" : "Create Customer"}
         </button>

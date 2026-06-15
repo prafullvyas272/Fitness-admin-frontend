@@ -3,8 +3,9 @@ import Select from "react-select";
 import moment from "moment";
 
 const G = {
-  bg: "#111111", card: "#1a1a1a", gold: "#d4a017", goldLight: "#f5d76e",
-  divider: "rgba(212,160,23,0.2)", text: "#f1f1f1", muted: "#888888", input: "#222222",
+  bg: "#0a0a0a", card: "#0d0d0d", gold: "#f8e396", goldLight: "#f8e396",
+  divider: "#1e1e1e", text: "#ffffff", muted: "#888888", input: "#111111",
+  cardBorder: "1px solid #1e1e1e", goldFaint: "rgba(248,227,150,0.07)",
 };
 
 const IST_TZ = "Asia/Kolkata";
@@ -47,7 +48,7 @@ const selectStyles = {
   }),
   option: (base, state) => ({
     ...base,
-    background: state.isFocused ? "rgba(212,160,23,0.15)" : "transparent",
+    background: state.isFocused ? "rgba(248,227,150,0.15)" : "transparent",
     color: state.isSelected ? G.goldLight : G.text,
     fontSize: 13,
   }),
@@ -328,7 +329,7 @@ export default function AvailabilitySlots() {
       {/* FULL-SCREEN LOADER */}
       {deletingSlot && (
         <div style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
-          <div style={{ width: 56, height: 56, border: `5px solid rgba(212,160,23,0.2)`, borderTop: `5px solid ${G.gold}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          <div style={{ width: 56, height: 56, border: `5px solid rgba(248,227,150,0.2)`, borderTop: `5px solid ${G.gold}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
           <p style={{ margin: 0, fontWeight: 600, fontSize: 15, color: G.goldLight }}>Deleting slot...</p>
         </div>
       )}
@@ -388,12 +389,12 @@ export default function AvailabilitySlots() {
                   cursor: "pointer",
                   fontSize: 13,
                   fontWeight: isSelected ? 700 : 400,
-                  background: isSelected ? `linear-gradient(135deg, ${G.gold}, #b8860b)` : "transparent",
+                  background: isSelected ? `${G.gold}` : "transparent",
                   color: isSelected ? "#111" : G.text,
                   border: `1px solid ${isSelected ? "transparent" : "transparent"}`,
                   transition: "background 0.15s",
                 }}
-                onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "rgba(212,160,23,0.12)"; }}
+                onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "rgba(248,227,150,0.1)"; }}
                 onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}
               >
                 {date.getDate()}
@@ -479,7 +480,7 @@ export default function AvailabilitySlots() {
 
                   {/* Date badge */}
                   <span style={{
-                    background: "rgba(212,160,23,0.1)",
+                    background: "rgba(248,227,150,0.07)",
                     border: `1px solid ${G.divider}`,
                     padding: "5px 12px",
                     borderRadius: 8,
@@ -530,7 +531,7 @@ export default function AvailabilitySlots() {
                   onClick={handleSave}
                   disabled={saving || !!overlapError}
                   style={{
-                    background: (saving || !!overlapError) ? "#333" : `linear-gradient(135deg, ${G.gold}, #b8860b)`,
+                    background: (saving || !!overlapError) ? "#333" : `${G.gold}`,
                     border: "none",
                     color: (saving || !!overlapError) ? G.muted : "#111",
                     padding: "8px 24px",

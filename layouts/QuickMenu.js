@@ -1,108 +1,72 @@
-// import node module libraries
 import { useRouter } from "next/router";
-import Link from 'next/link';
-import { Fragment } from 'react';
-import { useMediaQuery } from 'react-responsive';
-import {
-    Row,
-    Col,
-    Image,
-    Dropdown,
-    ListGroup,
-} from 'react-bootstrap';
-
-// simple bar scrolling used for notification item scrolling
-import SimpleBar from 'simplebar-react';
-import 'simplebar/dist/simplebar.min.css';
-
-// import data files
-import NotificationList from 'data/Notification';
-
-// import hooks
-import useMounted from 'hooks/useMounted';
-
+import { Fragment } from "react";
 
 const QuickMenu = () => {
+  const router = useRouter();
 
-    const hasMounted = useMounted();
-    const router = useRouter();
-    
-    const isDesktop = useMediaQuery({
-        query: '(min-width: 1224px)'
-    })
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("adminId");
+    router.push("/login");
+  };
 
-    const Notifications = () => {
-        return (
-            <SimpleBar style={{ maxHeight: '300px' }}>
-                <ListGroup variant="flush">
-                    {NotificationList.map(function (item, index) {
-                        return (
-                            <ListGroup.Item className={index === 0 ? 'bg-light' : ''} key={index}>
-                                <Row>
-                                    <Col>
-                                        <Link href="#" className="text-muted">
-                                            <h5 className=" mb-1">{item.sender}</h5>
-                                            <p className="mb-0"> {item.message}</p>
-                                        </Link>
-                                    </Col>
-                                </Row>
-                            </ListGroup.Item>
-                        );
-                    })}
-                </ListGroup>
-            </SimpleBar>
-        );
-    }
+  return (
+    <Fragment>
+      <style>{`
+        .qm-bell {
+          background: none;
+          border: none;
+          color: #F8E396;
+          cursor: pointer;
+          padding: 6px;
+          border-radius: 7px;
+          display: flex;
+          align-items: center;
+          transition: color 0.2s;
+        }
+        .qm-logout {
+          background: none;
+          border: 1px solid rgba(248, 227, 150, 0.25);
+          color: #F8E396;
+          cursor: pointer;
+          padding: 7px 16px;
+          border-radius: 7px;
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          font-size: 12.5px;
+          font-weight: 600;
+          letter-spacing: 0.3px;
+          transition: all 0.2s;
+          font-family: inherit;
+        }
+        .qm-logout:hover { border-color: #F8E396; }
+      `}</style>
 
-    const UserDropdown = () => (
-        <ListGroup as="ul" bsPrefix='navbar-nav' className="navbar-right-wrap ms-auto d-flex nav-top-wrap">
-            <Dropdown as="li" className="ms-2">
-                <Dropdown.Toggle
-                    as="a"
-                    bsPrefix=" "
-                    style={{
-                        width: 36, height: 36, borderRadius: "50%", cursor: "pointer",
-                        background: "rgba(212,160,23,0.1)", border: "1px solid rgba(212,160,23,0.3)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                    }}
-                >
-                    <i className="fe fe-user" style={{ color: "#f5d76e", fontSize: 15 }}></i>
-                </Dropdown.Toggle>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
 
-                <Dropdown.Menu
-                    align="end"
-                    style={{ background: "#1a1a1a", border: "1px solid rgba(212,160,23,0.25)", minWidth: 160, padding: "6px" }}
-                >
-                    <button
-                        onClick={() => {
-                            localStorage.removeItem("adminToken");
-                            localStorage.removeItem("refreshToken");
-                            router.push("/login");
-                        }}
-                        style={{
-                            width: "100%", background: "transparent", border: "none",
-                            color: "#f87171", fontSize: 13, padding: "8px 12px",
-                            borderRadius: 8, cursor: "pointer", textAlign: "left",
-                            display: "flex", alignItems: "center", gap: 8, transition: "background 0.15s",
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(248,113,113,0.1)"}
-                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                    >
-                        <i className="fe fe-power"></i> Sign Out
-                    </button>
-                </Dropdown.Menu>
-            </Dropdown>
-        </ListGroup>
-    )
+        <button className="qm-bell">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="#F8E396" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </button>
 
-    const QuickMenuDesktop = () => <UserDropdown />
-    const QuickMenuMobile = () => <UserDropdown />
+        <button className="qm-logout" onClick={handleLogout}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="#F8E396" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Logout
+        </button>
 
-    return (
-        <Fragment>
-            { hasMounted && isDesktop ? <QuickMenuDesktop /> : <QuickMenuMobile />}
-        </Fragment>
-    )
-}
+      </div>
+    </Fragment>
+  );
+};
 
 export default QuickMenu;

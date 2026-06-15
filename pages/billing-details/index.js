@@ -10,8 +10,9 @@ import {
 import { Row, Col, Modal, Form } from "react-bootstrap";
 
 const G = {
-  bg: "#111111", card: "#1a1a1a", gold: "#d4a017", goldLight: "#f5d76e",
-  divider: "rgba(212,160,23,0.2)", text: "#f1f1f1", muted: "#888888", input: "#222222",
+  bg: "#0a0a0a", card: "#0d0d0d", gold: "#f8e396", goldLight: "#f8e396",
+  divider: "#1e1e1e", text: "#ffffff", muted: "#888888", input: "#111111",
+  cardBorder: "1px solid #1e1e1e", goldFaint: "rgba(248,227,150,0.07)",
 };
 
 export default function BillingDetails() {
@@ -146,7 +147,7 @@ export default function BillingDetails() {
       {/* FULL-SCREEN LOADER */}
       {(fetchingTrainers || assignLoading || savingPlan || deletingPlan) && (
         <div style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
-          <div style={{ width: 56, height: 56, border: `5px solid rgba(212,160,23,0.2)`, borderTop: `5px solid ${G.gold}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          <div style={{ width: 56, height: 56, border: `5px solid rgba(248,227,150,0.2)`, borderTop: `5px solid ${G.gold}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
           <p style={{ margin: 0, fontWeight: 600, fontSize: 15, color: G.goldLight }}>
             {fetchingTrainers ? "Loading trainers..." : savingPlan ? "Saving plan..." : deletingPlan ? "Deleting plan..." : "Assigning plan..."}
           </p>
@@ -161,7 +162,7 @@ export default function BillingDetails() {
         </div>
         <button
           onClick={() => setShow(true)}
-          style={{ background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: "#111", padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14 }}
+          style={{ background: `${G.gold}`, border: "none", color: "#111", padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14 }}
         >
           + Create Plan
         </button>
@@ -175,7 +176,7 @@ export default function BillingDetails() {
 
               {/* MOST POPULAR BADGE */}
               {plan.isPopular && (
-                <div style={{ position: "absolute", top: 16, right: 16, background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, color: "#111", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, letterSpacing: 0.5 }}>
+                <div style={{ position: "absolute", top: 16, right: 16, background: `${G.gold}`, color: "#111", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, letterSpacing: 0.5 }}>
                   Most Popular
                 </div>
               )}
@@ -208,7 +209,7 @@ export default function BillingDetails() {
                   Assign Trainers
                 </button>
                 <button
-                  style={{ flex: 1, background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: "#111", padding: "8px 0", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+                  style={{ flex: 1, background: `${G.gold}`, border: "none", color: "#111", padding: "8px 0", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}
                 >
                   Select Plan
                 </button>
@@ -286,7 +287,7 @@ export default function BillingDetails() {
           <button
             onClick={handleSave}
             disabled={savingPlan}
-            style={{ background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: "#111", padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: savingPlan ? "not-allowed" : "pointer", opacity: savingPlan ? 0.7 : 1 }}
+            style={{ background: `${G.gold}`, border: "none", color: "#111", padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: savingPlan ? "not-allowed" : "pointer", opacity: savingPlan ? 0.7 : 1 }}
           >
             {savingPlan ? "Saving..." : "Save Plan"}
           </button>
@@ -324,7 +325,7 @@ export default function BillingDetails() {
           <button
             onClick={handleAssign}
             disabled={assignLoading}
-            style={{ background: selectedTrainers.length > 0 ? `linear-gradient(135deg, ${G.gold}, #b8860b)` : "#333", border: "none", color: selectedTrainers.length > 0 ? "#111" : G.muted, padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: selectedTrainers.length > 0 ? "pointer" : "not-allowed" }}
+            style={{ background: selectedTrainers.length > 0 ? `${G.gold}` : "#333", border: "none", color: selectedTrainers.length > 0 ? "#111" : G.muted, padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: selectedTrainers.length > 0 ? "pointer" : "not-allowed" }}
           >
             {assignLoading ? "Assigning..." : "Assign"}
           </button>

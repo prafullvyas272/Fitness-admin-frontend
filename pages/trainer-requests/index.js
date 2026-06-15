@@ -4,15 +4,16 @@ import { Table, Modal, Row, Col, Spinner } from "react-bootstrap";
 const BASE_URL = "https://fitness-app-seven-beryl.vercel.app";
 
 const G = {
-  bg: "#111111", card: "#1a1a1a", gold: "#d4a017", goldLight: "#f5d76e",
-  divider: "rgba(212,160,23,0.2)", text: "#f1f1f1", muted: "#888888", input: "#222222",
+  bg: "#0a0a0a", card: "#0d0d0d", gold: "#f8e396", goldLight: "#f8e396",
+  divider: "#1e1e1e", text: "#ffffff", muted: "#888888", input: "#111111",
+  cardBorder: "1px solid #1e1e1e",
 };
 
 const StatusBadge = ({ status }) => {
   const styles = {
     APPROVED: { bg: "rgba(74,222,128,0.12)", border: "rgba(74,222,128,0.3)", color: "#4ade80" },
     REJECTED: { bg: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.3)", color: "#f87171" },
-    PENDING:  { bg: "rgba(212,160,23,0.12)",  border: "rgba(212,160,23,0.3)",  color: "#f5d76e" },
+    PENDING:  { bg: "rgba(248,227,150,0.12)",  border: "rgba(248,227,150,0.3)",  color: "#f8e396" },
   };
   const s = styles[status] || styles.PENDING;
   return (
@@ -101,15 +102,15 @@ export default function PTRequests() {
         table { background: ${G.card} !important; }
         .table-responsive { background: ${G.card} !important; }
         .pt-thead th { background: #1f1f1f !important; color: ${G.muted} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 11px; letter-spacing: 0.8px; padding: 12px 16px; }
-        .pt-tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-bottom: 1px solid ${G.divider} !important; padding: 14px 16px; vertical-align: middle; }
-        .pt-tbody tr:hover td { background: #202020 !important; }
-        .pt-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px; outline: none; padding: 7px 12px; font-size: 13px; width: 100%; max-width: 320px; }
-        .pt-inp::placeholder { color: #555 !important; }
-        .pt-inp:focus { box-shadow: none !important; border-color: ${G.gold} !important; }
-        .pt-pg .page-link { background: #1a1a1a !important; border-color: ${G.divider} !important; color: ${G.muted} !important; }
-        .pt-pg .page-item.active .page-link { background: ${G.gold} !important; border-color: ${G.gold} !important; color: #111 !important; font-weight: 600; }
-        .pt-pg .page-item.disabled .page-link { background: #161616 !important; color: #444 !important; }
-        .pt-pg .page-link:hover { background: rgba(212,160,23,0.1) !important; color: ${G.goldLight} !important; }
+        .pt-tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-bottom: 1px solid #141414 !important; padding: 14px 16px; vertical-align: middle; font-size: 12px; font-weight: 700; }
+        .pt-tbody tr:hover td { background: #111111 !important; }
+        .pt-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px; outline: none; padding: 10px 13px; font-size: 12.5px; width: 100%; max-width: 320px; }
+        .pt-inp::placeholder { color: #2a2a2a !important; }
+        .pt-inp:focus { box-shadow: none !important; border-color: rgba(248,227,150,0.25) !important; }
+        .pt-pg .page-link { background: transparent !important; border-color: #2a2a2a !important; color: #888888 !important; }
+        .pt-pg .page-item.active .page-link { background: ${G.gold} !important; border-color: ${G.gold} !important; color: #000 !important; font-weight: 700; }
+        .pt-pg .page-item.disabled .page-link { background: transparent !important; color: #444 !important; }
+        .pt-pg .page-link:hover { border-color: ${G.gold} !important; color: ${G.gold} !important; }
         .modal-gold .modal-content { background: ${G.card}; border: 1px solid ${G.divider}; color: ${G.text}; }
         .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; }
         .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; }
@@ -140,7 +141,7 @@ export default function PTRequests() {
               const isActive = filterStatus === s;
               const colors = {
                 ALL:      { active: G.gold,    text: "#111" },
-                PENDING:  { active: "#f5d76e", text: "#111" },
+                PENDING:  { active: "#f8e396", text: "#000" },
                 APPROVED: { active: "#4ade80", text: "#111" },
                 REJECTED: { active: "#f87171", text: "#111" },
               };
@@ -274,8 +275,8 @@ export default function PTRequests() {
                       cursor: btn.disabled ? "not-allowed" : "pointer",
                       fontWeight: isActive ? 700 : 400,
                       border: `1px solid ${G.divider}`,
-                      background: isActive ? G.gold : "#1a1a1a",
-                      color: btn.disabled ? "#444" : isActive ? "#111" : G.goldLight,
+                      background: isActive ? G.gold : "transparent",
+                      color: btn.disabled ? "#444" : isActive ? "#000" : "#888888",
                       opacity: btn.disabled ? 0.5 : 1,
                       transition: "all 0.15s ease",
                     }}>

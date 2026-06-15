@@ -8,8 +8,9 @@ import {
 } from "../redux/slices/specialitySlice";
 
 const G = {
-  bg: "#111111", card: "#1a1a1a", gold: "#d4a017", goldLight: "#f5d76e",
-  divider: "rgba(212,160,23,0.2)", text: "#f1f1f1", muted: "#888888", input: "#222222",
+  bg: "#0a0a0a", card: "#0d0d0d", gold: "#f8e396", goldLight: "#f8e396",
+  divider: "#1e1e1e", text: "#ffffff", muted: "#888888", input: "#111111",
+  cardBorder: "1px solid #1e1e1e", goldFaint: "rgba(248,227,150,0.07)",
 };
 
 export default function Speciality() {
@@ -97,7 +98,7 @@ export default function Speciality() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
-                  background: "rgba(212,160,23,0.1)",
+                  background: "rgba(248,227,150,0.07)",
                   border: `1px solid ${G.divider}`,
                   borderRadius: 30,
                   padding: "7px 14px",

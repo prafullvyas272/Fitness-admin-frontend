@@ -2,16 +2,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
 const G = {
-  bg:         "#111111",
-  card:       "#1a1a1a",
-  cardBorder: "1px solid rgba(212,160,23,0.25)",
-  gold:       "#d4a017",
-  goldLight:  "#f5d76e",
-  goldFaint:  "rgba(212,160,23,0.08)",
-  text:       "#f1f1f1",
+  bg:         "#0a0a0a",
+  card:       "#0d0d0d",
+  cardBorder: "1px solid #1e1e1e",
+  gold:       "#f8e396",
+  goldLight:  "#f8e396",
+  goldFaint:  "rgba(248,227,150,0.07)",
+  text:       "#ffffff",
   muted:      "#888888",
-  divider:    "rgba(212,160,23,0.15)",
-  input:      "#222222",
+  divider:    "#1e1e1e",
+  input:      "#111111",
 };
 
 const REGIONS = ["North America", "South America", "Europe", "Asia Pacific", "Middle East", "Africa"];
@@ -125,17 +125,17 @@ export default function MentorProfile() {
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: "28px" }}>
       <style>{`
-        .inp-profile { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px !important; width: 100%; padding: 9px 13px; font-size: 13px; outline: none; }
-        .inp-profile::placeholder { color: #555 !important; }
-        .inp-profile:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(212,160,23,0.15) !important; }
-        .inp-profile option { background: #1a1a1a; color: ${G.text}; }
+        .inp-profile { background: #111111 !important; border: 1px solid #1e1e1e !important; color: #cccccc !important; border-radius: 7px !important; width: 100%; padding: 10px 13px; font-size: 12.5px; outline: none; }
+        .inp-profile::placeholder { color: #2a2a2a !important; }
+        .inp-profile:focus { border-color: rgba(248,227,150,0.25) !important; }
+        .inp-profile option { background: #111111; color: #cccccc; }
         .sec-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; color: ${G.text}; margin-bottom: 20px; }
-        .sec-icon { width: 30px; height: 30px; border-radius: 8px; background: rgba(212,160,23,0.12); border: 1px solid ${G.divider}; display: flex; align-items: center; justify-content: center; }
+        .sec-icon { width: 30px; height: 30px; border-radius: 8px; background: rgba(248,227,150,0.07); border: 1px solid rgba(248,227,150,0.15); display: flex; align-items: center; justify-content: center; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .field-label { color: ${G.muted}; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07rem; margin-bottom: 6px; display: block; }
-        .spec-tag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: rgba(212,160,23,0.12); border: 1px solid ${G.divider}; color: ${G.goldLight}; }
-        .spec-remove { cursor: pointer; color: ${G.muted}; font-size: 14px; line-height: 1; background: none; border: none; padding: 0; display: flex; align-items: center; }
-        .spec-remove:hover { color: #f87171; }
+        .field-label { color: #555555; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; display: block; }
+        .spec-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 5px; font-size: 9px; font-weight: 800; letter-spacing: 1px; background: rgba(248,227,150,0.12); border: 1px solid rgba(248,227,150,0.25); color: ${G.goldLight}; }
+        .spec-remove { cursor: pointer; color: ${G.muted}; font-size: 13px; line-height: 1; background: none; border: none; padding: 0; display: flex; align-items: center; }
+        .spec-remove:hover { color: #ff6b6b; }
       `}</style>
 
       {/* HEADER ROW */}
@@ -163,8 +163,8 @@ export default function MentorProfile() {
             <div style={{
               width: 110, height: 110, borderRadius: "50%",
               border: `3px solid ${G.gold}`,
-              boxShadow: `0 0 0 4px rgba(212,160,23,0.15), 0 8px 24px rgba(0,0,0,0.4)`,
-              background: "rgba(212,160,23,0.12)",
+              boxShadow: `0 0 0 4px rgba(248,227,150,0.1), 0 8px 24px rgba(0,0,0,0.4)`,
+              background: "rgba(248,227,150,0.07)",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 38, fontWeight: 800, color: G.goldLight,
               marginBottom: 16,
@@ -220,13 +220,13 @@ export default function MentorProfile() {
                   {form.ptSaturation} / {form.ptSaturationMax}
                 </span>
               </div>
-              <div style={{ height: 5, background: "rgba(212,160,23,0.12)", borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ height: 5, background: "rgba(248,227,150,0.1)", borderRadius: 4, overflow: "hidden" }}>
                 <div style={{ height: "100%", width: `${satPct}%`, background: `linear-gradient(90deg, ${G.gold}, ${G.goldLight})`, borderRadius: 4, transition: "width 0.4s ease" }} />
               </div>
             </div>
 
             {/* Assigned PTs */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", background: "rgba(212,160,23,0.05)", borderRadius: 8, border: `1px solid ${G.divider}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", background: "rgba(248,227,150,0.04)", borderRadius: 8, border: `1px solid ${G.divider}` }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <i className="fe fe-users" style={{ color: G.gold, fontSize: 13 }} />
                 <span style={{ color: G.muted, fontSize: 12, fontWeight: 600 }}>Assigned PTs</span>
@@ -317,7 +317,7 @@ export default function MentorProfile() {
               </div>
               <button
                 onClick={addSpec}
-                style={{ padding: "9px 22px", borderRadius: 8, background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: "#111", fontWeight: 700, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}
+                style={{ padding: "9px 22px", borderRadius: 8, background: G.gold, border: "none", color: "#000", fontWeight: 700, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}
               >
                 Add
               </button>
@@ -354,7 +354,7 @@ export default function MentorProfile() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  style={{ padding: "9px 28px", borderRadius: 8, background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: "#111", fontWeight: 700, fontSize: 13, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1, display: "flex", alignItems: "center", gap: 6 }}
+                  style={{ padding: "9px 28px", borderRadius: 8, background: G.gold, border: "none", color: "#000", fontWeight: 700, fontSize: 13, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1, display: "flex", alignItems: "center", gap: 6 }}
                 >
                   {saving ? <><span className="spinner-border spinner-border-sm" style={{ width: 12, height: 12 }} /> Saving…</> : "Save"}
                 </button>

@@ -3,17 +3,17 @@ import { useRouter } from "next/router";
 import { Row, Col } from "react-bootstrap";
 
 const G = {
-  bg:         "#111111",
-  card:       "#1a1a1a",
-  cardBorder: "1px solid rgba(212,160,23,0.25)",
-  gold:       "#d4a017",
-  goldLight:  "#f5d76e",
-  goldFaint:  "rgba(212,160,23,0.08)",
-  text:       "#f1f1f1",
+  bg:         "#0a0a0a",
+  card:       "#0d0d0d",
+  cardBorder: "1px solid #1e1e1e",
+  gold:       "#f8e396",
+  goldLight:  "#f8e396",
+  goldFaint:  "rgba(248,227,150,0.07)",
+  text:       "#ffffff",
   muted:      "#888888",
-  divider:    "rgba(212,160,23,0.15)",
-  input:      "#222222",
-  rowHover:   "rgba(212,160,23,0.06)",
+  divider:    "#1e1e1e",
+  input:      "#111111",
+  rowHover:   "#111111",
 };
 
 const SPECIALIZATIONS = ["All Specializations", "Tactical Strength", "Business Growth", "Nutrition", "Biometric"];
@@ -43,11 +43,11 @@ function StatusBadge({ status }) {
 function SpecBadge({ spec, extra }) {
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
-      <span style={{ padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: "rgba(212,160,23,0.15)", color: G.goldLight, border: `1px solid ${G.divider}` }}>
+      <span style={{ padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: "rgba(248,227,150,0.1)", color: G.goldLight, border: `1px solid ${G.divider}` }}>
         {spec}
       </span>
       {extra > 0 && (
-        <span style={{ padding: "3px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: "rgba(212,160,23,0.08)", color: G.gold, border: `1px solid ${G.divider}` }}>
+        <span style={{ padding: "3px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: "rgba(248,227,150,0.07)", color: G.gold, border: `1px solid ${G.divider}` }}>
           + {extra}
         </span>
       )}
@@ -125,14 +125,14 @@ export default function MentorsPage() {
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: "28px" }}>
       <style>{`
-        .tr-mentor td { background: ${G.card} !important; border-bottom: 1px solid ${G.divider} !important; color: ${G.text} !important; padding: 14px 16px !important; font-size: 13px; vertical-align: middle; }
+        .tr-mentor td { background: ${G.card} !important; border-bottom: 1px solid #141414 !important; color: ${G.text} !important; padding: 14px 16px !important; font-size: 12px; vertical-align: middle; font-weight: 700; }
         .tr-mentor:hover td { background: ${G.rowHover} !important; }
-        .th-mentor { background: #161616 !important; color: ${G.goldLight} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 11px !important; letter-spacing: 0.8px !important; padding: 12px 16px !important; font-weight: 700; }
-        .inp-gold { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px !important; }
-        .inp-gold::placeholder { color: #555 !important; }
-        .inp-gold:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(212,160,23,0.15) !important; outline: none !important; }
-        .inp-gold option { background: #1a1a1a; color: ${G.text}; }
-        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: rgba(212,160,23,0.15); border: 1px solid ${G.divider}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: ${G.goldLight}; flex-shrink: 0; }
+        .th-mentor { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700; }
+        .inp-gold { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px !important; }
+        .inp-gold::placeholder { color: #2a2a2a !important; }
+        .inp-gold:focus { border-color: rgba(248,227,150,0.25) !important; outline: none !important; }
+        .inp-gold option { background: #111111; color: #cccccc; }
+        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: rgba(248,227,150,0.07); border: 1px solid ${G.divider}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: ${G.goldLight}; flex-shrink: 0; }
       `}</style>
 
       {/* HEADER */}
@@ -146,7 +146,7 @@ export default function MentorsPage() {
         </div>
         <button
           onClick={() => router.push("/mentors/new")}
-          style={{ background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, color: "#111", border: "none", padding: "10px 20px", borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: "pointer", boxShadow: "0 4px 12px rgba(212,160,23,0.3)", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}
+          style={{ background: G.gold, color: "#000", border: "none", padding: "10px 20px", borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}
         >
           + Register New Mentor
         </button>
@@ -160,7 +160,7 @@ export default function MentorsPage() {
           { label: "Total Managed Pts",    value: String(totalPts), icon: "fe-users" },
         ].map((stat, i) => (
           <div key={i} style={{ background: G.card, border: G.cardBorder, borderRadius: 12, padding: "24px 28px", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: "radial-gradient(circle at top right, rgba(212,160,23,0.1), transparent 70%)", borderRadius: "0 12px 0 0" }} />
+            <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: "radial-gradient(circle at top right, rgba(248,227,150,0.07), transparent 70%)", borderRadius: "0 12px 0 0" }} />
             <p style={{ color: G.muted, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08rem", margin: "0 0 8px" }}>{stat.label}</p>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <h2 style={{ color: G.text, fontWeight: 800, margin: 0, fontSize: 36 }}>{stat.value}</h2>
@@ -263,7 +263,7 @@ export default function MentorsPage() {
               const isActive = btn.label === currentPage;
               return (
                 <button key={i} disabled={btn.disabled} onClick={() => !btn.disabled && setCurrentPage(btn.page)}
-                  style={{ width: 32, height: 32, borderRadius: 6, fontSize: 13, cursor: btn.disabled ? "not-allowed" : "pointer", fontWeight: isActive ? 700 : 400, border: `1px solid ${G.divider}`, background: isActive ? G.gold : "#1a1a1a", color: btn.disabled ? "#444" : isActive ? "#111" : G.goldLight, opacity: btn.disabled ? 0.5 : 1, display: "flex", alignItems: "center", justifyContent: "center" }}
+                  style={{ width: 30, height: 30, borderRadius: 6, fontSize: 11, cursor: btn.disabled ? "not-allowed" : "pointer", fontWeight: isActive ? 700 : 400, border: "1px solid #2a2a2a", background: isActive ? G.gold : "transparent", color: btn.disabled ? "#444" : isActive ? "#000" : "#888888", opacity: btn.disabled ? 0.5 : 1, display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
                   {btn.label}
                 </button>

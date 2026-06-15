@@ -3,15 +3,15 @@ import dynamic from "next/dynamic";
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const G = {
-  bg:         "#111111",
-  card:       "#1a1a1a",
-  cardBorder: "1px solid rgba(212,160,23,0.25)",
-  gold:       "#d4a017",
-  goldLight:  "#f5d76e",
-  goldFaint:  "rgba(212,160,23,0.08)",
-  text:       "#f1f1f1",
+  bg:         "#0a0a0a",
+  card:       "#0d0d0d",
+  cardBorder: "1px solid #1e1e1e",
+  gold:       "#f8e396",
+  goldLight:  "#f8e396",
+  goldFaint:  "rgba(248,227,150,0.07)",
+  text:       "#ffffff",
   muted:      "#888888",
-  divider:    "rgba(212,160,23,0.15)",
+  divider:    "#1e1e1e",
 };
 
 const STATS = [
@@ -39,22 +39,22 @@ export default function Dashboard() {
     },
     theme: { mode: "dark" },
     stroke: { curve: "smooth", width: 3 },
-    colors: ["#d4a017"],
+    colors: ["#f8e396"],
     fill: {
       type: "gradient",
       gradient: {
         shadeIntensity: 1,
-        opacityFrom: 0.35,
+        opacityFrom: 0.25,
         opacityTo: 0.02,
         stops: [0, 100],
         colorStops: [
-          { offset: 0,   color: "#d4a017", opacity: 0.35 },
-          { offset: 100, color: "#d4a017", opacity: 0.02 },
+          { offset: 0,   color: "#f8e396", opacity: 0.25 },
+          { offset: 100, color: "#f8e396", opacity: 0.02 },
         ],
       },
     },
     grid: {
-      borderColor: "rgba(212,160,23,0.1)",
+      borderColor: "#1e1e1e",
       strokeDashArray: 4,
     },
     xaxis: {
@@ -74,7 +74,7 @@ export default function Dashboard() {
       theme: "dark",
       y: { formatter: (v) => `$${v.toLocaleString()}` },
     },
-    markers: { size: 4, colors: ["#d4a017"], strokeColors: "#111111", strokeWidth: 2 },
+    markers: { size: 4, colors: ["#f8e396"], strokeColors: "#0a0a0a", strokeWidth: 2 },
   };
 
   const chartSeries = [{ name: "Revenue", data: [2000, 3500, 4000, 3000, 5000, 6000] }];
@@ -82,11 +82,11 @@ export default function Dashboard() {
   const donutOptions = {
     chart: { type: "donut", background: "transparent" },
     theme: { mode: "dark" },
-    colors: ["#d4a017", "#f5d76e", "#b8860b", "#2a2a2a"],
+    colors: ["#f8e396", "#faf2b8", "#c9b54a", "#1e1e1e"],
     labels: ["Premium", "Basic", "Trial", "Expired"],
     legend: { position: "bottom", labels: { colors: "#888888" } },
     dataLabels: { enabled: false },
-    stroke: { colors: ["#1a1a1a"], width: 2 },
+    stroke: { colors: ["#0d0d0d"], width: 2 },
     plotOptions: {
       pie: {
         donut: {
@@ -112,12 +112,12 @@ export default function Dashboard() {
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: "28px" }}>
       <style>{`
-        .progress-gold { height: 4px !important; background: rgba(212,160,23,0.15) !important; border-radius: 4px !important; margin-top: 12px; }
-        .progress-gold .progress-bar { background: linear-gradient(90deg, #d4a017, #f5d76e) !important; border-radius: 4px !important; }
+        .progress-gold { height: 4px !important; background: rgba(248,227,150,0.1) !important; border-radius: 4px !important; margin-top: 12px; }
+        .progress-gold .progress-bar { background: #f8e396 !important; border-radius: 4px !important; }
         .tr-dash td { background: ${G.card} !important; border-bottom: 1px solid ${G.divider} !important; color: ${G.text} !important; padding: 12px 16px !important; font-size: 13px; }
-        .tr-dash:hover td { background: ${G.goldFaint} !important; }
-        .th-dash { background: #161616 !important; color: ${G.goldLight} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 11px !important; letter-spacing: 0.8px !important; padding: 12px 16px !important; }
-        .apexcharts-tooltip { border: 1px solid rgba(212,160,23,0.3) !important; }
+        .tr-dash:hover td { background: #111111 !important; }
+        .th-dash { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700 !important; }
+        .apexcharts-tooltip { border: 1px solid #2a2a2a !important; }
       `}</style>
 
       {/* PAGE HEADER */}
@@ -144,7 +144,7 @@ export default function Dashboard() {
             <div style={{
               position: "absolute", top: 0, right: 0,
               width: 80, height: 80,
-              background: "radial-gradient(circle at top right, rgba(212,160,23,0.12), transparent 70%)",
+              background: "radial-gradient(circle at top right, rgba(248,227,150,0.08), transparent 70%)",
               borderRadius: "0 12px 0 0",
             }} />
 
@@ -198,7 +198,7 @@ export default function Dashboard() {
               Monthly
             </div>
           </div>
-          <div style={{ height: 3, background: `linear-gradient(90deg, ${G.gold}, transparent)`, borderRadius: 4, marginBottom: 8 }} />
+          <div style={{ height: 2, background: `linear-gradient(90deg, ${G.gold}, transparent)`, borderRadius: 4, marginBottom: 8 }} />
           <Chart options={chartOptions} series={chartSeries} type="area" height={270} />
         </div>
 
@@ -267,7 +267,7 @@ export default function Dashboard() {
 
           {/* Total Revenue */}
           <div style={{
-            background: `linear-gradient(135deg, #1e1800, #1a1a1a)`,
+            background: `linear-gradient(135deg, #0d0d00, #0d0d0d)`,
             border: G.cardBorder,
             borderRadius: 12,
             padding: "24px",
@@ -277,16 +277,16 @@ export default function Dashboard() {
           }}>
             <div style={{
               position: "absolute", inset: 0,
-              background: "radial-gradient(ellipse at top left, rgba(212,160,23,0.18), transparent 65%)",
+              background: "radial-gradient(ellipse at top left, rgba(248,227,150,0.07), transparent 65%)",
             }} />
             <div style={{ position: "relative" }}>
               <div style={{
                 width: 44, height: 44, borderRadius: 10,
-                background: `linear-gradient(135deg, ${G.gold}, #b8860b)`,
+                background: G.gold,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                marginBottom: 14, boxShadow: "0 6px 16px rgba(212,160,23,0.35)",
+                marginBottom: 14, boxShadow: "0 6px 16px rgba(248,227,150,0.2)",
               }}>
-                <i className="fe fe-trending-up" style={{ color: "#111", fontSize: 18 }}></i>
+                <i className="fe fe-trending-up" style={{ color: "#000", fontSize: 18 }}></i>
               </div>
               <p style={{ color: G.muted, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08rem", margin: 0 }}>
                 Total Revenue

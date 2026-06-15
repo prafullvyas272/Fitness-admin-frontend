@@ -3,12 +3,25 @@
 // Use this to write your custom SCSS
 //
 
-// ===== GLOBAL BLACK-GOLD BACKGROUND OVERRIDES =====
+// ===== GLOBAL FONT =====
+*, body, html {
+  font-family: 'Montserrat', Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+// ===== SCROLLBAR =====
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(248,227,150,0.2); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(248,227,150,0.45); }
+* { scrollbar-width: thin; scrollbar-color: rgba(248,227,150,0.2) transparent; }
+
+// ===== GLOBAL BACKGROUND OVERRIDES =====
 #db-wrapper,
 #page-content,
 .navbar-classic,
 .header {
-  background-color: #111111 !important;
+  background-color: #0a0a0a !important;
 }
 
 .navbar-classic {
@@ -352,26 +365,27 @@
 }
 
 .page-link {
-  background-color: #1a1a1a !important;
-  border-color: rgba(212,160,23,0.25) !important;
-  color: #f5d76e !important;
+  background-color: transparent !important;
+  border-color: #2a2a2a !important;
+  color: #888888 !important;
 }
 
 .page-link:hover {
-  background-color: rgba(212,160,23,0.08) !important;
-  color: #d4a017 !important;
+  background-color: transparent !important;
+  border-color: #f8e396 !important;
+  color: #f8e396 !important;
 }
 
 .page-item.active .page-link {
-  background-color: #d4a017 !important;
-  border-color: #d4a017 !important;
-  color: #111111 !important;
+  background-color: #f8e396 !important;
+  border-color: #f8e396 !important;
+  color: #000000 !important;
   font-weight: 700 !important;
 }
 
 .page-item.disabled .page-link {
-  background-color: #161616 !important;
-  border-color: rgba(212,160,23,0.15) !important;
+  background-color: transparent !important;
+  border-color: #2a2a2a !important;
   color: #444444 !important;
 }
 
@@ -2584,77 +2598,101 @@ h5 {
   overflow: visible !important;
 }
 
-// ================= BLACK-GOLDEN SIDEBAR =================
+// ================= NEW THEME SIDEBAR =================
 
 .navbar-vertical {
-  background-color: #111111 !important;
-  border-right: 1px solid rgba(212, 160, 23, 0.2) !important;
+  background-color: #0a0a0a !important;
+  border-right: 1px solid #181818 !important;
 
   // Logo area
   .navbar-brand.custom-brand {
-    border-bottom: 1px solid rgba(212, 160, 23, 0.15) !important;
+    border-bottom: 1px solid #181818 !important;
     padding: 1.25rem 1.5rem !important;
   }
 
   // Section group titles
   .navbar-heading {
-    color: rgba(212, 160, 23, 0.5) !important;
-    font-size: 0.7rem !important;
+    color: #333333 !important;
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
     letter-spacing: 0.12rem !important;
   }
 
   // Nav links — default
   .navbar-nav .nav-item .nav-link {
-    color: #888888 !important;
-    border-radius: 8px;
+    color: #484848 !important;
+    border-radius: 10px;
     margin: 2px 10px;
     padding: 0.5rem 1rem !important;
     transition: all 0.2s ease !important;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    position: relative;
 
     .nav-icon {
-      color: #888888 !important;
+      color: #484848 !important;
       opacity: 1 !important;
     }
   }
 
   // Nav links — hover
   .navbar-nav .nav-item .nav-link:hover {
-    color: #f5d76e !important;
-    background: rgba(212, 160, 23, 0.08) !important;
+    color: #f8e396 !important;
+    background: #111111 !important;
 
     .nav-icon {
-      color: #f5d76e !important;
+      color: #f8e396 !important;
     }
   }
 
   // Nav links — active
   .navbar-nav .nav-item .nav-link.active {
-    color: #111111 !important;
-    background: linear-gradient(135deg, #d4a017, #b8860b) !important;
-    font-weight: 600 !important;
-    box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3) !important;
+    color: #f8e396 !important;
+    background: #111111 !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
 
     .nav-icon {
-      color: #111111 !important;
+      color: #f8e396 !important;
       opacity: 1 !important;
+    }
+
+    // Right-side active bar indicator
+    &::after {
+      content: '' !important;
+      position: absolute !important;
+      right: 0 !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      width: 4px !important;
+      height: 55% !important;
+      background: #f8e396 !important;
+      border-radius: 3px 0 0 3px !important;
     }
   }
 
   // Sub-nav links (children)
   .navbar-nav .nav .nav-item .nav-link {
     color: #666666 !important;
-    &:hover { color: #f5d76e !important; background: rgba(212, 160, 23, 0.06) !important; }
-    &.active { color: #f5d76e !important; background: transparent !important; font-weight: 600 !important; box-shadow: none !important; }
+    &:hover { color: #f8e396 !important; background: #111111 !important; }
+    &.active {
+      color: #f8e396 !important;
+      background: transparent !important;
+      font-weight: 700 !important;
+      box-shadow: none !important;
+      &::after { display: none !important; }
+    }
   }
 
-  // Accordion chevron — tint gold only, let template handle positioning
+  // Accordion chevron
   .navbar-nav .nav-item .nav-link[data-bs-toggle="collapse"]:after {
-    -webkit-filter: brightness(0) saturate(100%) invert(72%) sepia(48%) saturate(500%) hue-rotate(5deg) brightness(95%) !important;
-    filter: brightness(0) saturate(100%) invert(72%) sepia(48%) saturate(500%) hue-rotate(5deg) brightness(95%) !important;
+    -webkit-filter: brightness(0) saturate(100%) invert(50%) !important;
+    filter: brightness(0) saturate(100%) invert(50%) !important;
   }
 
-  // SimpleBar scrollbar track
+  // SimpleBar scrollbar
   .simplebar-scrollbar::before {
-    background: rgba(212, 160, 23, 0.3) !important;
+    background: rgba(248,227,150,0.2) !important;
   }
 }

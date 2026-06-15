@@ -1,37 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
-const G = {
-  bg: "#0d0d0d", card: "#161616", gold: "#d4a017", goldLight: "#f5d76e",
-  goldFaint: "rgba(212,160,23,0.08)", divider: "rgba(212,160,23,0.2)",
-  text: "#f1f1f1", muted: "#888888", input: "#1e1e1e", error: "#f87171",
-};
+const IMAGES = [
+  "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8Z3ltJTIwd29ya291dHxlbnwwfHwwfHx8MA%3D%3D",
+  "https://media.istockphoto.com/id/2027278927/photo/young-athletic-woman-exercising-with-barbell-during-sports-training-in-a-gym.jpg?s=612x612&w=0&k=20&c=ifFL7Mqc8NwTj25PAx4ONy1OOQZvc1S_kVOofsbLgFw=",
+  "https://www.puregym.com/media/w1kffo3p/pure-gym-day-16238.jpg?quality=80",
+];
 
 export default function Login() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [stayIn, setStayIn]     = useState(false);
+  const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
+  const [idx, setIdx]           = useState(0);
+  const [fading, setFading]     = useState(false);
+
+  /* Slide every 5 s */
+  useEffect(() => {
+    const t = setInterval(() => {
+      setFading(true);
+      setTimeout(() => {
+        setIdx((p) => (p + 1) % IMAGES.length);
+        setFading(false);
+      }, 500);
+    }, 5000);
+    return () => clearInterval(t);
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("https://fitness-app-seven-beryl.vercel.app/api/auth/login", {
+      const res  = await fetch("https://fitness-app-seven-beryl.vercel.app/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Login failed");
-      const accessToken = data?.data?.access_token;
-      if (!accessToken) throw new Error("Access token not received");
-      localStorage.setItem("adminToken", accessToken);
+      const token = data?.data?.access_token;
+      if (!token) throw new Error("Access token not received");
+      localStorage.setItem("adminToken",   token);
       localStorage.setItem("refreshToken", data?.data?.refresh_token);
-      localStorage.setItem("adminId", data?.data?.user?.id);
+      localStorage.setItem("adminId",      data?.data?.user?.id);
       router.push("/dashboard");
     } catch (err) {
       setError(err.message);
@@ -40,156 +55,232 @@ export default function Login() {
     }
   };
 
+  const panelImages = [
+    IMAGES[idx % IMAGES.length],
+    IMAGES[(idx + 1) % IMAGES.length],
+    IMAGES[(idx + 2) % IMAGES.length],
+  ];
+
   return (
     <div style={{
-      minHeight: "100vh", background: G.bg, display: "flex",
-      alignItems: "center", justifyContent: "center",
-      fontFamily: "'Inter', -apple-system, sans-serif",
-      position: "relative", overflow: "hidden",
+      width: "100vw",
+      height: "100vh",
+      overflow: "hidden",
+      background: "#0a0a0a",
+      position: "relative",
+      fontFamily: "'Montserrat', Arial, sans-serif",
     }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes glow { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.7; } }
-        .login-input { width: 100%; background: ${G.input} !important; border: 1px solid ${G.divider} !important;
-          color: ${G.text} !important; padding: 12px 16px; border-radius: 10px; font-size: 14px;
-          outline: none; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
-        .login-input::placeholder { color: #444 !important; }
-        .login-input:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(212,160,23,0.12) !important; }
-        .login-btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px;
-          font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
-          background: linear-gradient(135deg, ${G.gold}, #b8860b);
-          color: #111; box-shadow: 0 4px 20px rgba(212,160,23,0.35); }
-        .login-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(212,160,23,0.5); }
-        .login-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
-        .eye-btn { background: transparent; border: none; cursor: pointer; padding: 0 4px;
-          color: ${G.muted}; display: flex; align-items: center; transition: color 0.15s; }
-        .eye-btn:hover { color: ${G.goldLight}; }
+        .lg-input {
+          width: 100%;
+          background: #1c1c1c !important;
+          border: 1px solid #282828 !important;
+          color: #fff !important;
+          padding: 10px 14px;
+          border-radius: 6px;
+          font-size: 13px;
+          outline: none;
+          font-family: inherit;
+          box-sizing: border-box;
+          transition: border-color 0.2s;
+        }
+        .lg-input::placeholder { color: #444 !important; }
+        .lg-input:focus { border-color: #f8e396 !important; }
+        .lg-btn {
+          width: 100%;
+          padding: 11px;
+          border: 1px solid rgba(248,227,150,0.65);
+          background: transparent;
+          color: #f8e396;
+          border-radius: 6px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-family: inherit;
+        }
+        .lg-btn:hover:not(:disabled) { background: #f8e396; color: #000; }
+        .lg-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .lg-eye {
+          position: absolute; right: 12px; top: 50%;
+          transform: translateY(-50%);
+          background: none; border: none;
+          color: #555; cursor: pointer; padding: 0;
+          display: flex; align-items: center;
+          transition: color 0.15s;
+        }
+        .lg-eye:hover { color: #f8e396; }
       `}</style>
 
-      {/* Background ambient glows */}
-      <div style={{ position: "absolute", top: "10%", left: "15%", width: 400, height: 400,
-        borderRadius: "50%", background: "radial-gradient(circle, rgba(212,160,23,0.07) 0%, transparent 70%)",
-        animation: "glow 4s ease-in-out infinite", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: "10%", right: "15%", width: 300, height: 300,
-        borderRadius: "50%", background: "radial-gradient(circle, rgba(212,160,23,0.05) 0%, transparent 70%)",
-        animation: "glow 4s ease-in-out infinite 2s", pointerEvents: "none" }} />
-
-      {/* Card */}
+      {/* ── THREE FULL-SCREEN PANELS ── */}
       <div style={{
-        background: G.card, border: `1px solid ${G.divider}`, borderRadius: 20,
-        padding: "48px 44px", width: "100%", maxWidth: 420,
-        boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,160,23,0.08)",
-        animation: "fadeUp 0.5s ease forwards", position: "relative", zIndex: 1,
+        position: "absolute",
+        inset: "14px",
+        display: "flex",
+        gap: 10,
+        alignItems: "stretch",
       }}>
-        {/* Gold top accent line */}
-        <div style={{
-          position: "absolute", top: 0, left: "20%", right: "20%", height: 2,
-          background: `linear-gradient(90deg, transparent, ${G.gold}, transparent)`,
-          borderRadius: "0 0 4px 4px",
-        }} />
+        {panelImages.map((src, i) => {
+          const isCenter = i === 1;
+          return (
+            <div
+              key={i}
+              style={{
+                flex: isCenter ? 2 : 1,
+                borderRadius: 20,
+                overflow: "hidden",
+                backgroundImage: `url(${src})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                opacity: fading ? 0 : 1,
+                transition: "opacity 0.5s ease",
+                position: "relative",
+              }}
+            >
+              <div style={{
+                position: "absolute",
+                inset: 0,
+                background: isCenter
+                  ? "rgba(0,0,0,0.42)"
+                  : "rgba(0,0,0,0.68)",
+              }} />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── LOGIN CARD ── centered over panels */}
+      <div style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: 286,
+        background: "rgba(12,12,12,0.92)",
+        borderRadius: 10,
+        padding: "28px 24px 26px",
+        zIndex: 20,
+        backdropFilter: "blur(18px)",
+        WebkitBackdropFilter: "blur(18px)",
+        border: "1px solid rgba(255,255,255,0.05)",
+      }}>
 
         {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: 28 }}>
+        <div style={{ textAlign: "center", marginBottom: 20 }}>
           <img
-            src="https://res.cloudinary.com/dbazlbkfj/image/upload/v1772011826/Upto_logo_1_l2ocqd.png"
-            alt="Upto Logo"
-            style={{ height: 48, filter: "brightness(1.1)" }}
+            src="https://res.cloudinary.com/dbazlbkfj/image/upload/v1781515780/Layer_x0020_1_1_klnh94.png"
+            alt="Upto"
+            style={{ height: 40, objectFit: "contain" }}
           />
-        </div>
-
-        {/* Heading */}
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <h2 style={{ color: G.text, fontWeight: 700, fontSize: 24, margin: 0, marginBottom: 8 }}>
-            Admin Login
-          </h2>
-          <p style={{ color: G.muted, fontSize: 13.5, margin: 0 }}>
-            Welcome back! Please sign in to continue.
-          </p>
         </div>
 
         {/* Error */}
         {error && (
           <div style={{
-            background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.3)",
-            color: G.error, padding: "10px 14px", borderRadius: 10, fontSize: 13,
-            marginBottom: 20, display: "flex", alignItems: "center", gap: 8,
+            background: "rgba(248,113,113,0.08)",
+            border: "1px solid rgba(248,113,113,0.28)",
+            color: "#f87171",
+            padding: "8px 12px",
+            borderRadius: 6,
+            fontSize: 12,
+            marginBottom: 14,
+            lineHeight: 1.5,
           }}>
-            <i className="fe fe-alert-circle" style={{ fontSize: 15 }}></i>
             {error}
           </div>
         )}
 
         <form onSubmit={handleLogin}>
+
           {/* Email */}
-          <div style={{ marginBottom: 18 }}>
-            <label style={{ color: G.muted, fontSize: 13, fontWeight: 600, display: "block", marginBottom: 8 }}>
+          <div style={{ marginBottom: 13 }}>
+            <label style={{
+              color: "#f8e396",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              display: "block",
+              marginBottom: 7,
+            }}>
               Email Address
             </label>
-            <div style={{ position: "relative" }}>
-              <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#444", pointerEvents: "none" }}>
-                <i className="fe fe-mail" style={{ fontSize: 15 }}></i>
-              </span>
-              <input
-                type="email"
-                required
-                placeholder="admin@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="login-input"
-                style={{ paddingLeft: 42 }}
-              />
-            </div>
+            <input
+              type="email"
+              required
+              placeholder="john@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="lg-input"
+            />
           </div>
 
           {/* Password */}
-          <div style={{ marginBottom: 28 }}>
-            <label style={{ color: G.muted, fontSize: 13, fontWeight: 600, display: "block", marginBottom: 8 }}>
+          <div style={{ marginBottom: 13 }}>
+            <label style={{
+              color: "#f8e396",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              display: "block",
+              marginBottom: 7,
+            }}>
               Password
             </label>
-            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-              <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#444", pointerEvents: "none", zIndex: 1 }}>
-                <i className="fe fe-lock" style={{ fontSize: 15 }}></i>
-              </span>
+            <div style={{ position: "relative" }}>
               <input
                 type={showPass ? "text" : "password"}
                 required
-                placeholder="Enter your password"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="login-input"
-                style={{ paddingLeft: 42, paddingRight: 44 }}
+                className="lg-input"
+                style={{ paddingRight: 40 }}
               />
-              <button
-                type="button"
-                className="eye-btn"
-                onClick={() => setShowPass(!showPass)}
-                style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)" }}
-              >
-                <i className={`fe fe-${showPass ? "eye-off" : "eye"}`} style={{ fontSize: 16 }}></i>
+              <button type="button" className="lg-eye" onClick={() => setShowPass(!showPass)}>
+                <i className={`fe fe-${showPass ? "eye-off" : "eye"}`} style={{ fontSize: 14 }} />
               </button>
             </div>
           </div>
 
-          {/* Submit */}
-          <button type="submit" className="login-btn" disabled={loading}>
+          {/* Stay Logged In */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+            <input
+              type="checkbox"
+              id="stayIn"
+              checked={stayIn}
+              onChange={(e) => setStayIn(e.target.checked)}
+              style={{ accentColor: "#f8e396", width: 13, height: 13, cursor: "pointer" }}
+            />
+            <label
+              htmlFor="stayIn"
+              style={{ color: "#5a5a5a", fontSize: 12, cursor: "pointer", margin: 0, userSelect: "none" }}
+            >
+              Stay Logged In
+            </label>
+          </div>
+
+          {/* Sign In */}
+          <button type="submit" className="lg-btn" disabled={loading}>
             {loading ? (
-              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 <span style={{
-                  width: 18, height: 18, border: "2px solid rgba(17,17,17,0.3)",
-                  borderTop: "2px solid #111", borderRadius: "50%",
-                  animation: "spin 0.7s linear infinite", display: "inline-block",
+                  width: 13, height: 13,
+                  border: "2px solid rgba(248,227,150,0.2)",
+                  borderTop: "2px solid #f8e396",
+                  borderRadius: "50%",
+                  animation: "spin 0.7s linear infinite",
+                  display: "inline-block",
                 }} />
                 Signing in...
               </span>
-            ) : "Sign In"}
+            ) : "SIGN IN"}
           </button>
-        </form>
 
-        {/* Footer */}
-        <p style={{ textAlign: "center", color: "#333", fontSize: 12, marginTop: 28, marginBottom: 0 }}>
-          Gym Management System &copy; {new Date().getFullYear()}
-        </p>
+        </form>
       </div>
     </div>
   );

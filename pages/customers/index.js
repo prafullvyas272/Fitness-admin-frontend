@@ -10,8 +10,9 @@ import {
 } from "../../redux/slices/customerSlice";
 
 const G = {
-  bg: "#111111", card: "#1a1a1a", gold: "#d4a017", goldLight: "#f5d76e",
-  divider: "rgba(212,160,23,0.2)", text: "#f1f1f1", muted: "#888888", input: "#222222",
+  bg: "#0a0a0a", card: "#0d0d0d", gold: "#f8e396", goldLight: "#f8e396",
+  divider: "#1e1e1e", text: "#ffffff", muted: "#888888", input: "#111111",
+  cardBorder: "1px solid #1e1e1e", rowHover: "#111111",
 };
 
 export default function AllCustomers() {
@@ -164,23 +165,23 @@ export default function AllCustomers() {
         table { background: ${G.card} !important; }
         .table-responsive { background: ${G.card} !important; }
         .cu-thead th { background: #1f1f1f !important; color: ${G.muted} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 11px; letter-spacing: 0.8px; padding: 12px 16px; }
-        .cu-tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-bottom: 1px solid ${G.divider} !important; padding: 14px 16px; vertical-align: middle; }
-        .cu-tbody tr:hover td { background: #202020 !important; }
-        .cu-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px; }
-        .cu-inp:focus { background: ${G.input} !important; color: ${G.text} !important; box-shadow: none !important; }
-        .cu-inp::placeholder { color: #555 !important; }
-        .cu-inp option { background: #1a1a1a; }
-        .cu-ddm { background: #1e1e1e !important; border: 1px solid ${G.divider} !important; }
+        .cu-tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-bottom: 1px solid #141414 !important; padding: 14px 16px; vertical-align: middle; font-size: 12px; font-weight: 700; }
+        .cu-tbody tr:hover td { background: #111111 !important; }
+        .cu-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px; }
+        .cu-inp:focus { background: ${G.input} !important; color: #cccccc !important; box-shadow: none !important; border-color: rgba(248,227,150,0.25) !important; }
+        .cu-inp::placeholder { color: #2a2a2a !important; }
+        .cu-inp option { background: #111111; }
+        .cu-ddm { background: #0d0d0d !important; border: 1px solid ${G.divider} !important; }
         .cu-ddm .dropdown-item { color: ${G.text} !important; font-size: 13px; }
-        .cu-ddm .dropdown-item:hover { background: rgba(212,160,23,0.08) !important; color: ${G.goldLight} !important; }
-        .cu-ddm .dropdown-item.active, .cu-ddm .dropdown-item:active { background: rgba(212,160,23,0.15) !important; color: ${G.goldLight} !important; }
+        .cu-ddm .dropdown-item:hover { background: #111111 !important; color: ${G.goldLight} !important; }
+        .cu-ddm .dropdown-item.active, .cu-ddm .dropdown-item:active { background: #111111 !important; color: ${G.goldLight} !important; }
         .cu-ddm .dropdown-divider { border-color: ${G.divider} !important; }
         .cu-tbody .status-pill { background: transparent !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; }
         .cu-tbody .status-pill .fw-semibold { color: ${G.text} !important; }
-        .cu-pg .page-link { background: #1a1a1a !important; border-color: ${G.divider} !important; color: ${G.muted} !important; }
-        .cu-pg .page-item.active .page-link { background: ${G.gold} !important; border-color: ${G.gold} !important; color: #111 !important; font-weight: 600; }
-        .cu-pg .page-item.disabled .page-link { background: #161616 !important; color: #444 !important; }
-        .cu-pg .page-link:hover { background: rgba(212,160,23,0.1) !important; color: ${G.goldLight} !important; }
+        .cu-pg .page-link { background: transparent !important; border-color: #2a2a2a !important; color: #888888 !important; }
+        .cu-pg .page-item.active .page-link { background: ${G.gold} !important; border-color: ${G.gold} !important; color: #000 !important; font-weight: 700; }
+        .cu-pg .page-item.disabled .page-link { background: transparent !important; color: #444 !important; }
+        .cu-pg .page-link:hover { border-color: ${G.gold} !important; color: ${G.gold} !important; }
         .modal-gold .modal-content { background: ${G.card}; border: 1px solid ${G.divider}; color: ${G.text}; }
         .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; }
         .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; }
@@ -236,7 +237,7 @@ export default function AllCustomers() {
           {/* CREATE BUTTON */}
           <button
             onClick={() => router.push("/customers/create")}
-            style={{ background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: "#111", padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14 }}
+            style={{ background: G.gold, border: "none", color: "#000", padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14 }}
           >
             + Create Customer
           </button>
@@ -437,8 +438,8 @@ export default function AllCustomers() {
                     cursor: btn.disabled ? "not-allowed" : "pointer",
                     fontWeight: isActive ? 700 : 400,
                     border: `1px solid ${G.divider}`,
-                    background: isActive ? G.gold : "#1a1a1a",
-                    color: btn.disabled ? "#444" : isActive ? "#111" : G.goldLight,
+                    background: isActive ? G.gold : "transparent",
+                    color: btn.disabled ? "#444" : isActive ? "#000" : "#888888",
                     opacity: btn.disabled ? 0.5 : 1,
                     transition: "all 0.15s ease",
                   }}>
@@ -499,7 +500,7 @@ export default function AllCustomers() {
           <button
             onClick={handleAssignSave}
             disabled={!selectedTrainer}
-            style={{ background: selectedTrainer ? `linear-gradient(135deg, ${G.gold}, #b8860b)` : "#333", border: "none", color: selectedTrainer ? "#111" : G.muted, padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: selectedTrainer ? "pointer" : "not-allowed" }}
+            style={{ background: selectedTrainer ? G.gold : "#333", border: "none", color: selectedTrainer ? "#000" : G.muted, padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: selectedTrainer ? "pointer" : "not-allowed" }}
           >
             {(() => {
               const isAssigned = trainers.some((trainer) =>

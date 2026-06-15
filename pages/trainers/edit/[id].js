@@ -145,7 +145,7 @@ export default function EditTrainer() {
     );
 
     if (updateTrainerAsync.fulfilled.match(resultAction)) {
-      alert("Trainer updated successfully ✅");
+      alert("Trainer updated successfully");
       router.replace(`/trainers/view/${id}`);
     } else {
       alert(resultAction.payload || "Update failed");
@@ -163,8 +163,16 @@ export default function EditTrainer() {
   ];
 
   const G = {
-    bg: "#111111", card: "#1a1a1a", gold: "#d4a017", goldLight: "#f5d76e",
-    divider: "rgba(212,160,23,0.2)", text: "#f1f1f1", muted: "#888888", input: "#222222",
+    bg:         "#0a0a0a",
+    card:       "#0d0d0d",
+    cardBorder: "1px solid #1e1e1e",
+    gold:       "#f8e396",
+    goldLight:  "#f8e396",
+    goldFaint:  "rgba(248,227,150,0.07)",
+    text:       "#ffffff",
+    muted:      "#888888",
+    divider:    "#1e1e1e",
+    input:      "#111111",
   };
 
   if (!selectedTrainer && loading) {
@@ -178,22 +186,24 @@ export default function EditTrainer() {
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: 24 }}>
       <style>{`
-        .dk-inp { background: ${G.input} !important; border: none !important; color: ${G.text} !important; }
-        .dk-inp:focus { background: ${G.input} !important; color: ${G.text} !important; box-shadow: none !important; }
-        .dk-inp::placeholder { color: #555 !important; }
-        .dk-inp option { background: #1a1a1a; color: ${G.text}; }
-        .dk-ig-text { background: #2a2a2a !important; border: none !important; color: ${G.gold} !important; }
-        .dk-ig { background: #222 !important; border: 1px solid ${G.divider} !important; border-radius: 8px !important; overflow: hidden; }
-        .dk-ig .form-control, .dk-ig textarea { background: ${G.input} !important; border: none !important; color: ${G.text} !important; }
-        .dk-ig .form-control:focus, .dk-ig textarea:focus { background: ${G.input} !important; box-shadow: none !important; }
-        .dk-ig .form-control::placeholder { color: #555 !important; }
-        .dk-ddm { background: #1e1e1e !important; border: 1px solid ${G.divider} !important; }
+        .dk-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px !important; }
+        .dk-inp:focus { background: ${G.input} !important; color: #cccccc !important; box-shadow: none !important; border-color: rgba(248,227,150,0.25) !important; }
+        .dk-inp::placeholder { color: #2a2a2a !important; }
+        .dk-inp option { background: ${G.card}; color: #cccccc; }
+        .dk-ig-text { background: #111111 !important; border: none !important; color: ${G.gold} !important; border-right: 1px solid ${G.divider} !important; }
+        .dk-ig { background: ${G.input} !important; border: 1px solid ${G.divider} !important; border-radius: 7px !important; overflow: hidden; }
+        .dk-ig .form-control, .dk-ig textarea { background: ${G.input} !important; border: none !important; color: #cccccc !important; }
+        .dk-ig .form-control:focus, .dk-ig textarea:focus { background: ${G.input} !important; box-shadow: none !important; border-color: rgba(248,227,150,0.25) !important; }
+        .dk-ig .form-control::placeholder, .dk-ig textarea::placeholder { color: #2a2a2a !important; }
+        .dk-ddm { background: ${G.card} !important; border: 1px solid ${G.divider} !important; }
         .dk-ddm .dropdown-item { color: ${G.text} !important; font-size: 13px; }
-        .dk-ddm .dropdown-item:hover { background: rgba(212,160,23,0.08) !important; color: ${G.goldLight} !important; }
-        .dk-flag-toggle { background: #2a2a2a !important; border: none !important; color: ${G.text} !important; border-right: 1px solid ${G.divider} !important; }
-        .dk-flag-toggle:hover, .dk-flag-toggle:focus { background: #333 !important; }
-        .dk-status-toggle { background: #222 !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px !important; width: 100%; display: flex !important; align-items: center !important; }
-        .dk-status-toggle:hover { background: #2a2a2a !important; }
+        .dk-ddm .dropdown-item:hover { background: ${G.goldFaint} !important; color: ${G.goldLight} !important; }
+        .dk-flag-toggle { background: #111111 !important; border: none !important; color: ${G.text} !important; border-right: 1px solid ${G.divider} !important; }
+        .dk-flag-toggle:hover, .dk-flag-toggle:focus { background: #1e1e1e !important; }
+        .dk-flag-toggle::after { border-top-color: ${G.muted} !important; }
+        .dk-status-toggle { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 7px !important; width: 100%; display: flex !important; align-items: center !important; }
+        .dk-status-toggle:hover { background: #1e1e1e !important; }
+        .dk-status-toggle::after { border-top-color: ${G.muted} !important; }
         .dk-label { color: ${G.muted}; font-weight: 600; font-size: 14px; }
         .dk-row-divider { border-bottom: 1px solid ${G.divider}; padding-bottom: 20px; margin-bottom: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -201,8 +211,8 @@ export default function EditTrainer() {
 
       {/* FULL-SCREEN LOADER */}
       {loading && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
-          <div style={{ width: 56, height: 56, border: `5px solid rgba(212,160,23,0.2)`, borderTop: `5px solid ${G.gold}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        <div style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
+          <div style={{ width: 56, height: 56, border: `5px solid rgba(248,227,150,0.15)`, borderTop: `5px solid ${G.gold}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
           <p style={{ margin: 0, fontWeight: 600, fontSize: 15, color: G.goldLight }}>Updating trainer...</p>
         </div>
       )}
@@ -210,7 +220,7 @@ export default function EditTrainer() {
       {/* HEADER */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <button
-          style={{ background: "transparent", border: `1px solid ${G.divider}`, color: G.text, padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}
+          style={{ background: "transparent", border: "1px solid #222", color: "#666", padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}
           onClick={() => {
             if (
               originalTrainer &&
@@ -228,13 +238,13 @@ export default function EditTrainer() {
           type="submit"
           form="editTrainerForm"
           disabled={loading}
-          style={{ background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: "#111", padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: loading ? 0.7 : 1 }}
+          style={{ background: G.gold, border: "none", color: "#000", padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14, opacity: loading ? 0.7 : 1 }}
         >
           {loading ? "Updating..." : "Update Trainer"}
         </button>
       </div>
 
-      <div style={{ background: G.card, border: `1px solid ${G.divider}`, borderRadius: 14, padding: 32 }}>
+      <div style={{ background: G.card, border: G.cardBorder, borderRadius: 14, padding: 32 }}>
         <Form id="editTrainerForm" onSubmit={handleSubmit}>
 
           {/* AVATAR */}
@@ -352,7 +362,7 @@ export default function EditTrainer() {
           <Row className="mb-4 align-items-center">
             <Col md={3}><span className="dk-label">Gender</span></Col>
             <Col md={9}>
-              <Form.Select name="gender" value={trainer.gender} onChange={handleChange} className="dk-inp" style={{ padding: "10px 14px", borderRadius: 8, border: `1px solid ${G.divider}` }} required>
+              <Form.Select name="gender" value={trainer.gender} onChange={handleChange} className="dk-inp" style={{ padding: "10px 14px" }} required>
                 <option value="">Select Gender</option>
                 <option value="MALE">Male</option>
                 <option value="FEMALE">Female</option>
@@ -378,7 +388,7 @@ export default function EditTrainer() {
             <Col md={9}>
               <Dropdown>
                 <Dropdown.Toggle className="dk-status-toggle">
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: trainer.status === "Active" ? "#4ade80" : "#f87171", marginRight: 8, display: "inline-block" }}></span>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: trainer.status === "Active" ? "#4ade80" : "#ff6b6b", marginRight: 8, display: "inline-block" }}></span>
                   <span style={{ fontWeight: 600 }}>{trainer.status}</span>
                   <i className="fe fe-chevron-down" style={{ marginLeft: "auto", fontSize: 12, color: G.muted }}></i>
                 </Dropdown.Toggle>
@@ -387,7 +397,7 @@ export default function EditTrainer() {
                     <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", display: "inline-block", marginRight: 8 }}></span>Active
                   </Dropdown.Item>
                   <Dropdown.Item onClick={() => setTrainer({ ...trainer, status: "Inactive" })}>
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f87171", display: "inline-block", marginRight: 8 }}></span>Inactive
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#ff6b6b", display: "inline-block", marginRight: 8 }}></span>Inactive
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>

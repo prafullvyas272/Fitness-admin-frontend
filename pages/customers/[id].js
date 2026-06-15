@@ -12,8 +12,9 @@ import {
 } from "../../redux/slices/customerSlice";
 
 const G = {
-  bg: "#111111", card: "#1a1a1a", gold: "#d4a017", goldLight: "#f5d76e",
-  divider: "rgba(212,160,23,0.2)", text: "#f1f1f1", muted: "#888888", input: "#222222",
+  bg: "#0a0a0a", card: "#0d0d0d", gold: "#f8e396", goldLight: "#f8e396",
+  divider: "#1e1e1e", text: "#ffffff", muted: "#888888", input: "#111111",
+  cardBorder: "1px solid #1e1e1e", goldFaint: "rgba(248,227,150,0.07)",
 };
 
 export default function CustomerDetail() {
@@ -206,7 +207,7 @@ export default function CustomerDetail() {
               </button>
               <button
                 onClick={() => router.push(`/customers/create?id=${customer.id}`)}
-                style={{ background: `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: "#111", padding: "6px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+                style={{ background: `${G.gold}`, border: "none", color: "#111", padding: "6px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}
               >
                 Edit Profile
               </button>
@@ -314,7 +315,7 @@ export default function CustomerDetail() {
                               <button
                                 disabled={activating}
                                 onClick={handleActivatePlan}
-                                style={{ background: activating ? "#333" : `linear-gradient(135deg, ${G.gold}, #b8860b)`, border: "none", color: activating ? G.muted : "#111", padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: activating ? "not-allowed" : "pointer", fontSize: 13 }}
+                                style={{ background: activating ? "#333" : `${G.gold}`, border: "none", color: activating ? G.muted : "#111", padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: activating ? "not-allowed" : "pointer", fontSize: 13 }}
                               >
                                 {activating ? (<><Spinner animation="border" size="sm" className="me-2" />Activating...</>) : "Activate Plan"}
                               </button>
@@ -344,7 +345,7 @@ export default function CustomerDetail() {
 
                     <div style={{ marginTop: 16 }}>
                       {questionMap.map((item) => (
-                        <div key={item.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: `1px solid rgba(212,160,23,0.1)` }}>
+                        <div key={item.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: `1px solid rgba(248,227,150,0.07)` }}>
                           <span style={{ color: G.text, fontSize: 13 }}>{item.label}</span>
                           <span style={{
                             padding: "2px 12px", borderRadius: 12, fontSize: 12, fontWeight: 600,
@@ -432,7 +433,7 @@ export default function CustomerDetail() {
           <button
             onClick={handleAssignSave}
             disabled={!selectedTrainer}
-            style={{ background: selectedTrainer ? `linear-gradient(135deg, ${G.gold}, #b8860b)` : "#333", border: "none", color: selectedTrainer ? "#111" : G.muted, padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: selectedTrainer ? "pointer" : "not-allowed" }}
+            style={{ background: selectedTrainer ? `${G.gold}` : "#333", border: "none", color: selectedTrainer ? "#111" : G.muted, padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: selectedTrainer ? "pointer" : "not-allowed" }}
           >
             Save
           </button>
