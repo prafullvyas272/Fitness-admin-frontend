@@ -15,10 +15,10 @@ const G = {
 };
 
 const STATS = [
-  { label: "Total Members",   value: "120",     icon: "fe-users",       change: "+8%",  up: true,  progress: 75 },
-  { label: "Active Members",  value: "95",      icon: "fe-user-check",  change: "+5%",  up: true,  progress: 80 },
-  { label: "Total Trainers",  value: "12",      icon: "fe-briefcase",   change: "+2",   up: true,  progress: 60 },
-  { label: "Monthly Revenue", value: "$30,569", icon: "fe-dollar-sign", change: "+12%", up: true,  progress: 65 },
+  { label: "Total Members",   value: "120",     icon: "fe-users",       change: "+8%",  up: true,  progress: 75, accent: "#f8e396" },
+  { label: "Active Members",  value: "95",      icon: "fe-user-check",  change: "+5%",  up: true,  progress: 80, accent: "#4ade80" },
+  { label: "Total Trainers",  value: "12",      icon: "fe-briefcase",   change: "+2",   up: true,  progress: 60, accent: "#f8e396" },
+  { label: "Monthly Revenue", value: "$30,569", icon: "fe-dollar-sign", change: "+12%", up: true,  progress: 65, accent: "#4ade80" },
 ];
 
 const RECENT = [
@@ -134,6 +134,7 @@ export default function Dashboard() {
             style={{
               background: G.card,
               border: G.cardBorder,
+              borderLeft: `3px solid ${stat.accent}`,
               borderRadius: 12,
               padding: "22px 24px",
               position: "relative",

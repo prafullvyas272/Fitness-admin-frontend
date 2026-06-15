@@ -98,8 +98,6 @@ const NavbarVertical = (props) => {
 
   return (
     <Fragment>
-      <SimpleBar style={{ maxHeight: "100vh" }}>
-
       {/* LOGO */}
       <Link href="/dashboard" className="navbar-brand custom-brand">
         <img
@@ -108,6 +106,7 @@ const NavbarVertical = (props) => {
           alt="logo text"
         />
       </Link>
+      <SimpleBar style={{ maxHeight: "100vh" }}>
         {/* Dashboard Menu */}
         <Accordion
           defaultActiveKey="0"

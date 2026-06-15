@@ -26,7 +26,7 @@ import { v4 as uuid } from 'uuid';
 export const DashboardMenu = [
   {
     id: uuid(),
-    title: "GYM MANAGEMENT",
+    title: "Wellness & Fitness Management",
     grouptitle: true,
   },
 
@@ -39,40 +39,38 @@ export const DashboardMenu = [
 
   {
     id: uuid(),
-    title: "Mentors",
+    title: "Mentor Management",
     icon: "award",
     link: "/mentors",
   },
 
   {
     id: uuid(),
-    title: "Trainers",
+    title: "PT Management",
     icon: "users",
-    link: "/trainers",
+    children: [
+      {
+        id: uuid(),
+        link: "/trainers",
+        name: "• PT's (Personal Trainers)",
+      },
+      {
+        id: uuid(),
+        link: "/trainer-requests",
+        name: "• PT Requests",
+      },
+    ],
   },
+
 
   {
     id: uuid(),
-    title: "Customers",
+    title: "Client Management",
     icon: "user",
     link: "/customers",
   },
 
-  {
-    id: uuid(),
-    title: "PT Requests",
-    icon: "inbox",
-    link: "/trainer-requests",
-  },
-
-  {
-  id: uuid(),
-  title: "Billing Details",
-  icon: "credit-card",   // you can change icon if needed
-  link: "/billing-details",
-},
-
- {
+   {
   id: uuid(),
   title: "Manage Sessions",
   icon: "calendar",
@@ -90,16 +88,25 @@ export const DashboardMenu = [
     {
       id: uuid(),
       link: "/workout",   // ✅ NEW ROUTE
-      name: "• Workout",    // ✅ NEW MENU NAME
+      name: "• Session Types",    // ✅ NEW MENU NAME
     },
   ],
 },
 
-{
+  {
   id: uuid(),
-  title: "SETTINGS",
-  grouptitle: true,
+  title: "Plans & Subscriptions",
+  icon: "credit-card",   // you can change icon if needed
+  link: "/billing-details",
 },
+
+
+
+// {
+//   id: uuid(),
+//   title: "SETTINGS",
+//   grouptitle: true,
+// },
 
 {
   id: uuid(),

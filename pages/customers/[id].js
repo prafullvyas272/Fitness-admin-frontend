@@ -163,7 +163,7 @@ export default function CustomerDetail() {
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
         <button
           onClick={() => router.push("/customers")}
-          style={{ background: "transparent", border: `1px solid ${G.divider}`, color: G.text, padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}
+          style={{ background: "transparent", border: "1px solid rgba(248,227,150,0.25)", color: "#f8e396", padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}
         >
           ← Back
         </button>

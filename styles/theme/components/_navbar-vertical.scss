@@ -20,10 +20,12 @@
   .slimScrollDiv {
     height: 100% !important;
     overflow-y: auto;
+    position: relative;
   }
   .nav-scroller {
     height: 100% !important;
     overflow-y: auto;
+    position: relative;
   }
   .navbar-brand {
     padding: 1rem 1.5rem 1.5rem;
@@ -77,7 +79,7 @@
         &:after {
           display: block;
           content: "";
-          background: url(../../../public/fonts/feather-icons/icons/chevron-down.svg);          
+          background: url(../../../public/fonts/feather-icons/icons/chevron-down.svg);
           font-family: Feather;
           margin-left: auto;
           transition: 0.5s ease;
@@ -149,6 +151,7 @@
       }
     }
   }
+
 }
 
 

@@ -220,7 +220,7 @@ export default function EditTrainer() {
       {/* HEADER */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <button
-          style={{ background: "transparent", border: "1px solid #222", color: "#666", padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}
+          style={{ background: "transparent", border: "1px solid rgba(248,227,150,0.25)", color: "#f8e396", padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}
           onClick={() => {
             if (
               originalTrainer &&

@@ -155,21 +155,21 @@ export default function MentorsPage() {
       {/* STAT CARDS */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 28 }}>
         {[
-          { label: "Total Active Mentors", value: String(totalActive).padStart(2, "0"), icon: null },
-          { label: "Pending Reviews",      value: String(pendingReviews).padStart(2, "0"), icon: null },
-          { label: "Total Managed Pts",    value: String(totalPts), icon: "fe-users" },
+          { label: "Total Active Mentors", value: String(totalActive).padStart(2, "0"), accent: "#4ade80" },
+          { label: "Pending Reviews",      value: String(pendingReviews).padStart(2, "0"), accent: "#f8e396" },
+          { label: "Total Managed Pts",    value: String(totalPts), accent: "#f8e396" },
         ].map((stat, i) => (
-          <div key={i} style={{ background: G.card, border: G.cardBorder, borderRadius: 12, padding: "24px 28px", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: "radial-gradient(circle at top right, rgba(248,227,150,0.07), transparent 70%)", borderRadius: "0 12px 0 0" }} />
+          <div key={i} style={{
+            background: G.card,
+            border: G.cardBorder,
+            borderLeft: `3px solid ${stat.accent}`,
+            borderRadius: 12,
+            padding: "24px 28px",
+            position: "relative",
+            overflow: "hidden",
+          }}>
             <p style={{ color: G.muted, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08rem", margin: "0 0 8px" }}>{stat.label}</p>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <h2 style={{ color: G.text, fontWeight: 800, margin: 0, fontSize: 36 }}>{stat.value}</h2>
-              {stat.icon && (
-                <div style={{ width: 36, height: 36, borderRadius: 8, background: G.goldFaint, border: `1px solid ${G.divider}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <i className={`fe ${stat.icon}`} style={{ color: G.gold, fontSize: 15 }} />
-                </div>
-              )}
-            </div>
+            <h2 style={{ color: G.text, fontWeight: 800, margin: 0, fontSize: 36 }}>{stat.value}</h2>
           </div>
         ))}
       </div>

@@ -352,12 +352,12 @@ const filteredCustomers = customers.filter((customer) => {
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: "24px" }}>
       <style>{`
-        .tr-gold td { background: ${G.card} !important; border-bottom: 1px solid #141414 !important; color: ${G.text} !important; }
+        .tr-gold td { background: ${G.card} !important; border-bottom: 1px solid #141414 !important; color: ${G.text} !important; padding: 14px 16px !important; font-size: 12px !important; vertical-align: middle; font-weight: 700 !important; }
         .tr-gold:hover td { background: ${G.rowHover} !important; }
         table { background: ${G.card} !important; }
         .table-responsive { background: ${G.card} !important; }
         tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-color: #141414 !important; }
-        .th-gold { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px; letter-spacing: 1.2px; font-weight: 700; }
+        .th-gold { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700; }
         .inp-gold { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px !important; }
         .inp-gold::placeholder { color: #2a2a2a !important; }
         .inp-gold:focus { border-color: rgba(248,227,150,0.25) !important; outline: none !important; }
@@ -485,14 +485,14 @@ const filteredCustomers = customers.filter((customer) => {
           <Table responsive className="align-middle mb-0" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
             <thead>
               <tr>
-                {selectionMode && <th className="th-gold" style={{ padding: "12px 16px" }}></th>}
-                <th className="th-gold" style={{ padding: "12px 16px" }}>NAME</th>
-                <th className="th-gold" style={{ padding: "12px 16px" }}>EMAIL</th>
-                <th className="th-gold" style={{ padding: "12px 16px" }}>PHONE</th>
-                <th className="th-gold" style={{ padding: "12px 16px" }}>HOST GYM</th>
-                <th className="th-gold" style={{ padding: "12px 16px" }}>GENDER</th>
-                <th className="th-gold text-center" style={{ padding: "12px 16px" }}>STATUS</th>
-                {!selectionMode && <th className="th-gold text-end" style={{ padding: "12px 16px" }}>ACTION</th>}
+                {selectionMode && <th className="th-gold"></th>}
+                <th className="th-gold">NAME</th>
+                <th className="th-gold">EMAIL</th>
+                <th className="th-gold">PHONE</th>
+                <th className="th-gold">HOST GYM</th>
+                <th className="th-gold">GENDER</th>
+                <th className="th-gold text-center">STATUS</th>
+                {!selectionMode && <th className="th-gold text-end">ACTION</th>}
               </tr>
             </thead>
 
@@ -514,7 +514,7 @@ const filteredCustomers = customers.filter((customer) => {
                 currentTrainers.map((trainer) => (
                   <tr key={trainer.id} className="tr-gold">
                     {selectionMode && (
-                      <td style={{ padding: "14px 16px" }}>
+                      <td>
                         <Form.Check
                           type="checkbox"
                           checked={selectedIds.includes(trainer.id)}
@@ -528,13 +528,13 @@ const filteredCustomers = customers.filter((customer) => {
                         />
                       </td>
                     )}
-                    <td style={{ padding: "14px 16px", fontWeight: 600 }}>{trainer.firstName} {trainer.lastName}</td>
-                    <td style={{ padding: "14px 16px", color: G.muted, fontSize: 13 }}>{trainer.email}</td>
-                    <td style={{ padding: "14px 16px", color: G.muted, fontSize: 13 }}>{trainer.phone}</td>
-                    <td style={{ padding: "14px 16px", color: G.muted, fontSize: 13 }}>{trainer.userProfileDetails?.hostGymName || "N/A"}</td>
-                    <td style={{ padding: "14px 16px", color: G.muted, fontSize: 13, textTransform: "capitalize" }}>{trainer.gender || "N/A"}</td>
+                    <td>{trainer.firstName} {trainer.lastName}</td>
+                    <td style={{ color: G.muted }}>{trainer.email}</td>
+                    <td style={{ color: G.muted }}>{trainer.phone}</td>
+                    <td style={{ color: G.muted }}>{trainer.userProfileDetails?.hostGymName || "N/A"}</td>
+                    <td style={{ color: G.muted, textTransform: "capitalize" }}>{trainer.gender || "N/A"}</td>
 
-                    <td className="text-center" style={{ padding: "14px 16px" }}>
+                    <td className="text-center">
                       <Dropdown>
                         <Dropdown.Toggle
                           as="button"
@@ -565,7 +565,7 @@ const filteredCustomers = customers.filter((customer) => {
                     </td>
 
                     {!selectionMode && (
-                      <td className="text-end" style={{ padding: "14px 16px" }}>
+                      <td className="text-end">
                         <Dropdown align="end">
                           <Dropdown.Toggle
                             as="button"

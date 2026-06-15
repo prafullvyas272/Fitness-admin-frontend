@@ -164,8 +164,8 @@ export default function AllCustomers() {
       <style>{`
         table { background: ${G.card} !important; }
         .table-responsive { background: ${G.card} !important; }
-        .cu-thead th { background: #1f1f1f !important; color: ${G.muted} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 11px; letter-spacing: 0.8px; padding: 12px 16px; }
-        .cu-tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-bottom: 1px solid #141414 !important; padding: 14px 16px; vertical-align: middle; font-size: 12px; font-weight: 700; }
+        .cu-thead th { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700; }
+        .cu-tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-bottom: 1px solid #141414 !important; padding: 14px 16px !important; vertical-align: middle; font-size: 12px !important; font-weight: 700 !important; }
         .cu-tbody tr:hover td { background: #111111 !important; }
         .cu-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px; }
         .cu-inp:focus { background: ${G.input} !important; color: #cccccc !important; box-shadow: none !important; border-color: rgba(248,227,150,0.25) !important; }
@@ -329,7 +329,7 @@ export default function AllCustomers() {
                     </td>
                   )}
 
-                  <td style={{ fontWeight: 600 }}>{customer.firstName} {customer.lastName}</td>
+                  <td>{customer.firstName} {customer.lastName}</td>
                   <td>{customer.email}</td>
                   <td>{customer.phone}</td>
                   <td>{customer.gender ? customer.gender.toLowerCase() : "—"}</td>

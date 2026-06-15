@@ -565,8 +565,8 @@ const formatDisplayDate = (dateString) => {
     cursor: "pointer", fontSize: 13,
   };
   const cancelBtn = {
-    background: "transparent", border: "1px solid #222",
-    color: "#666", borderRadius: 8, padding: "6px 18px",
+    background: "transparent", border: "1px solid rgba(248,227,150,0.25)",
+    color: "#f8e396", borderRadius: 8, padding: "6px 18px",
     cursor: "pointer", fontSize: 13,
   };
   const dangerBtn = {
