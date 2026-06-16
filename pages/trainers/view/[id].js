@@ -583,7 +583,7 @@ const formatDisplayDate = (dateString) => {
         .vw-tab.active { color: ${G.goldLight}; border-bottom-color: ${G.gold}; font-weight: 600; }
         .vw-tr td { background: ${G.card} !important; border-bottom: 1px solid #141414 !important; color: ${G.text} !important; padding: 13px 14px !important; }
         .vw-tr:hover td { background: #111111 !important; }
-        .vw-th { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 10px; letter-spacing: 1.2px; padding: 12px 14px !important; font-weight: 700 !important; }
+        .vw-th { background: #111111 !important; color: rgba(248,227,150,0.6) !important; border-bottom: 2px solid ${G.divider} !important; font-size: 10px; letter-spacing: 1.2px; padding: 12px 14px !important; font-weight: 700 !important; }
         table { background: ${G.card} !important; }
         .vw-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px !important; }
         .vw-inp:focus { border-color: rgba(248,227,150,0.25) !important; box-shadow: none !important; outline: none !important; }
@@ -631,7 +631,7 @@ const formatDisplayDate = (dateString) => {
       <div className="mb-3">
         <button style={cancelBtn} onClick={() => router.push("/trainers")}>← Back</button>
       </div>
-      <h3 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 20 }}>Trainer Profile</h3>
+      <h3 style={{ color: G.text, fontWeight: 700, marginBottom: 20 }}>Trainer Profile</h3>
 
       {/* MAIN CARD */}
       <div style={{ background: G.card, border: G.cardBorder, borderRadius: 14, overflow: "visible" }}>

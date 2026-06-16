@@ -60,7 +60,7 @@ Management reserves the right to suspend memberships for policy violations.`
       {/* HEADER */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
         <div>
-          <h3 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 4 }}>Terms &amp; Conditions</h3>
+          <h3 style={{ color: G.text, fontWeight: 700, marginBottom: 4 }}>Terms &amp; Conditions</h3>
           <small style={{ color: G.muted }}>Rules and guidelines for using this platform</small>
         </div>
         <button

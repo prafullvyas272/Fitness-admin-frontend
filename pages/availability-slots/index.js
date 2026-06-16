@@ -336,7 +336,7 @@ export default function AvailabilitySlots() {
 
       {/* HEADER */}
       <div style={{ marginBottom: 24 }}>
-        <h3 style={{ color: G.goldLight, fontWeight: 700, margin: 0 }}>Peak Slots</h3>
+        <h3 style={{ color: G.text, fontWeight: 700, margin: 0 }}>Peak Slots</h3>
         <small style={{ color: G.muted }}>Manage your availability time slots.</small>
       </div>
 

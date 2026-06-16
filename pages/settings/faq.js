@@ -79,7 +79,7 @@ export default function FAQ() {
       {/* HEADER */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
         <div>
-          <h3 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 4 }}>Frequently Asked Questions</h3>
+          <h3 style={{ color: G.text, fontWeight: 700, marginBottom: 4 }}>Frequently Asked Questions</h3>
           <small style={{ color: G.muted }}>Manage help content for users</small>
         </div>
         <button

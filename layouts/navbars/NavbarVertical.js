@@ -22,8 +22,9 @@ import { DashboardMenu } from "routes/DashboardRoutes";
 
 const NavbarVertical = (props) => {
   const location = useRouter();
+  const { collapsed = false, onToggleCollapse } = props;
 
-  const CustomToggle = ({ children, eventKey, icon }) => {
+  const CustomToggle = ({ children, eventKey, icon, label }) => {
     const { activeEventKey } = useContext(AccordionContext);
     const decoratedOnClick = useAccordionButton(eventKey, () =>
       console.log("totally custom!")
@@ -39,9 +40,10 @@ const NavbarVertical = (props) => {
           data-bs-target="#navDashboard"
           aria-expanded={isCurrentEventKey ? true : false}
           aria-controls="navDashboard"
+          data-tip={collapsed ? label : undefined}
         >
           {icon ? <i className={`nav-icon fe fe-${icon} me-2`}></i> : ""}{" "}
-          {children}
+          {!collapsed && children}
         </Link>
       </li>
     );
@@ -98,12 +100,91 @@ const NavbarVertical = (props) => {
 
   return (
     <Fragment>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .navbar-vertical { transition: width 0.25s ease, max-width 0.25s ease, margin 0.25s ease-out; }
+        .navbar-vertical.nav-collapsed { width: 68px !important; max-width: 68px !important; }
+        #db-wrapper.sidebar-collapsed #page-content { margin-left: 4.25rem; }
+        .navbar-vertical .nav-link { position: relative; }
+        .navbar-vertical .nav-link.active::before {
+          content: '';
+          position: absolute;
+          right: 0;
+          top: 6px;
+          bottom: 6px;
+          width: 3px;
+          background: #f8e396;
+          border-radius: 3px 0 0 3px;
+        }
+        .navbar-vertical.nav-collapsed .navbar-brand { padding: 1rem 0.5rem 1.5rem; text-align: center; }
+        .navbar-vertical.nav-collapsed .nav-link { justify-content: center; padding: 0.6rem 0; }
+        .navbar-vertical.nav-collapsed .nav-icon.me-2 { margin-right: 0 !important; }
+        .navbar-vertical.nav-collapsed .simplebar-content-wrapper,
+        .navbar-vertical.nav-collapsed .simplebar-mask { overflow: visible !important; }
+        .navbar-vertical .nav-collapse-toggle {
+          position: absolute;
+          right: -14px;
+          top: 72px;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: #1a1a1a;
+          border: 1px solid rgba(248,227,150,0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 1100;
+          color: #f8e396;
+          padding: 0;
+          transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+        .navbar-vertical .nav-collapse-toggle:hover { background: #f8e396; border-color: #f8e396; color: #000; }
+        .navbar-vertical.nav-collapsed .nav-link[data-tip]::after {
+          content: attr(data-tip) !important;
+          position: absolute !important;
+          left: 100% !important;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
+          margin-left: 12px !important;
+          background: #1a1a1a !important;
+          color: #fff !important;
+          padding: 6px 12px !important;
+          border-radius: 6px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          white-space: nowrap !important;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.45) !important;
+          border: 1px solid rgba(248,227,150,0.25) !important;
+          z-index: 1000 !important;
+          width: auto !important;
+          height: auto !important;
+          filter: none !important;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.15s ease;
+        }
+        .navbar-vertical.nav-collapsed .nav-link[data-tip]:hover::after { opacity: 1 !important; }
+      ` }} />
+
+      {/* COLLAPSE TOGGLE */}
+      <button
+        type="button"
+        className="nav-collapse-toggle"
+        onClick={onToggleCollapse}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          {collapsed ? <polyline points="9 6 15 12 9 18" /> : <polyline points="15 6 9 12 15 18" />}
+        </svg>
+      </button>
+
       {/* LOGO */}
       <Link href="/dashboard" className="navbar-brand custom-brand">
         <img
           src="https://res.cloudinary.com/dbazlbkfj/image/upload/v1771390209/Layer_x0020_1_p5f6fs.png"
           className="logo-text"
           alt="logo text"
+          style={{ width: collapsed ? 38 : "auto", transition: "width 0.25s ease" }}
         />
       </Link>
       <SimpleBar style={{ maxHeight: "100vh" }}>
@@ -115,6 +196,7 @@ const NavbarVertical = (props) => {
         >
           {DashboardMenu.map(function (menu, index) {
             if (menu.grouptitle) {
+              if (collapsed) return null;
               return (
                 <Card bsPrefix="nav-item" key={index}>
                   {/* group title item */}
@@ -127,7 +209,7 @@ const NavbarVertical = (props) => {
                 return (
                   <Fragment key={index}>
                     {/* main menu / root menu level / root items */}
-                    <CustomToggle eventKey={index} icon={menu.icon}>
+                    <CustomToggle eventKey={index} icon={menu.icon} label={menu.title}>
                       {menu.title}
                       {menu.badge ? (
                         <Badge
@@ -140,6 +222,7 @@ const NavbarVertical = (props) => {
                         ""
                       )}
                     </CustomToggle>
+                    {!collapsed && (
                     <Accordion.Collapse
                       eventKey={index}
                       as="li"
@@ -300,6 +383,7 @@ const NavbarVertical = (props) => {
                         })}
                       </ListGroup>
                     </Accordion.Collapse>
+                    )}
                     {/* end of main menu / menu level 1 / root items */}
                   </Fragment>
                 );
@@ -312,14 +396,15 @@ const NavbarVertical = (props) => {
                       className={`nav-link ${
                         location.pathname === menu.link ? "active" : ""
                       }`}
+                      data-tip={collapsed ? menu.title : undefined}
                     >
                       {typeof menu.icon === "string" ? (
                         <i className={`nav-icon fe fe-${menu.icon} me-2`}></i>
                       ) : (
                         menu.icon
                       )}
-                      {menu.title}
-                      {menu.badge ? (
+                      {!collapsed && menu.title}
+                      {!collapsed && menu.badge ? (
                         <Badge
                           className="ms-1"
                           bg={menu.badgecolor ? menu.badgecolor : "primary"}

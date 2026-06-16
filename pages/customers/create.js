@@ -156,7 +156,7 @@ export default function CreateCustomer() {
           ← Back
         </button>
 
-        <h3 style={{ color: G.goldLight, fontWeight: 700, margin: 0 }}>
+        <h3 style={{ color: G.text, fontWeight: 700, margin: 0 }}>
           {id ? "Edit Customer" : "Create Customer"}
         </h3>
 

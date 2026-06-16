@@ -198,7 +198,7 @@ const countryOptions = [
           }}
         >← Back</button>
 
-        <h3 style={{ color: G.goldLight, fontWeight: 700, margin: 0 }}>Create Trainer</h3>
+        <h3 style={{ color: G.text, fontWeight: 700, margin: 0 }}>Create Trainer</h3>
 
         <button
           type="submit"

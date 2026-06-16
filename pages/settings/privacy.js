@@ -50,7 +50,7 @@ Personal data including names, contact details, and membership information is us
       {/* HEADER */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
         <div>
-          <h3 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 4 }}>Privacy Policy</h3>
+          <h3 style={{ color: G.text, fontWeight: 700, marginBottom: 4 }}>Privacy Policy</h3>
           <small style={{ color: G.muted }}>How we handle and protect your data</small>
         </div>
         <button

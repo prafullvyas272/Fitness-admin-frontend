@@ -101,8 +101,8 @@ export default function PTRequests() {
       <style>{`
         table { background: ${G.card} !important; }
         .table-responsive { background: ${G.card} !important; }
-        .pt-thead th { background: #1f1f1f !important; color: ${G.muted} !important; border-bottom: 2px solid ${G.divider} !important; font-size: 11px; letter-spacing: 0.8px; padding: 12px 16px; }
-        .pt-tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-bottom: 1px solid #141414 !important; padding: 14px 16px; vertical-align: middle; font-size: 12px; font-weight: 700; }
+        .pt-thead th { background: #111111 !important; color: rgba(248,227,150,0.6) !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700 !important; }
+        .pt-tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-bottom: 1px solid #141414 !important; padding: 14px 16px !important; vertical-align: middle; font-size: 12px !important; font-weight: 700 !important; }
         .pt-tbody tr:hover td { background: #111111 !important; }
         .pt-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px; outline: none; padding: 10px 13px; font-size: 12.5px; width: 100%; max-width: 320px; }
         .pt-inp::placeholder { color: #2a2a2a !important; }
@@ -121,7 +121,7 @@ export default function PTRequests() {
 
       {/* HEADER */}
       <div style={{ marginBottom: 24 }}>
-        <h3 style={{ color: G.goldLight, fontWeight: 700, margin: 0 }}>PT Requests</h3>
+        <h3 style={{ color: G.text, fontWeight: 700, margin: 0 }}>PT Requests</h3>
         <small style={{ color: G.muted }}>Manage customer requests for personal trainers</small>
       </div>
 

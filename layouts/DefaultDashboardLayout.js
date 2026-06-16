@@ -8,15 +8,18 @@ import { Row, Col } from 'react-bootstrap';
 
 const DefaultDashboardLayout = (props) => {
 	const [showMenu, setShowMenu] = useState(true);
+	const [collapsed, setCollapsed] = useState(false);
 	const ToggleMenu = () => {
 		return setShowMenu(!showMenu);
-	};	
+	};
 	return (
-		<div id="db-wrapper" className={`${showMenu ? '' : 'toggled'}`} style={{ background: '#0a0a0a' }}>
-			<div className="navbar-vertical navbar">
+		<div id="db-wrapper" className={`${showMenu ? '' : 'toggled'} ${collapsed ? 'sidebar-collapsed' : ''}`} style={{ background: '#0a0a0a' }}>
+			<div className={`navbar-vertical navbar ${collapsed ? 'nav-collapsed' : ''}`}>
 				<NavbarVertical
 					showMenu={showMenu}
 					onClick={(value) => setShowMenu(value)}
+					collapsed={collapsed}
+					onToggleCollapse={() => setCollapsed(!collapsed)}
 				/>
 			</div>
 			<div id="page-content" style={{ background: '#0a0a0a' }}>

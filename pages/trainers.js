@@ -357,7 +357,7 @@ const filteredCustomers = customers.filter((customer) => {
         table { background: ${G.card} !important; }
         .table-responsive { background: ${G.card} !important; }
         tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-color: #141414 !important; }
-        .th-gold { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700; }
+        .th-gold { background: #111111 !important; color: rgba(248,227,150,0.6) !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700 !important; }
         .inp-gold { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px !important; }
         .inp-gold::placeholder { color: #2a2a2a !important; }
         .inp-gold:focus { border-color: rgba(248,227,150,0.25) !important; outline: none !important; }
@@ -377,7 +377,7 @@ const filteredCustomers = customers.filter((customer) => {
       {/* HEADER */}
       <Row className="align-items-center mb-4">
         <Col>
-          <h3 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 2 }}>All Trainers</h3>
+          <h3 style={{ color: G.text, fontWeight: 700, marginBottom: 2 }}>All Trainers</h3>
           <small style={{ color: G.muted }}>Manage all trainers</small>
         </Col>
 

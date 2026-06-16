@@ -280,7 +280,7 @@ export default function Workout() {
                 { label: "Upload Date",   align: "left",  width: "16%" },
                 { label: "Actions",       align: "right", width: "16%" },
               ].map((h) => (
-                <th key={h.label} style={{ padding: "11px 20px", textAlign: h.align, width: h.width, color: G.gold, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", borderBottom: `1px solid ${G.divider}` }}>
+                <th key={h.label} style={{ padding: "11px 20px", textAlign: h.align, width: h.width, color: "rgba(248,227,150,0.6)", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", borderBottom: `1px solid ${G.divider}` }}>
                   {h.label}
                 </th>
               ))}

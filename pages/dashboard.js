@@ -116,13 +116,13 @@ export default function Dashboard() {
         .progress-gold .progress-bar { background: #f8e396 !important; border-radius: 4px !important; }
         .tr-dash td { background: ${G.card} !important; border-bottom: 1px solid ${G.divider} !important; color: ${G.text} !important; padding: 12px 16px !important; font-size: 13px; }
         .tr-dash:hover td { background: #111111 !important; }
-        .th-dash { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700 !important; }
+        .th-dash { background: #111111 !important; color: rgba(248,227,150,0.6) !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700 !important; }
         .apexcharts-tooltip { border: 1px solid #2a2a2a !important; }
       `}</style>
 
       {/* PAGE HEADER */}
       <div style={{ marginBottom: 28 }}>
-        <h3 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 4 }}>Dashboard</h3>
+        <h3 style={{ color: G.text, fontWeight: 700, marginBottom: 4 }}>Dashboard</h3>
         <small style={{ color: G.muted }}>Welcome back — here&apos;s what&apos;s happening today</small>
       </div>
 

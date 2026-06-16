@@ -127,7 +127,7 @@ export default function MentorsPage() {
       <style>{`
         .tr-mentor td { background: ${G.card} !important; border-bottom: 1px solid #141414 !important; color: ${G.text} !important; padding: 14px 16px !important; font-size: 12px; vertical-align: middle; font-weight: 700; }
         .tr-mentor:hover td { background: ${G.rowHover} !important; }
-        .th-mentor { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700; }
+        .th-mentor { background: #111111 !important; color: rgba(248,227,150,0.6) !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700 !important; }
         .inp-gold { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px !important; }
         .inp-gold::placeholder { color: #2a2a2a !important; }
         .inp-gold:focus { border-color: rgba(248,227,150,0.25) !important; outline: none !important; }

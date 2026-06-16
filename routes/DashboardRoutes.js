@@ -100,6 +100,13 @@ export const DashboardMenu = [
   link: "/billing-details",
 },
 
+  {
+    id: uuid(),
+    title: "Reports",
+    icon: "file-text",
+    link: "/reports",
+  },
+
 
 
 // {

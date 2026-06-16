@@ -164,7 +164,7 @@ export default function AllCustomers() {
       <style>{`
         table { background: ${G.card} !important; }
         .table-responsive { background: ${G.card} !important; }
-        .cu-thead th { background: #111111 !important; color: ${G.goldLight} !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700; }
+        .cu-thead th { background: #111111 !important; color: rgba(248,227,150,0.6) !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700 !important; }
         .cu-tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-bottom: 1px solid #141414 !important; padding: 14px 16px !important; vertical-align: middle; font-size: 12px !important; font-weight: 700 !important; }
         .cu-tbody tr:hover td { background: #111111 !important; }
         .cu-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px; }
@@ -207,7 +207,7 @@ export default function AllCustomers() {
       {/* HEADER */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <div>
-          <h3 style={{ color: G.goldLight, fontWeight: 700, margin: 0 }}>All Customers</h3>
+          <h3 style={{ color: G.text, fontWeight: 700, margin: 0 }}>All Customers</h3>
           <small style={{ color: G.muted }}>Manage all customers</small>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

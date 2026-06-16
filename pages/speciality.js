@@ -35,7 +35,7 @@ export default function Speciality() {
 
       {/* HEADER */}
       <div style={{ marginBottom: 24 }}>
-        <h3 style={{ color: G.goldLight, fontWeight: 700, margin: 0 }}>Speciality</h3>
+        <h3 style={{ color: G.text, fontWeight: 700, margin: 0 }}>Speciality</h3>
         <small style={{ color: G.muted }}>Manage trainer specialities here.</small>
       </div>
 
