@@ -191,7 +191,7 @@ export default function EditTrainer() {
         .dk-inp::placeholder { color: #2a2a2a !important; }
         .dk-inp option { background: ${G.card}; color: #cccccc; }
         .dk-ig-text { background: #111111 !important; border: none !important; color: ${G.gold} !important; border-right: 1px solid ${G.divider} !important; }
-        .dk-ig { background: ${G.input} !important; border: 1px solid ${G.divider} !important; border-radius: 7px !important; overflow: hidden; }
+        .dk-ig { background: ${G.input} !important; border: 1px solid ${G.divider} !important; border-radius: 7px !important; }
         .dk-ig .form-control, .dk-ig textarea { background: ${G.input} !important; border: none !important; color: #cccccc !important; }
         .dk-ig .form-control:focus, .dk-ig textarea:focus { background: ${G.input} !important; box-shadow: none !important; border-color: rgba(248,227,150,0.25) !important; }
         .dk-ig .form-control::placeholder, .dk-ig textarea::placeholder { color: #2a2a2a !important; }

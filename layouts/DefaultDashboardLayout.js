@@ -23,7 +23,7 @@ const DefaultDashboardLayout = (props) => {
 				/>
 			</div>
 			<div id="page-content" style={{ background: '#0a0a0a' }}>
-				<div className="header" style={{ background: '#0a0a0a', borderBottom: '1px solid #1e1e1e' }}>
+				<div className="header" style={{ background: '#0a0a0a', borderBottom: '1px solid #1e1e1e', height: 64, boxSizing: 'border-box', overflow: 'hidden' }}>
 					<NavbarTop
 						data={{
 							showMenu: showMenu,

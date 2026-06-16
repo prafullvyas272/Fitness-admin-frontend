@@ -511,9 +511,9 @@ export default function Workout() {
             <input type="file" accept="video/*" ref={fileRef} hidden onChange={(e) => handleFile(e.target.files[0])} />
           </div>
           <div style={{ marginBottom: 14 }}>
-            <label style={{ color: G.muted, fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Tags</label>
+            <label style={{ color: G.muted, fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Category</label>
             <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-              <input className="wk-input" type="text" placeholder="Add tag" value={form.tagInput}
+              <input className="wk-input" type="text" placeholder="Add Category" value={form.tagInput}
                 onChange={(e) => setForm({ ...form, tagInput: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && addTag()}
                 style={{ flex: 1, background: G.input, border: `1px solid ${G.divider}`, borderRadius: 8, padding: "8px 12px", color: G.text, fontSize: 13, transition: "border-color 0.2s" }}

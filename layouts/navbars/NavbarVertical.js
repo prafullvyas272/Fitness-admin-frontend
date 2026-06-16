@@ -40,10 +40,10 @@ const NavbarVertical = (props) => {
           data-bs-target="#navDashboard"
           aria-expanded={isCurrentEventKey ? true : false}
           aria-controls="navDashboard"
-          data-tip={collapsed ? label : undefined}
         >
           {icon ? <i className={`nav-icon fe fe-${icon} me-2`}></i> : ""}{" "}
           {!collapsed && children}
+          {collapsed && <span className="nav-tooltip">{label}</span>}
         </Link>
       </li>
     );
@@ -101,7 +101,7 @@ const NavbarVertical = (props) => {
   return (
     <Fragment>
       <style dangerouslySetInnerHTML={{ __html: `
-        .navbar-vertical { transition: width 0.25s ease, max-width 0.25s ease, margin 0.25s ease-out; }
+        .navbar-vertical { transition: width 0.25s ease, max-width 0.25s ease, margin 0.25s ease-out; z-index: 1000; }
         .navbar-vertical.nav-collapsed { width: 68px !important; max-width: 68px !important; }
         #db-wrapper.sidebar-collapsed #page-content { margin-left: 4.25rem; }
         .navbar-vertical .nav-link { position: relative; }
@@ -115,7 +115,26 @@ const NavbarVertical = (props) => {
           background: #f8e396;
           border-radius: 3px 0 0 3px;
         }
-        .navbar-vertical.nav-collapsed .navbar-brand { padding: 1rem 0.5rem 1.5rem; text-align: center; }
+        .navbar-vertical .navbar-brand {
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 24px;
+          box-sizing: border-box;
+        }
+        .navbar-vertical.nav-collapsed .nav-link[data-bs-toggle="collapse"]::after {
+          display: none !important;
+        }
+        .navbar-vertical .navbar-nav .nav .nav-item .nav-link {
+          padding-left: 38px !important;
+        }
+        .navbar-vertical .navbar-heading {
+          font-size: 9px !important;
+          letter-spacing: 0.5px !important;
+          white-space: nowrap !important;
+        }
+        .navbar-vertical.nav-collapsed .navbar-brand { padding: 0 8px; justify-content: center; }
         .navbar-vertical.nav-collapsed .nav-link { justify-content: center; padding: 0.6rem 0; }
         .navbar-vertical.nav-collapsed .nav-icon.me-2 { margin-right: 0 !important; }
         .navbar-vertical.nav-collapsed .simplebar-content-wrapper,
@@ -139,31 +158,32 @@ const NavbarVertical = (props) => {
           transition: background 0.2s, border-color 0.2s, color 0.2s;
         }
         .navbar-vertical .nav-collapse-toggle:hover { background: #f8e396; border-color: #f8e396; color: #000; }
-        .navbar-vertical.nav-collapsed .nav-link[data-tip]::after {
-          content: attr(data-tip) !important;
-          position: absolute !important;
-          left: 100% !important;
-          top: 50% !important;
-          transform: translateY(-50%) !important;
-          margin-left: 12px !important;
-          background: #1a1a1a !important;
-          color: #fff !important;
-          padding: 6px 12px !important;
-          border-radius: 6px !important;
-          font-size: 12px !important;
-          font-weight: 600 !important;
-          white-space: nowrap !important;
-          box-shadow: 0 4px 14px rgba(0,0,0,0.45) !important;
-          border: 1px solid rgba(248,227,150,0.25) !important;
-          z-index: 1000 !important;
-          width: auto !important;
-          height: auto !important;
-          filter: none !important;
+        .navbar-vertical .nav-tooltip {
+          position: absolute;
+          left: 100%;
+          top: 50%;
+          transform: translateY(-50%);
+          margin-left: 12px;
+          background: #1a1a1a;
+          color: #fff;
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          white-space: nowrap;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+          border: 1px solid rgba(248,227,150,0.25);
+          z-index: 1000;
           opacity: 0;
           pointer-events: none;
           transition: opacity 0.15s ease;
         }
-        .navbar-vertical.nav-collapsed .nav-link[data-tip]:hover::after { opacity: 1 !important; }
+        .navbar-vertical .nav-link:hover .nav-tooltip { opacity: 1; }
+        .navbar-vertical.nav-collapsed .navbar-brand img {
+          width: 30px !important;
+          height: 30px !important;
+          object-fit: contain !important;
+        }
       ` }} />
 
       {/* COLLAPSE TOGGLE */}
@@ -184,7 +204,6 @@ const NavbarVertical = (props) => {
           src="https://res.cloudinary.com/dbazlbkfj/image/upload/v1771390209/Layer_x0020_1_p5f6fs.png"
           className="logo-text"
           alt="logo text"
-          style={{ width: collapsed ? 38 : "auto", transition: "width 0.25s ease" }}
         />
       </Link>
       <SimpleBar style={{ maxHeight: "100vh" }}>
@@ -396,7 +415,6 @@ const NavbarVertical = (props) => {
                       className={`nav-link ${
                         location.pathname === menu.link ? "active" : ""
                       }`}
-                      data-tip={collapsed ? menu.title : undefined}
                     >
                       {typeof menu.icon === "string" ? (
                         <i className={`nav-icon fe fe-${menu.icon} me-2`}></i>
@@ -414,6 +432,7 @@ const NavbarVertical = (props) => {
                       ) : (
                         ""
                       )}
+                      {collapsed && <span className="nav-tooltip">{menu.title}</span>}
                     </Link>
                     {/* end of menu item without any childern items */}
                   </Card>

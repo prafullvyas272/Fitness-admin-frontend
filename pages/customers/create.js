@@ -130,7 +130,7 @@ export default function CreateCustomer() {
         .dk-inp::placeholder { color: #555 !important; }
         .dk-inp option { background: #0d0d0d; color: ${G.text}; }
         .dk-ig-text { background: #2a2a2a !important; border: none !important; color: ${G.gold} !important; }
-        .dk-ig { background: #222 !important; border: 1px solid ${G.divider} !important; border-radius: 8px !important; overflow: hidden; }
+        .dk-ig { background: #222 !important; border: 1px solid ${G.divider} !important; border-radius: 8px !important; }
         .dk-ig .form-control { background: ${G.input} !important; border: none !important; color: ${G.text} !important; }
         .dk-ig .form-control:focus { background: ${G.input} !important; box-shadow: none !important; }
         .dk-ig .form-control::placeholder { color: #555 !important; }

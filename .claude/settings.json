@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(taskkill //F //T //PID 18040)",
+      "Bash(node nav_align_check.js)",
+      "Bash(node arrow_logo_check.js)",
+      "Bash(taskkill //F //T //PID 9204)",
+      "Bash(node mentors_tooltip_check.js)",
+      "Bash(node stacking_diag.js)",
+      "Bash(taskkill //F //T //PID 12976)",
+      "Bash(node fresh_check.js)",
+      "Bash(taskkill //F //T //PID 27144)"
+    ]
+  }
+}

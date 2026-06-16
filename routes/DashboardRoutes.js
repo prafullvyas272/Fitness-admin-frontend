@@ -52,22 +52,37 @@ export const DashboardMenu = [
       {
         id: uuid(),
         link: "/trainers",
-        name: "• PT's (Personal Trainers)",
+        name: "PT's (Personal Trainers)",
       },
       {
         id: uuid(),
         link: "/trainer-requests",
-        name: "• PT Requests",
+        name: "PT Requests",
+      },
+      {
+        id: uuid(),
+        link: "/delete-requests",
+        name: "Delete Requests",
       },
     ],
   },
 
-
-  {
+   {
     id: uuid(),
     title: "Client Management",
     icon: "user",
-    link: "/customers",
+    children: [
+      {
+        id: uuid(),
+        link: "/customers",
+        name: "Clients",
+      },
+      {
+        id: uuid(),
+        link: "/customer-delete-requests",
+        name: "Delete Requests",
+      },
+    ],
   },
 
    {
@@ -78,17 +93,17 @@ export const DashboardMenu = [
     {
       id: uuid(),
       link: "/speciality",
-      name: "• Speciality",
+      name: "Speciality",
     },
     {
       id: uuid(),
       link: "/availability-slots",
-      name: "• Availability Slots",
+      name: "Availability Slots",
     },
     {
       id: uuid(),
       link: "/workout",   // ✅ NEW ROUTE
-      name: "• Session Types",    // ✅ NEW MENU NAME
+      name: "Session Types",    // ✅ NEW MENU NAME
     },
   ],
 },
@@ -99,13 +114,6 @@ export const DashboardMenu = [
   icon: "credit-card",   // you can change icon if needed
   link: "/billing-details",
 },
-
-  {
-    id: uuid(),
-    title: "Reports",
-    icon: "file-text",
-    link: "/reports",
-  },
 
 
 
@@ -123,17 +131,17 @@ export const DashboardMenu = [
     {
       id: uuid(),
       link: "/settings/privacy",
-      name: "• Privacy Policy",
+      name: "Privacy Policy",
     },
     {
       id: uuid(),
       link: "/settings/terms",
-      name: "• Terms & Conditions",
+      name: "Terms & Conditions",
     },
     {
       id: uuid(),
       link: "/settings/faq",
-      name: "• FAQ",
+      name: "FAQ",
     },
   ],
 },
