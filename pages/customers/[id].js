@@ -135,7 +135,8 @@ export default function CustomerDetail() {
     );
   }
 
-  const tabs = ["overview", "billing", "questionaries"];
+  const tabs = ["overview", "questionaries", "billing"];
+  const tabLabels = { overview: "Overview", questionaries: "Questionaries", billing: "Plans & Subscriptions" };
 
   const detailRow = (label, value) => (
     <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${G.divider}` }}>
@@ -244,11 +245,10 @@ export default function CustomerDetail() {
                     cursor: "pointer",
                     fontWeight: activeTab === tab ? 700 : 400,
                     fontSize: 14,
-                    textTransform: "capitalize",
                     marginBottom: -1,
                   }}
                 >
-                  {tab}
+                  {tabLabels[tab] || tab}
                 </button>
               ))}
             </div>
@@ -280,67 +280,93 @@ export default function CustomerDetail() {
                 ) : !billingData ? (
                   <div style={{ textAlign: "center", padding: "40px 0", color: G.muted }}>No billing data found.</div>
                 ) : (
-                  <>
-                    {/* Current Subscription */}
-                    <h6 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 12 }}>Current Subscription</h6>
-                    {billingData.subscription ? (
-                      <div style={{ border: `1px solid ${G.divider}`, borderRadius: 10, padding: 16, marginBottom: 20 }}>
-                        {detailRow("Plan", billingData.subscription.plan?.name || "—")}
-                        {detailRow("Price", `€${billingData.subscription.plan?.price ?? "—"}`)}
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${G.divider}` }}>
-                          <span style={{ color: G.muted, fontSize: 14 }}>Status</span>
-                          <span>
+                  <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start" }}>
+                    {/* Current Subscription Card */}
+                    {billingData.subscription ? (() => {
+                      const plan = billingData.subscription.plan;
+                      const dur = (plan?.duration || "").toUpperCase();
+                      const period = dur === "WEEKLY" ? "/week" : dur === "MONTHLY" ? "/mo" : dur === "YEARLY" ? "/yr" : dur === "QUARTERLY" ? "/qtr" : "";
+                      const tag = dur === "WEEKLY" ? "SHORT-TERM FOCUS" : dur === "MONTHLY" ? "MONTHLY COMMITMENT" : dur === "YEARLY" ? "LONG-TERM VALUE" : dur === "QUARTERLY" ? "QUARTERLY PLAN" : "CURRENT PLAN";
+                      return (
+                        <div style={{ background: "#111111", border: `1px solid ${G.divider}`, borderRadius: 16, padding: 24, width: 260, flexShrink: 0, display: "flex", flexDirection: "column" }}>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ color: G.text, fontWeight: 800, fontSize: 20, margin: "0 0 4px" }}>{plan?.name || "—"}</p>
+                            <p style={{ color: G.gold, fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", margin: "0 0 16px" }}>{tag}</p>
+                            <p style={{ color: G.text, fontWeight: 700, fontSize: 28, margin: "0 0 4px" }}>
+                              €{plan?.price ?? "—"}<span style={{ fontSize: 14, fontWeight: 400, color: G.muted }}> {period}</span>
+                            </p>
+                            <div style={{ borderTop: `1px solid ${G.divider}`, margin: "16px 0" }} />
+                            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                              {plan?.features?.map((f, i) => (
+                                <li key={i} style={{ color: G.muted, fontSize: 13, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                                  <span style={{ color: G.gold, fontSize: 7 }}>●</span>{f}
+                                </li>
+                              ))}
+                              <li style={{ color: G.muted, fontSize: 13, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ color: G.gold, fontSize: 7 }}>●</span>
+                                Start: {billingData.subscription.startDate ? new Date(billingData.subscription.startDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }) : "—"}
+                              </li>
+                              {billingData.subscription.endDate && (
+                                <li style={{ color: G.muted, fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+                                  <span style={{ color: G.gold, fontSize: 7 }}>●</span>
+                                  End: {new Date(billingData.subscription.endDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })}
+                                </li>
+                              )}
+                            </ul>
+                          </div>
+                          <div style={{ marginTop: 24 }}>
                             {billingData.subscription.status === "ACTIVE" ? (
-                              <Badge bg="success">Active</Badge>
+                              <div style={{ width: "100%", padding: "11px 0", borderRadius: 10, background: "#1a2e1a", border: "1px solid #2d5a2d", color: "#4ade80", fontWeight: 700, fontSize: 12, letterSpacing: 1, textAlign: "center", textTransform: "uppercase" }}>● Active</div>
                             ) : billingData.subscription.status === "CANCELLED" ? (
-                              <Badge bg="danger">Cancelled</Badge>
+                              <div style={{ width: "100%", padding: "11px 0", borderRadius: 10, background: "#2e1a1a", border: "1px solid #5a2d2d", color: "#f87171", fontWeight: 700, fontSize: 12, letterSpacing: 1, textAlign: "center", textTransform: "uppercase" }}>Cancelled</div>
                             ) : (
-                              <Badge bg="secondary">{billingData.subscription.status || "None"}</Badge>
+                              <div style={{ width: "100%", padding: "11px 0", borderRadius: 10, background: "#1e1e1e", border: `1px solid ${G.divider}`, color: G.muted, fontWeight: 700, fontSize: 12, letterSpacing: 1, textAlign: "center", textTransform: "uppercase" }}>{billingData.subscription.status || "None"}</div>
                             )}
-                          </span>
+                          </div>
                         </div>
-                        {detailRow("Start Date", billingData.subscription.startDate ? new Date(billingData.subscription.startDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }) : "—")}
-                        {detailRow("End Date", billingData.subscription.endDate ? new Date(billingData.subscription.endDate).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }) : "—")}
-                      </div>
-                    ) : (
-                      <div style={{ border: `1px solid ${G.divider}`, borderRadius: 10, padding: 16, marginBottom: 20, color: G.muted, fontSize: 14 }}>
-                        No active subscription.
-                      </div>
+                      );
+                    })() : (
+                      <div style={{ background: "#111111", border: `1px solid ${G.divider}`, borderRadius: 16, padding: 24, flex: 1, color: G.muted, fontSize: 14 }}>No active subscription.</div>
                     )}
 
-                    {/* Trainer's Plan */}
-                    {billingData.assignedTrainer?.plan && (
-                      <>
-                        <h6 style={{ color: G.goldLight, fontWeight: 700, marginBottom: 12 }}>Trainer&apos;s Plan</h6>
-                        <div style={{ border: `1px solid ${G.divider}`, borderRadius: 10, padding: 16, marginBottom: 16 }}>
-                          {detailRow("Plan Name", billingData.assignedTrainer.plan.name)}
-                          {detailRow("Price", `€${billingData.assignedTrainer.plan.price}`)}
-                          {billingData.assignedTrainer.plan.description && detailRow("Description", billingData.assignedTrainer.plan.description)}
-                          {billingData.assignedTrainer.plan.features?.length > 0 && (
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "12px 0", borderBottom: `1px solid ${G.divider}` }}>
-                              <span style={{ color: G.muted, fontSize: 14 }}>Features</span>
-                              <ul style={{ margin: 0, paddingLeft: 20 }}>
-                                {billingData.assignedTrainer.plan.features.map((f, i) => (
-                                  <li key={i} style={{ color: G.muted, fontSize: 13 }}>{f}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+                    {/* Trainer's Plan Card — only when not yet activated */}
+                    {billingData.canActivate && billingData.assignedTrainer?.plan && (() => {
+                      const plan = billingData.assignedTrainer.plan;
+                      const dur = (plan.duration || "").toUpperCase();
+                      const period = dur === "WEEKLY" ? "/week" : dur === "MONTHLY" ? "/mo" : dur === "YEARLY" ? "/yr" : dur === "QUARTERLY" ? "/qtr" : "";
+                      const tag = dur === "WEEKLY" ? "SHORT-TERM FOCUS" : dur === "MONTHLY" ? "MONTHLY COMMITMENT" : dur === "YEARLY" ? "LONG-TERM VALUE" : dur === "QUARTERLY" ? "QUARTERLY PLAN" : "TRAINER PLAN";
+                      return (
+                        <div style={{ background: "#111111", border: `1px solid ${G.divider}`, borderRadius: 16, padding: 24, width: 260, flexShrink: 0, display: "flex", flexDirection: "column" }}>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ color: G.text, fontWeight: 800, fontSize: 20, margin: "0 0 4px" }}>{plan.name}</p>
+                            <p style={{ color: G.gold, fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", margin: "0 0 16px" }}>{tag}</p>
+                            <p style={{ color: G.text, fontWeight: 700, fontSize: 28, margin: "0 0 4px" }}>
+                              €{plan.price}<span style={{ fontSize: 14, fontWeight: 400, color: G.muted }}> {period}</span>
+                            </p>
+                            <div style={{ borderTop: `1px solid ${G.divider}`, margin: "16px 0" }} />
+                            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                              {plan.features?.map((f, i) => (
+                                <li key={i} style={{ color: G.muted, fontSize: 13, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                                  <span style={{ color: G.gold, fontSize: 7 }}>●</span>{f}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                           {billingData.canActivate && (
-                            <div style={{ marginTop: 16 }}>
+                            <div style={{ marginTop: 24 }}>
                               <button
                                 disabled={activating}
                                 onClick={handleActivatePlan}
-                                style={{ background: activating ? "#333" : `${G.gold}`, border: "none", color: activating ? G.muted : "#111", padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: activating ? "not-allowed" : "pointer", fontSize: 13 }}
+                                style={{ width: "100%", padding: "11px 0", borderRadius: 10, background: activating ? "#333" : G.card, border: `1px solid ${G.divider}`, color: activating ? G.muted : G.text, fontWeight: 700, fontSize: 12, letterSpacing: 1, cursor: activating ? "not-allowed" : "pointer", textTransform: "uppercase" }}
                               >
                                 {activating ? (<><Spinner animation="border" size="sm" className="me-2" />Activating...</>) : "Activate Plan"}
                               </button>
                             </div>
                           )}
                         </div>
-                      </>
-                    )}
-                  </>
+                      );
+                    })()}
+                  </div>
                 )}
               </div>
             )}
@@ -383,26 +409,6 @@ export default function CustomerDetail() {
                       </p>
                       {detailRow("Client Signature", `${customer.firstName} ${customer.lastName}`)}
                       {detailRow("Date Signed", formatDate(questionnaire.createdAt))}
-                      {detailRow("Trainer Name", (() => {
-                        if (customer.assignedTrainers?.[0]?.trainer) {
-                          return `${customer.assignedTrainers[0].trainer.firstName} ${customer.assignedTrainers[0].trainer.lastName}`;
-                        }
-                        if (customer.assignedTrainers?.[0]?.trainerId) {
-                          const t = reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId);
-                          return t ? `${t.firstName} ${t.lastName}` : "N/A";
-                        }
-                        return "Not Assigned";
-                      })())}
-                      {detailRow("Trainer Signature", (() => {
-                        if (customer.assignedTrainers?.[0]?.trainer) {
-                          return `${customer.assignedTrainers[0].trainer.firstName} ${customer.assignedTrainers[0].trainer.lastName}`;
-                        }
-                        if (customer.assignedTrainers?.[0]?.trainerId) {
-                          const t = reduxTrainers.find(t => t.id === customer.assignedTrainers[0].trainerId);
-                          return t ? `${t.firstName} ${t.lastName}` : "N/A";
-                        }
-                        return "Not Assigned";
-                      })())}
                     </div>
                   </div>
                 )}

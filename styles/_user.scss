@@ -631,6 +631,15 @@ img:hover {
   transform: scale(1.05);
 }
 
+// Override native select dropdown option highlight color
+select option:checked,
+select option:hover,
+select option:focus,
+select option:active {
+  background: linear-gradient(rgba(248, 227, 150, 0.18), rgba(248, 227, 150, 0.18)) !important;
+  color: #f8e396 !important;
+}
+
 
 //sessions page
 .hover-light:hover {

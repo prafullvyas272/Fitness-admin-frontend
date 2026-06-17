@@ -125,7 +125,7 @@ export default function MentorsPage() {
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: "28px" }}>
       <style>{`
-        .tr-mentor td { background: ${G.card} !important; border-bottom: 1px solid #141414 !important; color: ${G.text} !important; padding: 14px 16px !important; font-size: 12px; vertical-align: middle; font-weight: 700; }
+        .tr-mentor td { background: ${G.card} !important; border-bottom: 1px solid #141414 !important; color: #cccccc !important; padding: 14px 16px !important; font-size: 12px !important; vertical-align: middle; font-weight: 600 !important; line-height: 1.4 !important; font-family: Montserrat, Arial, sans-serif !important; }
         .tr-mentor:hover td { background: ${G.rowHover} !important; }
         .th-mentor { background: #111111 !important; color: rgba(248,227,150,0.6) !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700 !important; }
         .inp-gold { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px !important; }

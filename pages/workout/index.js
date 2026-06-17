@@ -500,13 +500,18 @@ export default function Workout() {
           </div>
           <div style={{ marginBottom: 14 }}>
             <label style={{ color: G.muted, fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Upload Video</label>
+            {(form.preview || (editItem?.videoUrl && !form.file)) && (
+              <div style={{ marginBottom: 10, borderRadius: 8, overflow: "hidden", border: `1px solid ${G.divider}` }}>
+                <video src={form.preview || editItem?.videoUrl} controls style={{ width: "100%", borderRadius: 8, display: "block", maxHeight: 200 }} />
+              </div>
+            )}
             <div onClick={() => fileRef.current.click()}
-              style={{ border: `2px dashed ${G.divider}`, borderRadius: 10, padding: "24px 16px", textAlign: "center", cursor: "pointer", color: G.muted, fontSize: 13, transition: "border-color 0.2s" }}
+              style={{ border: `2px dashed ${G.divider}`, borderRadius: 10, padding: "16px", textAlign: "center", cursor: "pointer", color: G.muted, fontSize: 13, transition: "border-color 0.2s" }}
               onMouseEnter={(e) => e.currentTarget.style.borderColor = G.gold}
               onMouseLeave={(e) => e.currentTarget.style.borderColor = G.divider}
             >
-              <i className="fe fe-upload-cloud" style={{ fontSize: 22, display: "block", marginBottom: 6 }} />
-              {form.file ? form.file.name : "Click to upload video"}
+              <i className="fe fe-upload-cloud" style={{ fontSize: 18, display: "block", marginBottom: 4 }} />
+              {form.file ? form.file.name : editItem?.videoUrl ? "Click to replace video" : "Click to upload video"}
             </div>
             <input type="file" accept="video/*" ref={fileRef} hidden onChange={(e) => handleFile(e.target.files[0])} />
           </div>
@@ -529,11 +534,6 @@ export default function Workout() {
               ))}
             </div>
           </div>
-          {form.preview && (
-            <div style={{ marginBottom: 14, borderRadius: 8, overflow: "hidden" }}>
-              <video src={form.preview} controls style={{ width: "100%", borderRadius: 8 }} />
-            </div>
-          )}
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 8 }}>
             <button onClick={resetUploadForm} style={{ background: "transparent", border: `1px solid ${G.divider}`, color: G.text, padding: "7px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}>Cancel</button>
             <button onClick={handleSubmit} style={{ background: G.gold, border: "none", color: "#000", padding: "7px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 13 }}>

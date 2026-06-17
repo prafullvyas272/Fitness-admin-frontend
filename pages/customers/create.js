@@ -39,8 +39,8 @@ export default function CreateCustomer() {
     lastName: "",
     email: "",
     phone: "",
-    countryCode: "+91",
-    country: "IN",
+    countryCode: "+44",
+    country: "GB",
     status: "Active",
     gender: "",
     avatarFile: null,
@@ -137,8 +137,12 @@ export default function CreateCustomer() {
         .dk-ddm { background: #1e1e1e !important; border: 1px solid ${G.divider} !important; }
         .dk-ddm .dropdown-item { color: ${G.text} !important; font-size: 13px; }
         .dk-ddm .dropdown-item:hover { background: rgba(248,227,150,0.07) !important; color: ${G.goldLight} !important; }
-        .dk-flag-toggle { background: #2a2a2a !important; border: none !important; color: ${G.text} !important; border-right: 1px solid ${G.divider} !important; }
+        .dk-flag-toggle { background: #2a2a2a !important; border: none !important; color: ${G.text} !important; border-right: 1px solid ${G.divider} !important; display: flex !important; align-items: center !important; gap: 6px; }
         .dk-flag-toggle:hover, .dk-flag-toggle:focus { background: #333 !important; }
+        .dk-flag-toggle::after { display: none !important; }
+        .dk-gender-toggle { background: ${G.input} !important; border: none !important; flex: 1; display: flex !important; align-items: center !important; justify-content: space-between !important; padding: 10px 14px !important; }
+        .dk-gender-toggle:hover { background: #1e1e1e !important; }
+        .dk-gender-toggle::after { display: none !important; }
         .dk-label { color: ${G.muted}; font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block; }
       `}</style>
 
@@ -209,9 +213,7 @@ export default function CreateCustomer() {
                 {customer.avatarPreview ? (
                   <img src={customer.avatarPreview} alt="avatar" className="avatar-img" />
                 ) : (
-                  <span style={{ fontSize: 48, fontWeight: 800, color: G.gold, letterSpacing: -2, lineHeight: 1, pointerEvents: "none" }}>
-                    {`${customer.firstName?.[0] || ""}${customer.lastName?.[0] || ""}`.toUpperCase() || "?"}
-                  </span>
+                  <img src="https://res.cloudinary.com/dbazlbkfj/image/upload/v1771390209/Layer_x0020_1_p5f6fs.png" alt="logo" style={{ width: 90, height: 90, objectFit: "contain", opacity: 0.13, pointerEvents: "none" }} />
                 )}
                 <div className="avatar-overlay"><span>Upload Photo</span></div>
                 <input
@@ -260,8 +262,9 @@ export default function CreateCustomer() {
                   <InputGroup className="dk-ig">
                     <Dropdown>
                       <Dropdown.Toggle className="dk-flag-toggle" style={{ minWidth: 100 }}>
-                        <ReactCountryFlag countryCode={customer.country} svg style={{ width: 20, marginRight: 8 }} />
+                        <ReactCountryFlag countryCode={customer.country} svg style={{ width: 20 }} />
                         {customer.countryCode}
+                        <i className="fe fe-chevron-down" style={{ fontSize: 11, color: G.muted, marginLeft: "auto" }}></i>
                       </Dropdown.Toggle>
                       <Dropdown.Menu className="dk-ddm">
                         {countryOptions.map((c) => (
@@ -291,13 +294,20 @@ export default function CreateCustomer() {
 
                 <Col md={6} className="mb-3">
                   <label className="dk-label">Gender</label>
-                  <Form.Select name="gender" value={customer.gender} onChange={handleChange} className="dk-inp"
-                    style={{ padding: "10px 14px", borderRadius: 8, border: `1px solid ${G.divider}` }}>
-                    <option value="">Select Gender</option>
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                    <option value="OTHER">Other</option>
-                  </Form.Select>
+                  <InputGroup className="dk-ig">
+                    <InputGroup.Text className="dk-ig-text"><i className="fe fe-users"></i></InputGroup.Text>
+                    <Dropdown style={{ flex: 1 }}>
+                      <Dropdown.Toggle className="dk-gender-toggle" style={{ color: customer.gender ? G.text : G.muted }}>
+                        {customer.gender === "MALE" ? "Male" : customer.gender === "FEMALE" ? "Female" : customer.gender === "OTHER" ? "Other" : "Select Gender"}
+                        <i className="fe fe-chevron-down" style={{ fontSize: 11, color: G.muted }}></i>
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu className="dk-ddm" style={{ width: "100%" }}>
+                        <Dropdown.Item onClick={() => setCustomer({ ...customer, gender: "MALE" })}>Male</Dropdown.Item>
+                        <Dropdown.Item onClick={() => setCustomer({ ...customer, gender: "FEMALE" })}>Female</Dropdown.Item>
+                        <Dropdown.Item onClick={() => setCustomer({ ...customer, gender: "OTHER" })}>Other</Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  </InputGroup>
                 </Col>
               </Row>
             </Col>

@@ -165,7 +165,7 @@ export default function AllCustomers() {
         table { background: ${G.card} !important; }
         .table-responsive { background: ${G.card} !important; }
         .cu-thead th { background: #111111 !important; color: rgba(248,227,150,0.6) !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700 !important; }
-        .cu-tbody tr td { background: ${G.card} !important; color: ${G.text} !important; border-bottom: 1px solid #141414 !important; padding: 14px 16px !important; vertical-align: middle; font-size: 12px !important; font-weight: 700 !important; }
+        .cu-tbody tr td { background: ${G.card} !important; color: #cccccc !important; border-bottom: 1px solid #141414 !important; padding: 14px 16px !important; vertical-align: middle; font-size: 12px !important; font-weight: 600 !important; line-height: 1.4 !important; font-family: Montserrat, Arial, sans-serif !important; }
         .cu-tbody tr:hover td { background: #111111 !important; }
         .cu-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px; }
         .cu-inp:focus { background: ${G.input} !important; color: #cccccc !important; box-shadow: none !important; border-color: rgba(248,227,150,0.25) !important; }

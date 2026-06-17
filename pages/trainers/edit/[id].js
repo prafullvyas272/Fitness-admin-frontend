@@ -198,12 +198,15 @@ export default function EditTrainer() {
         .dk-ddm { background: ${G.card} !important; border: 1px solid ${G.divider} !important; }
         .dk-ddm .dropdown-item { color: ${G.text} !important; font-size: 13px; }
         .dk-ddm .dropdown-item:hover { background: ${G.goldFaint} !important; color: ${G.goldLight} !important; }
-        .dk-flag-toggle { background: #111111 !important; border: none !important; color: ${G.text} !important; border-right: 1px solid ${G.divider} !important; }
+        .dk-flag-toggle { background: #111111 !important; border: none !important; color: ${G.text} !important; border-right: 1px solid ${G.divider} !important; display: flex !important; align-items: center !important; gap: 6px; }
         .dk-flag-toggle:hover, .dk-flag-toggle:focus { background: #1e1e1e !important; }
-        .dk-flag-toggle::after { border-top-color: ${G.muted} !important; }
+        .dk-flag-toggle::after { display: none !important; }
+        .dk-gender-toggle { background: ${G.input} !important; border: none !important; color: ${G.text} !important; flex: 1; display: flex !important; align-items: center !important; justify-content: space-between !important; padding: 10px 14px !important; }
+        .dk-gender-toggle:hover { background: #1e1e1e !important; }
+        .dk-gender-toggle::after { display: none !important; }
         .dk-status-toggle { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 7px !important; width: 100%; display: flex !important; align-items: center !important; }
         .dk-status-toggle:hover { background: #1e1e1e !important; }
-        .dk-status-toggle::after { border-top-color: ${G.muted} !important; }
+        .dk-status-toggle::after { display: none !important; }
         .dk-label { color: ${G.muted}; font-weight: 600; font-size: 14px; }
         .dk-row-divider { border-bottom: 1px solid ${G.divider}; padding-bottom: 20px; margin-bottom: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -315,8 +318,9 @@ export default function EditTrainer() {
               <InputGroup className="dk-ig">
                 <Dropdown>
                   <Dropdown.Toggle className="dk-flag-toggle" style={{ minWidth: 110 }}>
-                    <ReactCountryFlag countryCode={trainer.country} svg style={{ width: 20, marginRight: 8 }} />
+                    <ReactCountryFlag countryCode={trainer.country} svg style={{ width: 20 }} />
                     {trainer.countryCode}
+                    <i className="fe fe-chevron-down" style={{ fontSize: 11, color: G.muted, marginLeft: "auto" }}></i>
                   </Dropdown.Toggle>
                   <Dropdown.Menu className="dk-ddm">
                     {countryOptions.map((c) => (
@@ -364,12 +368,20 @@ export default function EditTrainer() {
           <Row className="mb-4 align-items-center">
             <Col md={3}><span className="dk-label">Gender</span></Col>
             <Col md={9}>
-              <Form.Select name="gender" value={trainer.gender} onChange={handleChange} className="dk-inp" style={{ padding: "10px 14px" }} required>
-                <option value="">Select Gender</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-                <option value="OTHER">Other</option>
-              </Form.Select>
+              <InputGroup className="dk-ig">
+                <InputGroup.Text className="dk-ig-text"><i className="fe fe-users"></i></InputGroup.Text>
+                <Dropdown style={{ flex: 1 }}>
+                  <Dropdown.Toggle className="dk-gender-toggle" style={{ color: trainer.gender ? G.text : G.muted }}>
+                    {trainer.gender === "MALE" ? "Male" : trainer.gender === "FEMALE" ? "Female" : trainer.gender === "OTHER" ? "Other" : "Select Gender"}
+                    <i className="fe fe-chevron-down" style={{ fontSize: 11, color: G.muted }}></i>
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu className="dk-ddm" style={{ width: "100%" }}>
+                    <Dropdown.Item onClick={() => setTrainer({ ...trainer, gender: "MALE" })}>Male</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setTrainer({ ...trainer, gender: "FEMALE" })}>Female</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setTrainer({ ...trainer, gender: "OTHER" })}>Other</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </InputGroup>
             </Col>
           </Row>
 

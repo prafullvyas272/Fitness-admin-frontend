@@ -240,6 +240,10 @@ export default function BillingDetails() {
         .assign-trainer-btn { width: 100%; padding: 11px 0; border-radius: 8px; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; cursor: pointer; text-align: center; }
         .assign-trainer-btn.outline { background: transparent; border: 1px solid ${G.divider}; color: ${G.text}; }
         .assign-trainer-btn.filled { background: ${G.gold}; border: none; color: #111; }
+        .form-check-input { background-color: #1e1e1e !important; border-color: #444 !important; box-shadow: none !important; }
+        .form-check-input:checked { background-color: transparent !important; border-color: ${G.gold} !important; box-shadow: none !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23f8e396' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3E%3C/svg%3E") !important; }
+        .form-check-input:focus { box-shadow: none !important; border-color: #444 !important; }
+        .form-check-label { color: ${G.text} !important; font-size: 15px; }
       `}</style>
 
       {/* FULL-SCREEN LOADER */}

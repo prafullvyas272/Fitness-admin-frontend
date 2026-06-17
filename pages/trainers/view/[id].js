@@ -605,8 +605,10 @@ const formatDisplayDate = (dateString) => {
         .vw-booking-name { font-weight: 600; color: ${G.goldLight}; margin-bottom: 4px; }
         .vw-booking-meta { display: flex; gap: 16px; font-size: 13px; color: ${G.muted}; flex-wrap: wrap; }
         .vw-video-card { background: #111111; border: 1px solid ${G.divider}; border-radius: 12px; overflow: hidden; }
-        .vw-video-card h6 { color: ${G.text}; font-size: 13px; margin: 0; }
-        .vw-video-info { padding: 10px 12px; }
+        .vw-video-info { padding: 12px 14px; }
+        .vw-video-title { color: ${G.text}; font-size: 16px; font-weight: 700; margin: 0 0 4px; line-height: 1.3; }
+        .vw-video-category { color: ${G.gold}; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin: 0 0 8px; }
+        .vw-video-views { display: flex; align-items: center; gap: 5px; color: ${G.muted}; font-size: 12px; margin: 0; }
         .calendar-card { background: #111111 !important; border-radius: 16px; padding: 24px 28px; border: 1px solid ${G.divider}; }
         .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
         .calendar-header h4 { color: ${G.text} !important; margin: 0; font-size: 16px; font-weight: 600; }
@@ -873,7 +875,11 @@ const formatDisplayDate = (dateString) => {
                           <div className="play-btn" onClick={() => setPreviewVideo(video)}>▶</div>
                         </div>
                       </div>
-                      <div className="vw-video-info"><h6>{video.title}</h6></div>
+                      <div className="vw-video-info">
+                        <p className="vw-video-title">{video.title}</p>
+                        <p className="vw-video-category">{video.category || video.muscleGroup || "Workout"}</p>
+                        <p className="vw-video-views"><i className="fe fe-eye"></i>{video.views ?? 0} Views</p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -892,8 +898,9 @@ const formatDisplayDate = (dateString) => {
                         <img src={video.thumbnail} alt="thumbnail" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       </div>
                       <div className="vw-video-info">
-                        <h6>{video.title}</h6>
-                        <p style={{ fontSize: 12, color: G.muted, margin: "4px 0 0" }}>{video.trainer?.firstName} {video.trainer?.lastName}</p>
+                        <p className="vw-video-title">{video.title}</p>
+                        <p className="vw-video-category">{video.category || video.muscleGroup || "Workout"}</p>
+                        <p className="vw-video-views"><i className="fe fe-eye"></i>{video.views ?? 0} Views</p>
                       </div>
                     </div>
                   ))}

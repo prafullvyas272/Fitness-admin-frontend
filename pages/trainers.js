@@ -352,7 +352,7 @@ const filteredCustomers = customers.filter((customer) => {
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: "24px" }}>
       <style>{`
-        .tr-gold td { background: ${G.card} !important; border-bottom: 1px solid #141414 !important; color: ${G.text} !important; padding: 14px 16px !important; font-size: 12px !important; vertical-align: middle; font-weight: 700 !important; }
+        .tr-gold td { background: ${G.card} !important; border-bottom: 1px solid #141414 !important; color: #cccccc !important; padding: 14px 16px !important; font-size: 12px !important; vertical-align: middle; font-weight: 600 !important; line-height: 1.4 !important; font-family: Montserrat, Arial, sans-serif !important; }
         .tr-gold:hover td { background: ${G.rowHover} !important; }
         table { background: ${G.card} !important; }
         .table-responsive { background: ${G.card} !important; }
