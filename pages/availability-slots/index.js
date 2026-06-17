@@ -71,6 +71,7 @@ export default function AvailabilitySlots() {
   const [saving, setSaving] = useState(false);
   const [deletingSlot, setDeletingSlot] = useState(false);
 
+  const [isDirty, setIsDirty] = useState(false);
   const [overlapError, setOverlapError] = useState(null);
 
   const formatDate = (date) => (date ? formatDateIST(date) : null);
@@ -206,6 +207,7 @@ export default function AvailabilitySlots() {
           endTime: apiIsoToISTTime(slot.endTime),
         })) || [];
       setSlots(loadedSlots);
+      setIsDirty(false);
     } catch (err) {
       console.error(err);
     } finally {
@@ -219,6 +221,7 @@ export default function AvailabilitySlots() {
 
   const addSlot = () => {
     setSlots([...slots, { startTime: "", endTime: "" }]);
+    setIsDirty(true);
   };
 
   const updateSlot = (index, field, value) => {
@@ -240,6 +243,7 @@ export default function AvailabilitySlots() {
     updated[index].endTime = addMinutesToTime(value, 45);
     setSlots(updated);
     setOverlapError(validateNoOverlaps(updated));
+    setIsDirty(true);
   };
 
   const handleEndTimeChange = (index, value) => {
@@ -247,6 +251,7 @@ export default function AvailabilitySlots() {
     updated[index].endTime = value;
     setSlots(updated);
     setOverlapError(validateNoOverlaps(updated));
+    setIsDirty(true);
   };
 
   const deleteSlot = async (index) => {
@@ -310,6 +315,7 @@ export default function AvailabilitySlots() {
       }
       await fetchMonthSlots();
       await fetchSlotsForDate(selectedDate);
+      setIsDirty(false);
       alert("Slots saved successfully");
     } catch (err) {
       alert("Error saving");
@@ -511,7 +517,7 @@ export default function AvailabilitySlots() {
               ))}
 
               {/* Actions */}
-              <div style={{ marginTop: 8, display: "flex", gap: 10 }}>
+              <div style={{ marginTop: 8, display: "flex", gap: 10, alignItems: "center" }}>
                 <button
                   onClick={addSlot}
                   style={{
@@ -527,22 +533,38 @@ export default function AvailabilitySlots() {
                 >
                   + Add Slot
                 </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving || !!overlapError}
-                  style={{
-                    background: (saving || !!overlapError) ? "#333" : `${G.gold}`,
-                    border: "none",
-                    color: (saving || !!overlapError) ? G.muted : "#111",
-                    padding: "8px 24px",
-                    borderRadius: 8,
-                    cursor: (saving || !!overlapError) ? "not-allowed" : "pointer",
-                    fontSize: 13,
-                    fontWeight: 700,
-                  }}
-                >
-                  {saving ? "Saving..." : "Save Changes"}
-                </button>
+                {isDirty && (
+                  <button
+                    onClick={handleSave}
+                    disabled={saving || !!overlapError}
+                    style={{
+                      background: (saving || !!overlapError) ? "#333" : G.gold,
+                      border: "none",
+                      color: (saving || !!overlapError) ? G.muted : "#111",
+                      padding: "8px 24px",
+                      borderRadius: 8,
+                      cursor: (saving || !!overlapError) ? "not-allowed" : "pointer",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    {saving && (
+                      <div style={{
+                        width: 14,
+                        height: 14,
+                        border: "2px solid rgba(0,0,0,0.2)",
+                        borderTop: "2px solid #111",
+                        borderRadius: "50%",
+                        animation: "spin 0.7s linear infinite",
+                        flexShrink: 0,
+                      }} />
+                    )}
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                )}
               </div>
             </>
           )}

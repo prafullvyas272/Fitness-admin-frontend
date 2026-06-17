@@ -50,13 +50,25 @@ export default function BillingDetails() {
   }, [dispatch]);
 
   const handleSave = async () => {
+    if (!formData.name.trim()) { alert("Plan name is required"); return; }
+    if (!formData.price) { alert("Price is required"); return; }
     setSavingPlan(true);
     try {
+      const payload = {
+        name: formData.name.trim(),
+        price: parseFloat(formData.price) || 0,
+        features: formData.features
+          ? formData.features.split("\n").map((f) => f.trim()).filter(Boolean)
+          : [],
+        duration: formData.cycle.toUpperCase(),
+        isPopular: formData.isPopular,
+      };
       if (editId) {
-        await dispatch(updatePlan({ id: editId, planData: formData }));
+        await dispatch(updatePlan({ id: editId, planData: payload }));
       } else {
-        await dispatch(createPlan(formData));
+        await dispatch(createPlan(payload));
       }
+      dispatch(fetchPlans());
       resetForm();
     } catch (err) {
       console.error(err);
@@ -69,10 +81,12 @@ export default function BillingDetails() {
     setFormData({
       name: plan.name || "",
       description: plan.description || "",
-      cycle: plan.cycle || "Monthly",
+      cycle: plan.duration
+        ? plan.duration.charAt(0).toUpperCase() + plan.duration.slice(1).toLowerCase()
+        : (plan.cycle || "Monthly"),
       price: plan.price || "",
       currency: plan.currency || "EUR",
-      features: plan.features || "",
+      features: Array.isArray(plan.features) ? plan.features.join("\n") : (plan.features || ""),
       isPopular: plan.isPopular || false,
     });
     setEditId(plan.id);
@@ -80,6 +94,7 @@ export default function BillingDetails() {
   };
 
   const handleDeletePlan = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this plan? This action cannot be undone.")) return;
     setDeletingPlan(true);
     try {
       await dispatch(deletePlan(id));
@@ -127,7 +142,10 @@ export default function BillingDetails() {
     { label: "Cancelled", value: "12" },
   ];
 
-  const visiblePlans = plans?.filter((p) => !p.cycle || p.cycle === billingView);
+  const visiblePlans = plans?.filter((p) => {
+    const planDuration = (p.duration || p.cycle || "").toUpperCase();
+    return planDuration === billingView.toUpperCase();
+  });
 
   const handleTrainerSelect = (trainerId) => {
     setSelectedTrainers((prev) =>
@@ -350,6 +368,18 @@ export default function BillingDetails() {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Detail the methodology, expected outcomes, and curriculum..."
+            />
+          </div>
+
+          {/* FEATURES */}
+          <div style={{ marginBottom: 20 }}>
+            <label className="plan-field-label">Features <span style={{ color: G.muted, fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(one per line)</span></label>
+            <textarea
+              className="plan-textarea"
+              rows={4}
+              value={formData.features}
+              onChange={(e) => setFormData({ ...formData, features: e.target.value })}
+              placeholder={"Unlimited sessions\nPersonal diet plan\n24/7 support"}
             />
           </div>
 

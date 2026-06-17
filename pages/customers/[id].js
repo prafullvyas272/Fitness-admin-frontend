@@ -159,19 +159,16 @@ export default function CustomerDetail() {
         .modal-gold .form-check-label { color: ${G.text}; }
       `}</style>
 
-      {/* HEADER */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+      {/* BACK */}
+      <div className="mb-3">
         <button
           onClick={() => router.push("/customers")}
-          style={{ background: "transparent", border: "1px solid rgba(248,227,150,0.25)", color: "#f8e396", padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}
+          style={{ background: "transparent", border: "1px solid rgba(248,227,150,0.25)", color: "#f8e396", padding: "6px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}
         >
           ← Back
         </button>
-        <div>
-          <h3 style={{ color: G.text, fontWeight: 700, margin: 0 }}>Customer Profile</h3>
-          <small style={{ color: G.muted }}>View customer details</small>
-        </div>
       </div>
+      <h3 style={{ color: G.text, fontWeight: 700, marginBottom: 20 }}>Customer Profile</h3>
 
       {/* MAIN CARD */}
       <div style={{ background: G.card, border: `1px solid ${G.divider}`, borderRadius: 14, padding: 24 }}>
@@ -179,11 +176,26 @@ export default function CustomerDetail() {
 
           {/* LEFT SIDE */}
           <Col md={4} style={{ textAlign: "center", borderRight: `1px solid ${G.divider}`, paddingRight: 24 }}>
-            <img
-              src={customer.avatar || "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"}
-              alt="avatar"
-              style={{ width: 150, height: 150, objectFit: "cover", borderRadius: "50%", border: `3px solid ${G.gold}`, marginBottom: 16 }}
-            />
+            {(customer.userProfileDetails?.[0]?.avatarUrl || customer.avatar) ? (
+              <img
+                src={customer.userProfileDetails?.[0]?.avatarUrl || customer.avatar}
+                alt="avatar"
+                style={{ width: 150, height: 150, objectFit: "cover", borderRadius: "50%", border: `3px solid ${G.gold}`, marginBottom: 16 }}
+              />
+            ) : (
+              <div style={{
+                width: 150, height: 150, borderRadius: "50%",
+                border: `3px solid ${G.gold}`,
+                background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 16px", flexShrink: 0,
+                boxShadow: `0 0 0 4px rgba(248,227,150,0.08), 0 8px 32px rgba(0,0,0,0.5)`,
+              }}>
+                <span style={{ fontSize: 52, fontWeight: 800, color: G.gold, letterSpacing: -2, lineHeight: 1 }}>
+                  {`${customer.firstName?.[0] || ""}${customer.lastName?.[0] || ""}`.toUpperCase() || "?"}
+                </span>
+              </div>
+            )}
 
             <h5 style={{ color: G.text, fontWeight: 700, marginBottom: 4 }}>
               {customer.firstName} {customer.lastName}
@@ -249,7 +261,11 @@ export default function CustomerDetail() {
                 {detailRow("Email", customer.email)}
                 {detailRow("Phone", customer.phone)}
                 {detailRow("Gender", customer.gender ? customer.gender.charAt(0).toUpperCase() + customer.gender.slice(1).toLowerCase() : "N/A")}
-                {detailRow("Assigned Trainer", customer.assignedTrainers?.length > 0 ? "Assigned" : "Not Assigned")}
+                {detailRow("Assigned Trainer", (() => {
+                  const t = customer.assignedTrainers?.[0]?.trainer;
+                  if (!t) return "N/A";
+                  return `${t.firstName || ""} ${t.lastName || ""}`.trim() || "N/A";
+                })())}
               </div>
             )}
 

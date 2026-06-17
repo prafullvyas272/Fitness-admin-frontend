@@ -659,13 +659,27 @@ const formatDisplayDate = (dateString) => {
           {activeTab === "profile" && (
             <Row>
               <Col md={4} className="text-center" style={{ borderRight: `1px solid ${G.divider}` }}>
-                <img
-                  src={trainer.userProfileDetails?.[0]?.avatarUrl || "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"}
-                  alt="avatar"
-                  onClick={() => setShowImageModal(true)}
-                  style={{ width: 170, height: 170, objectFit: "cover", borderRadius: "50%", border: `4px solid ${G.gold}`, cursor: "pointer", transition: "0.3s" }}
-                  className="mb-3"
-                />
+                {trainer.userProfileDetails?.[0]?.avatarUrl ? (
+                  <img
+                    src={trainer.userProfileDetails[0].avatarUrl}
+                    alt="avatar"
+                    onClick={() => setShowImageModal(true)}
+                    style={{ width: 170, height: 170, objectFit: "cover", borderRadius: "50%", border: `4px solid ${G.gold}`, cursor: "pointer", transition: "0.3s", display: "block", margin: "0 auto 12px" }}
+                  />
+                ) : (
+                  <div style={{
+                    width: 170, height: 170, borderRadius: "50%",
+                    border: `4px solid ${G.gold}`,
+                    background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    margin: "0 auto 12px",
+                    boxShadow: "0 0 0 4px rgba(248,227,150,0.08), 0 8px 32px rgba(0,0,0,0.5)",
+                  }}>
+                    <span style={{ fontSize: 58, fontWeight: 800, color: G.gold, letterSpacing: -2, lineHeight: 1 }}>
+                      {`${trainer.firstName?.[0] || ""}${trainer.lastName?.[0] || ""}`.toUpperCase() || "?"}
+                    </span>
+                  </div>
+                )}
                 <h5 style={{ color: G.goldLight, fontWeight: 700 }}>{trainer.firstName} {trainer.lastName}</h5>
                 <p style={{ color: G.muted, marginBottom: 10 }}>{trainer.email}</p>
                 <StatusPill isActive={trainer.isActive} />
@@ -917,8 +931,8 @@ const formatDisplayDate = (dateString) => {
                 </Col>
                 {payoutPeriod === "custom" && (
                   <>
-                    <Col xs="auto"><input type="date" className="vw-inp" style={{ padding: "5px 10px" }} value={payoutStartDate} onChange={(e) => setPayoutStartDate(e.target.value)} /></Col>
-                    <Col xs="auto"><input type="date" className="vw-inp" style={{ padding: "5px 10px" }} value={payoutEndDate} onChange={(e) => setPayoutEndDate(e.target.value)} /></Col>
+                    <Col xs="auto"><input type="date" lang="en-US" className="vw-inp" style={{ padding: "5px 10px" }} value={payoutStartDate} onChange={(e) => setPayoutStartDate(e.target.value)} /></Col>
+                    <Col xs="auto"><input type="date" lang="en-US" className="vw-inp" style={{ padding: "5px 10px" }} value={payoutEndDate} onChange={(e) => setPayoutEndDate(e.target.value)} /></Col>
                     <Col xs="auto">
                       <button style={goldBtn} disabled={!payoutStartDate || !payoutEndDate} onClick={() => { setPayoutPage(1); fetchPayouts("custom",payoutStartDate,payoutEndDate,1); }}>Apply</button>
                     </Col>
@@ -1008,7 +1022,7 @@ const formatDisplayDate = (dateString) => {
             {[["Period Start *","periodStart"],["Period End *","periodEnd"]].map(([label,key]) => (
               <Col key={key}>
                 <Form.Label>{label}</Form.Label>
-                <Form.Control type="date" value={payoutForm[key]} onChange={(e) => setPayoutForm({ ...payoutForm, [key]: e.target.value })} />
+                <Form.Control type="date" lang="en-US" value={payoutForm[key]} onChange={(e) => setPayoutForm({ ...payoutForm, [key]: e.target.value })} />
               </Col>
             ))}
           </Row>

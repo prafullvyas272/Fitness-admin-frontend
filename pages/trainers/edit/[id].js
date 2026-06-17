@@ -252,12 +252,14 @@ export default function EditTrainer() {
             <Col md={3}><span className="dk-label">Avatar</span></Col>
             <Col md={9}>
               <div className="avatar-circle-wrapper" onClick={() => document.getElementById("editAvatarInput").click()}
-                style={{ border: `3px solid ${G.gold}` }}>
-                <img
-                  src={trainer.avatar || "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"}
-                  alt="avatar"
-                  className="avatar-img"
-                />
+                style={{ border: `3px solid ${G.gold}`, background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {trainer.avatar ? (
+                  <img src={trainer.avatar} alt="avatar" className="avatar-img" />
+                ) : (
+                  <span style={{ fontSize: 48, fontWeight: 800, color: G.gold, letterSpacing: -2, lineHeight: 1, pointerEvents: "none" }}>
+                    {`${trainer.firstName?.[0] || ""}${trainer.lastName?.[0] || ""}`.toUpperCase() || "?"}
+                  </span>
+                )}
                 <div className="avatar-overlay"><span>Change Photo</span></div>
                 <input type="file" id="editAvatarInput" accept="image/png, image/jpeg" onChange={handleImageUpload} hidden />
               </div>

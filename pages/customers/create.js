@@ -204,13 +204,15 @@ export default function CreateCustomer() {
               <div
                 className="avatar-circle-wrapper"
                 onClick={() => document.getElementById("customerAvatarInput").click()}
-                style={{ border: `3px solid ${G.gold}`, margin: "0 auto 12px" }}
+                style={{ border: `3px solid ${G.gold}`, margin: "0 auto 12px", background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}
               >
-                <img
-                  src={customer.avatarPreview || "https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Free-Image.png"}
-                  alt="avatar"
-                  className="avatar-img"
-                />
+                {customer.avatarPreview ? (
+                  <img src={customer.avatarPreview} alt="avatar" className="avatar-img" />
+                ) : (
+                  <span style={{ fontSize: 48, fontWeight: 800, color: G.gold, letterSpacing: -2, lineHeight: 1, pointerEvents: "none" }}>
+                    {`${customer.firstName?.[0] || ""}${customer.lastName?.[0] || ""}`.toUpperCase() || "?"}
+                  </span>
+                )}
                 <div className="avatar-overlay"><span>Upload Photo</span></div>
                 <input
                   type="file"
