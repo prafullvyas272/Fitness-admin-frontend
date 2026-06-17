@@ -308,12 +308,15 @@ const countryOptions = [
           <Row className="mb-4 align-items-center">
             <Col md={3}><span className="dk-label">Gender</span></Col>
             <Col md={9}>
-              <Form.Select name="gender" value={trainer.gender} onChange={handleChange} className="dk-inp" style={{ padding: "10px 14px" }} required>
-                <option value="">Select Gender</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-                <option value="OTHER">Other</option>
-              </Form.Select>
+              <InputGroup className="dk-ig">
+                <InputGroup.Text className="dk-ig-text"><i className="fe fe-users"></i></InputGroup.Text>
+                <Form.Select name="gender" value={trainer.gender} onChange={handleChange} className="dk-inp" style={{ padding: "10px 14px", border: "none" }} required>
+                  <option value="">Select Gender</option>
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                </Form.Select>
+              </InputGroup>
             </Col>
           </Row>
 
