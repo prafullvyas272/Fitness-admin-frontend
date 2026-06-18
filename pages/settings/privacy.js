@@ -1,140 +1,219 @@
-import { useState } from "react";
-import { Modal, Form } from "react-bootstrap";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 const G = {
-  bg:         "#0a0a0a",
-  card:       "#0d0d0d",
-  cardBorder: "1px solid #1e1e1e",
-  gold:       "#f8e396",
-  goldLight:  "#f8e396",
-  goldFaint:  "rgba(248,227,150,0.07)",
-  text:       "#ffffff",
-  muted:      "#888888",
-  divider:    "#1e1e1e",
-  input:      "#111111",
+  bg: "#0a0a0a", card: "#0d0d0d", gold: "#f8e396", goldLight: "#f8e396",
+  goldFaint: "rgba(248,227,150,0.07)", text: "#ffffff", muted: "#888888",
+  divider: "#1e1e1e", input: "#111111",
 };
 
-export default function PrivacyPolicy() {
-  const [content, setContent] = useState(
-    `We value your privacy. All customer and trainer information collected in this Gym Management System is securely stored and never shared with third parties.
+const TABS = ["trainers", "customers"];
 
-Personal data including names, contact details, and membership information is used only for internal management purposes.`
-  );
+function RichEditor({ value, onChange }) {
+  const editorRef = useRef(null);
 
-  const [showModal, setShowModal] = useState(false);
-  const [draft, setDraft] = useState(content);
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value || "";
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleEdit = () => {
-    setDraft(content);
-    setShowModal(true);
+  const exec = (cmd, val = null) => {
+    editorRef.current?.focus();
+    document.execCommand(cmd, false, val);
   };
 
-  const handleSave = () => {
-    setContent(draft);
-    setShowModal(false);
+  const handleInput = () => {
+    onChange(editorRef.current?.innerHTML || "");
+  };
+
+  const insertLink = () => {
+    const url = prompt("Enter URL:");
+    if (url) exec("createLink", url);
+  };
+
+  const ToolBtn = ({ icon, cmd, val, title, children }) => (
+    <button
+      type="button"
+      title={title}
+      onMouseDown={(e) => { e.preventDefault(); val !== undefined ? exec(cmd, val) : exec(cmd); }}
+      style={{
+        background: "transparent", border: "none", color: G.muted,
+        padding: "4px 8px", cursor: "pointer", fontSize: 13,
+        borderRadius: 4, lineHeight: 1,
+        transition: "color 0.15s, background 0.15s",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.color = G.gold; e.currentTarget.style.background = G.goldFaint; }}
+      onMouseLeave={(e) => { e.currentTarget.style.color = G.muted; e.currentTarget.style.background = "transparent"; }}
+    >
+      {children || <i className={`fe ${icon}`} />}
+    </button>
+  );
+
+  const Divider = () => <span style={{ width: 1, height: 18, background: G.divider, display: "inline-block", margin: "0 4px", verticalAlign: "middle" }} />;
+
+  return (
+    <div style={{ border: `1px solid ${G.divider}`, borderRadius: 10, overflow: "hidden", background: "#111" }}>
+      {/* Toolbar */}
+      <div style={{
+        display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2,
+        padding: "8px 12px", borderBottom: `1px solid ${G.divider}`,
+        background: "#0d0d0d",
+      }}>
+        <ToolBtn cmd="undo" title="Undo"><i className="fe fe-corner-up-left" /></ToolBtn>
+        <ToolBtn cmd="redo" title="Redo"><i className="fe fe-corner-up-right" /></ToolBtn>
+        <Divider />
+        <ToolBtn cmd="formatBlock" val="h1" title="Heading 1"><span style={{ fontSize: 11, fontWeight: 700 }}>H1</span></ToolBtn>
+        <ToolBtn cmd="formatBlock" val="h2" title="Heading 2"><span style={{ fontSize: 11, fontWeight: 700 }}>H2</span></ToolBtn>
+        <ToolBtn cmd="formatBlock" val="h3" title="Heading 3"><span style={{ fontSize: 11, fontWeight: 700 }}>H3</span></ToolBtn>
+        <Divider />
+        <ToolBtn cmd="bold" title="Bold"><i className="fe fe-bold" /></ToolBtn>
+        <ToolBtn cmd="italic" title="Italic"><i className="fe fe-italic" /></ToolBtn>
+        <ToolBtn cmd="underline" title="Underline"><i className="fe fe-underline" /></ToolBtn>
+        <Divider />
+        <ToolBtn cmd="insertUnorderedList" title="Bullet list"><i className="fe fe-list" /></ToolBtn>
+        <ToolBtn cmd="insertOrderedList" title="Numbered list"><i className="fe fe-hash" /></ToolBtn>
+        <Divider />
+        <ToolBtn cmd="justifyLeft" title="Align left"><i className="fe fe-align-left" /></ToolBtn>
+        <ToolBtn cmd="justifyCenter" title="Align center"><i className="fe fe-align-center" /></ToolBtn>
+        <ToolBtn cmd="justifyRight" title="Align right"><i className="fe fe-align-right" /></ToolBtn>
+        <ToolBtn cmd="justifyFull" title="Justify"><i className="fe fe-menu" /></ToolBtn>
+        <Divider />
+        <button
+          type="button"
+          title="Insert link"
+          onMouseDown={(e) => { e.preventDefault(); insertLink(); }}
+          style={{
+            background: "transparent", border: "none", color: G.muted,
+            padding: "4px 8px", cursor: "pointer", fontSize: 13, borderRadius: 4,
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = G.gold; e.currentTarget.style.background = G.goldFaint; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = G.muted; e.currentTarget.style.background = "transparent"; }}
+        >
+          <i className="fe fe-link" />
+        </button>
+      </div>
+
+      {/* Editable area */}
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={handleInput}
+        style={{
+          minHeight: 320, padding: "18px 20px", color: G.text, fontSize: 14,
+          lineHeight: 1.8, outline: "none", background: "#111",
+          fontFamily: "Montserrat, Arial, sans-serif",
+        }}
+        data-placeholder="Enter content here..."
+      />
+
+      <style>{`
+        [contenteditable]:empty:before {
+          content: attr(data-placeholder);
+          color: #444;
+          pointer-events: none;
+        }
+        [contenteditable] h1 { color: ${G.gold}; font-size: 22px; font-weight: 700; margin: 12px 0 6px; }
+        [contenteditable] h2 { color: ${G.gold}; font-size: 18px; font-weight: 700; margin: 10px 0 5px; }
+        [contenteditable] h3 { color: ${G.gold}; font-size: 15px; font-weight: 700; margin: 8px 0 4px; }
+        [contenteditable] ul, [contenteditable] ol { padding-left: 24px; margin: 8px 0; }
+        [contenteditable] li { margin: 4px 0; }
+        [contenteditable] a { color: ${G.gold}; }
+        [contenteditable] strong { color: #fff; }
+      `}</style>
+    </div>
+  );
+}
+
+export default function PrivacyPolicy() {
+  const [activeTab, setActiveTab] = useState("trainers");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [content, setContent] = useState({
+    trainers: "",
+    customers: "",
+  });
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // TODO: wire up API — e.g. POST /api/settings/privacy { role: activeTab, content: content[activeTab] }
+      await new Promise((r) => setTimeout(r, 800)); // placeholder
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: "28px" }}>
       <style>{`
-        .modal-gold .modal-content { background: #0d0d0d; border: 1px solid ${G.divider}; color: ${G.text}; }
-        .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; }
-        .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; }
-        .modal-gold .btn-close { filter: invert(1); }
-        .modal-gold .modal-body { background: #0d0d0d !important; }
-        .inp-gold { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; border-radius: 8px !important; }
-        .inp-gold::placeholder { color: #555 !important; }
-        .inp-gold:focus { border-color: ${G.gold} !important; box-shadow: 0 0 0 3px rgba(248,227,150,0.15) !important; outline: none !important; }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
       {/* HEADER */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
         <div>
-          <h3 style={{ color: G.text, fontWeight: 700, marginBottom: 4 }}>Privacy Policy</h3>
-          <small style={{ color: G.muted }}>How we handle and protect your data</small>
+          <h3 style={{ color: G.text, fontWeight: 700, marginBottom: 4 }}>Privacy &amp; Policy</h3>
+          <small style={{ color: G.muted }}>Set privacy policy for trainers and customers shown in the app</small>
         </div>
         <button
-          onClick={handleEdit}
+          onClick={handleSave}
+          disabled={saving}
           style={{
-            background: `${G.gold}`,
-            border: "none", color: "#111", padding: "8px 20px",
-            borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: "pointer",
-            boxShadow: "0 4px 12px rgba(248,227,150,0.3)",
-            display: "flex", alignItems: "center", gap: 8,
+            background: G.gold, border: "none", color: "#111", padding: "9px 24px",
+            borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: saving ? "not-allowed" : "pointer",
+            display: "flex", alignItems: "center", gap: 8, opacity: saving ? 0.7 : 1,
+            boxShadow: "0 4px 12px rgba(248,227,150,0.25)",
           }}
         >
-          <i className="fe fe-edit" style={{ fontSize: 14 }}></i>
-          Edit Policy
+          {saving ? (
+            <span style={{ width: 13, height: 13, border: "2px solid rgba(0,0,0,0.2)", borderTop: "2px solid #111", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
+          ) : saved ? (
+            <i className="fe fe-check" />
+          ) : (
+            <i className="fe fe-save" />
+          )}
+          {saving ? "Saving..." : saved ? "Saved!" : "Save"}
         </button>
       </div>
 
-      {/* CONTENT CARD */}
-      <div style={{ background: G.card, border: G.cardBorder, borderRadius: 12, padding: "28px 32px" }}>
-        {/* Gold top accent bar */}
-        <div style={{ height: 3, background: `linear-gradient(90deg, ${G.gold}, transparent)`, borderRadius: 4, marginBottom: 24 }} />
+      {/* CARD */}
+      <div style={{ background: G.card, border: `1px solid ${G.divider}`, borderRadius: 14, padding: 28 }}>
 
-        {content.split("\n\n").map((para, index) => (
-          <p
-            key={index}
-            style={{
-              color: index === 0 ? G.text : G.muted,
-              fontSize: 15,
-              lineHeight: 1.8,
-              marginBottom: 16,
-              borderBottom: index < content.split("\n\n").length - 1 ? `1px solid ${G.divider}` : "none",
-              paddingBottom: index < content.split("\n\n").length - 1 ? 16 : 0,
-            }}
-          >
-            {para}
-          </p>
-        ))}
-
-        <div style={{ marginTop: 24, paddingTop: 16, borderTop: `1px solid ${G.divider}`, display: "flex", alignItems: "center", gap: 8 }}>
-          <i className="fe fe-shield" style={{ color: G.gold, fontSize: 14 }}></i>
-          <small style={{ color: G.muted }}>Last updated: May 2025</small>
+        {/* TABS */}
+        <div style={{ display: "flex", borderBottom: `1px solid ${G.divider}`, marginBottom: 24 }}>
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                background: "transparent", border: "none",
+                borderBottom: activeTab === tab ? `2px solid ${G.gold}` : "2px solid transparent",
+                color: activeTab === tab ? G.gold : G.muted,
+                padding: "10px 24px", cursor: "pointer",
+                fontWeight: activeTab === tab ? 700 : 400,
+                fontSize: 14, textTransform: "capitalize", marginBottom: -1,
+              }}
+            >
+              {tab === "trainers" ? "Trainers" : "Customers"}
+            </button>
+          ))}
         </div>
+
+        {/* LABEL */}
+        <p style={{ color: G.muted, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>
+          Privacy &amp; Policy for {activeTab}
+        </p>
+
+        {/* EDITOR */}
+        <RichEditor
+          key={activeTab}
+          value={content[activeTab]}
+          onChange={(val) => setContent((prev) => ({ ...prev, [activeTab]: val }))}
+        />
       </div>
-
-      {/* EDIT MODAL */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered className="modal-gold">
-        <Modal.Header closeButton>
-          <Modal.Title style={{ color: G.goldLight, fontWeight: 700 }}>Edit Privacy Policy</Modal.Title>
-        </Modal.Header>
-
-        <Modal.Body>
-          <Form.Control
-            as="textarea"
-            rows={8}
-            className="inp-gold"
-            style={{ resize: "vertical", fontSize: 14, lineHeight: 1.7 }}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-          />
-        </Modal.Body>
-
-        <Modal.Footer>
-          <button
-            onClick={() => setShowModal(false)}
-            style={{
-              background: "#2a2a2a", border: `1px solid ${G.divider}`, color: G.text,
-              padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13,
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            style={{
-              background: `${G.gold}`,
-              border: "none", color: "#111", padding: "8px 20px",
-              borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 13,
-              boxShadow: "0 4px 12px rgba(248,227,150,0.3)",
-            }}
-          >
-            Save Changes
-          </button>
-        </Modal.Footer>
-      </Modal>
     </div>
   );
 }

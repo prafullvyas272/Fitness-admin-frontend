@@ -139,17 +139,15 @@ export default function MentorProfile() {
       `}</style>
 
       {/* HEADER ROW */}
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
+      <div style={{ marginBottom: 24 }}>
         <button
           onClick={() => router.push("/mentors")}
-          style={{ width: 36, height: 36, borderRadius: 8, background: G.card, border: G.cardBorder, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+          style={{ background: "transparent", border: "1px solid rgba(248,227,150,0.25)", color: "#f8e396", padding: "6px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13, marginBottom: 12 }}
         >
-          <i className="fe fe-arrow-left" style={{ color: G.goldLight, fontSize: 15 }} />
+          ← Back
         </button>
-        <div>
-          <h3 style={{ color: G.text, fontWeight: 700, marginBottom: 4 }}>Mentor Profile Management</h3>
-          <small style={{ color: G.muted }}>Manage mentor information, assignments, expertise, and performance from a centralized profile.</small>
-        </div>
+        <h3 style={{ color: G.text, fontWeight: 700, marginBottom: 4 }}>Mentor Profile Management</h3>
+        <small style={{ color: G.muted }}>Manage mentor information, assignments, expertise, and performance from a centralized profile.</small>
       </div>
 
       {/* MAIN LAYOUT */}

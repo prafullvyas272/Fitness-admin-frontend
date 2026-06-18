@@ -176,6 +176,7 @@ export default function AllCustomers() {
         .cu-ddm .dropdown-item:hover { background: #111111 !important; color: ${G.goldLight} !important; }
         .cu-ddm .dropdown-item.active, .cu-ddm .dropdown-item:active { background: #111111 !important; color: ${G.goldLight} !important; }
         .cu-ddm .dropdown-divider { border-color: ${G.divider} !important; }
+        .cu-ddm .dropdown-toggle::after { display: none !important; }
         .cu-tbody .status-pill { background: transparent !important; border: 1px solid ${G.divider} !important; color: ${G.text} !important; }
         .cu-tbody .status-pill .fw-semibold { color: ${G.text} !important; }
         .cu-pg .page-link { background: transparent !important; border-color: #2a2a2a !important; color: #888888 !important; }
@@ -251,13 +252,17 @@ export default function AllCustomers() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ color: G.muted, fontSize: 13 }}>Show</span>
-            <Form.Select size="sm" style={{ width: 80 }} value={entriesPerPage} className="cu-inp"
-              onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }}>
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </Form.Select>
+            <Dropdown>
+              <Dropdown.Toggle style={{ background: G.input, border: `1px solid ${G.divider}`, color: G.text, fontSize: 13, padding: "4px 12px", borderRadius: 7, display: "flex", alignItems: "center", gap: 6 }}>
+                {entriesPerPage}
+                <i className="fe fe-chevron-down" style={{ fontSize: 11, color: G.muted }} />
+              </Dropdown.Toggle>
+              <Dropdown.Menu className="cu-ddm" style={{ minWidth: 80 }}>
+                {[5, 10, 25, 50].map((n) => (
+                  <Dropdown.Item key={n} onClick={() => { setEntriesPerPage(n); setCurrentPage(1); }} style={{ color: n === entriesPerPage ? G.gold : G.text, fontWeight: n === entriesPerPage ? 700 : 400 }}>{n}</Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
             <span style={{ color: G.muted, fontSize: 13 }}>entries</span>
           </div>
           <Form.Control

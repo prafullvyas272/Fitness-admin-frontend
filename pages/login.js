@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 
 const IMAGES = [
@@ -7,28 +7,139 @@ const IMAGES = [
   "https://www.puregym.com/media/w1kffo3p/pure-gym-day-16238.jpg?quality=80",
 ];
 
+const N = IMAGES.length;
+
+// Compute delta in range [-floor(N/2), ..., +floor(N/2)]
+const getDelta = (i, center) => {
+  const raw = ((i - center) % N + N) % N;
+  return raw > Math.floor(N / 2) ? raw - N : raw;
+};
+
+// CSS style for each image based on its role
+const slotStyle = (delta, isPreRight) => {
+  const TRANSITION = "left 0.7s ease-in-out, width 0.7s ease-in-out, transform 0.7s ease-in-out, filter 0.7s ease-in-out, opacity 0.7s ease-in-out";
+
+  const base = {
+    position: "absolute",
+    top: 0,
+    height: "100%",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    willChange: "transform, left, width, filter",
+  };
+
+  // Off-screen right — no transition, snapped before advance begins
+  if (isPreRight) {
+    return {
+      ...base,
+      left: "115%",
+      width: "22%",
+      opacity: 0,
+      transform: "perspective(800px) rotateY(-25deg) scale(0.7)",
+      filter: "brightness(0.3)",
+      zIndex: 0,
+      transition: "none",
+    };
+  }
+
+  if (delta === 0) {
+    return {
+      ...base,
+      left: "22%",
+      width: "56%",
+      transform: "perspective(800px) rotateY(0deg) scale(1)",
+      filter: "brightness(1)",
+      zIndex: 2,
+      transition: TRANSITION,
+    };
+  }
+
+  if (delta === 1) {
+    // RIGHT panel
+    return {
+      ...base,
+      left: "78%",
+      width: "22%",
+      transform: "perspective(800px) rotateY(-25deg) scale(0.85)",
+      filter: "brightness(0.5)",
+      zIndex: 1,
+      transition: TRANSITION,
+    };
+  }
+
+  if (delta === -1) {
+    // LEFT panel
+    return {
+      ...base,
+      left: "0%",
+      width: "22%",
+      transform: "perspective(800px) rotateY(25deg) scale(0.85)",
+      filter: "brightness(0.5)",
+      zIndex: 1,
+      transition: TRANSITION,
+    };
+  }
+
+  // Any other delta: hidden off-screen left
+  return {
+    ...base,
+    left: "-30%",
+    width: "22%",
+    opacity: 0,
+    transform: "perspective(800px) rotateY(25deg) scale(0.7)",
+    filter: "brightness(0.2)",
+    zIndex: 0,
+    transition: TRANSITION,
+  };
+};
+
 export default function Login() {
   const router = useRouter();
-  const [email, setEmail]       = useState("");
-  const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [stayIn, setStayIn]     = useState(false);
-  const [error, setError]       = useState("");
-  const [loading, setLoading]   = useState(false);
-  const [idx, setIdx]           = useState(0);
-  const [fading, setFading]     = useState(false);
+  const [email, setEmail]         = useState("");
+  const [password, setPassword]   = useState("");
+  const [showPass, setShowPass]   = useState(false);
+  const [stayIn, setStayIn]       = useState(false);
+  const [error, setError]         = useState("");
+  const [loading, setLoading]     = useState(false);
 
-  /* Slide every 5 s */
-  useEffect(() => {
-    const t = setInterval(() => {
-      setFading(true);
-      setTimeout(() => {
-        setIdx((p) => (p + 1) % IMAGES.length);
-        setFading(false);
-      }, 500);
-    }, 5000);
-    return () => clearInterval(t);
+  // Carousel state
+  const [center, setCenter]         = useState(0);
+  const [preRightIdx, setPreRightIdx] = useState(null); // image snapped off-screen-right before transition
+  const centerRef = useRef(0);
+  const busyRef   = useRef(false);
+
+  const advance = useCallback(() => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+
+    const c = centerRef.current;
+    // The current LEFT image must jump to off-screen-right before the transition
+    const leftIdx = ((c - 1) % N + N) % N;
+
+    // Phase 1: snap that image to pre-right (no transition)
+    setPreRightIdx(leftIdx);
+
+    // Phase 2: two RAF frames so browser paints the snap first
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Now enable transitions and advance center
+        const next = (c + 1) % N;
+        centerRef.current = next;
+        setCenter(next);
+        setPreRightIdx(null); // let it animate from its pre-right snap into right position
+
+        // Phase 3: unlock after transition completes
+        setTimeout(() => { busyRef.current = false; }, 750);
+      });
+    });
   }, []);
+
+  // Auto-advance every 3.5 s
+  useEffect(() => {
+    const t = setInterval(advance, 3500);
+    return () => clearInterval(t);
+  }, [advance]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -36,9 +147,9 @@ export default function Login() {
     setLoading(true);
     try {
       const res  = await fetch("https://fitness-app-seven-beryl.vercel.app/api/auth/login", {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body:    JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Login failed");
@@ -55,20 +166,14 @@ export default function Login() {
     }
   };
 
-  const panelImages = [
-    IMAGES[idx % IMAGES.length],
-    IMAGES[(idx + 1) % IMAGES.length],
-    IMAGES[(idx + 2) % IMAGES.length],
-  ];
-
   return (
     <div style={{
-      width: "100vw",
-      height: "100vh",
-      overflow: "hidden",
-      background: "#0a0a0a",
-      position: "relative",
-      fontFamily: "'Montserrat', Arial, sans-serif",
+      width:      "100vw",
+      height:     "100vh",
+      overflow:   "hidden",
+      background: "#000000",
+      position:   "relative",
+      fontFamily: "Montserrat, Arial, sans-serif",
     }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -114,64 +219,49 @@ export default function Login() {
         .lg-eye:hover { color: #f8e396; }
       `}</style>
 
-      {/* ── THREE FULL-SCREEN PANELS ── */}
+      {/* ── 3D COVERFLOW ── */}
       <div style={{
         position: "absolute",
-        inset: "14px",
-        display: "flex",
-        gap: 10,
-        alignItems: "stretch",
+        inset:    0,
+        overflow: "hidden",
       }}>
-        {panelImages.map((src, i) => {
-          const isCenter = i === 1;
+        {IMAGES.map((src, i) => {
+          const delta      = getDelta(i, center);
+          const isPreRight = i === preRightIdx;
           return (
             <div
               key={i}
               style={{
-                flex: isCenter ? 2 : 1,
-                borderRadius: 20,
-                overflow: "hidden",
+                ...slotStyle(delta, isPreRight),
                 backgroundImage: `url(${src})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                opacity: fading ? 0 : 1,
-                transition: "opacity 0.5s ease",
-                position: "relative",
               }}
-            >
-              <div style={{
-                position: "absolute",
-                inset: 0,
-                background: isCenter
-                  ? "rgba(0,0,0,0.42)"
-                  : "rgba(0,0,0,0.68)",
-              }} />
-            </div>
+            />
           );
         })}
       </div>
 
-      {/* ── LOGIN CARD ── centered over panels */}
+      {/* ── LOGIN CARD ── fixed center, does not move */}
       <div style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: 286,
-        background: "rgba(12,12,12,0.92)",
-        borderRadius: 10,
-        padding: "28px 24px 26px",
-        zIndex: 20,
-        backdropFilter: "blur(18px)",
-        WebkitBackdropFilter: "blur(18px)",
-        border: "1px solid rgba(255,255,255,0.05)",
+        position:        "absolute",
+        top:             "50%",
+        left:            "50%",
+        transform:       "translate(-50%, -50%)",
+        width:           286,
+        background:      "rgba(26,26,26,0.92)",
+        borderRadius:    10,
+        padding:         "28px 24px 26px",
+        zIndex:          10,
+        backdropFilter:  "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border:          "1px solid rgba(255,255,255,0.06)",
+        boxShadow:       "0 24px 80px rgba(0,0,0,0.7)",
       }}>
 
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <img
             src="https://res.cloudinary.com/dbazlbkfj/image/upload/v1781515780/Layer_x0020_1_1_klnh94.png"
-            alt="Upto"
+            alt="UPT"
             style={{ height: 40, objectFit: "contain" }}
           />
         </div>
@@ -179,14 +269,14 @@ export default function Login() {
         {/* Error */}
         {error && (
           <div style={{
-            background: "rgba(248,113,113,0.08)",
-            border: "1px solid rgba(248,113,113,0.28)",
-            color: "#f87171",
-            padding: "8px 12px",
+            background:   "rgba(248,113,113,0.08)",
+            border:       "1px solid rgba(248,113,113,0.28)",
+            color:        "#f87171",
+            padding:      "8px 12px",
             borderRadius: 6,
-            fontSize: 12,
+            fontSize:     12,
             marginBottom: 14,
-            lineHeight: 1.5,
+            lineHeight:   1.5,
           }}>
             {error}
           </div>
@@ -197,13 +287,13 @@ export default function Login() {
           {/* Email */}
           <div style={{ marginBottom: 13 }}>
             <label style={{
-              color: "#f8e396",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              display: "block",
-              marginBottom: 7,
+              color:          "#f8e396",
+              fontSize:       10,
+              fontWeight:     700,
+              letterSpacing:  "0.12em",
+              textTransform:  "uppercase",
+              display:        "block",
+              marginBottom:   7,
             }}>
               Email Address
             </label>
@@ -220,13 +310,13 @@ export default function Login() {
           {/* Password */}
           <div style={{ marginBottom: 13 }}>
             <label style={{
-              color: "#f8e396",
-              fontSize: 10,
-              fontWeight: 700,
+              color:         "#f8e396",
+              fontSize:      10,
+              fontWeight:    700,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              display: "block",
-              marginBottom: 7,
+              display:       "block",
+              marginBottom:  7,
             }}>
               Password
             </label>
@@ -268,12 +358,13 @@ export default function Login() {
             {loading ? (
               <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 <span style={{
-                  width: 13, height: 13,
-                  border: "2px solid rgba(248,227,150,0.2)",
-                  borderTop: "2px solid #f8e396",
+                  width:        13,
+                  height:       13,
+                  border:       "2px solid rgba(248,227,150,0.2)",
+                  borderTop:    "2px solid #f8e396",
                   borderRadius: "50%",
-                  animation: "spin 0.7s linear infinite",
-                  display: "inline-block",
+                  animation:    "spin 0.7s linear infinite",
+                  display:      "inline-block",
                 }} />
                 Signing in...
               </span>

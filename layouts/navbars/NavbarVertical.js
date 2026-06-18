@@ -105,16 +105,7 @@ const NavbarVertical = (props) => {
         .navbar-vertical.nav-collapsed { width: 68px !important; max-width: 68px !important; }
         #db-wrapper.sidebar-collapsed #page-content { margin-left: 4.25rem; }
         .navbar-vertical .nav-link { position: relative; }
-        .navbar-vertical .nav-link.active::before {
-          content: '';
-          position: absolute;
-          right: 0;
-          top: 6px;
-          bottom: 6px;
-          width: 3px;
-          background: #f8e396;
-          border-radius: 3px 0 0 3px;
-        }
+        .navbar-vertical .nav-link.active::before { display: none; }
         .navbar-vertical .navbar-brand {
           height: 64px;
           display: flex;
@@ -128,6 +119,10 @@ const NavbarVertical = (props) => {
         }
         .navbar-vertical .navbar-nav .nav .nav-item .nav-link {
           padding-left: 38px !important;
+          font-weight: 400 !important;
+        }
+        .navbar-vertical .navbar-nav .nav .nav-item .nav-link.active {
+          font-weight: 400 !important;
         }
         .navbar-vertical .navbar-heading {
           font-size: 9px !important;

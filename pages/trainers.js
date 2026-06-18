@@ -366,6 +366,10 @@ const filteredCustomers = customers.filter((customer) => {
         .ddm-gold .dropdown-item { color: ${G.text} !important; font-size: 13px; }
         .ddm-gold .dropdown-item:hover { background: #111111 !important; color: ${G.goldLight} !important; }
         .ddm-gold .dropdown-divider { border-color: ${G.divider} !important; }
+        .dk-ddm { background: #1e1e1e !important; border: 1px solid ${G.divider} !important; }
+        .dk-ddm .dropdown-item { color: ${G.text} !important; font-size: 13px; }
+        .dk-ddm .dropdown-item:hover { background: rgba(248,227,150,0.07) !important; color: ${G.goldLight} !important; }
+        .dk-ddm .dropdown-toggle::after { display: none !important; }
         .modal-gold .modal-content { background: #0d0d0d; border: 1px solid ${G.divider}; color: ${G.text}; }
         .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; }
         .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; }
@@ -441,17 +445,17 @@ const filteredCustomers = customers.filter((customer) => {
           <Row className="mb-3 align-items-center">
             <Col md={6} className="d-flex align-items-center gap-2">
               <span style={{ color: G.muted, fontSize: 13 }}>Show</span>
-              <select
-                className="inp-gold"
-                style={{ width: 80, padding: "4px 8px", fontSize: 13 }}
-                value={entriesPerPage}
-                onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }}
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </select>
+              <Dropdown>
+                <Dropdown.Toggle style={{ background: G.input, border: `1px solid ${G.divider}`, color: G.text, fontSize: 13, padding: "4px 12px", borderRadius: 7, display: "flex", alignItems: "center", gap: 6 }}>
+                  {entriesPerPage}
+                  <i className="fe fe-chevron-down" style={{ fontSize: 11, color: G.muted }} />
+                </Dropdown.Toggle>
+                <Dropdown.Menu className="dk-ddm" style={{ minWidth: 80 }}>
+                  {[5, 10, 25, 50].map((n) => (
+                    <Dropdown.Item key={n} onClick={() => { setEntriesPerPage(n); setCurrentPage(1); }} style={{ color: n === entriesPerPage ? G.gold : G.text, fontWeight: n === entriesPerPage ? 700 : 400 }}>{n}</Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
               <span style={{ color: G.muted, fontSize: 13 }}>entries</span>
             </Col>
             <Col md={6} className="text-end">
