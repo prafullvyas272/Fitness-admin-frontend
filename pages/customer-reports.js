@@ -30,9 +30,9 @@ const CAT_MAP = {
 };
 const STATUS_FLOW = ["OPEN", "IN_REVIEW", "RESOLVED"];
 
-const token    = () => typeof window !== "undefined" ? localStorage.getItem("adminToken") : "";
-const fmtDate  = (d) => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "—";
-const fullName = (obj) => obj ? `${obj.firstName || ""} ${obj.lastName || ""}`.trim() || "—" : "—";
+const token   = () => typeof window !== "undefined" ? localStorage.getItem("adminToken") : "";
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "—";
+const custName = (r) => r?.customer ? `${r.customer.firstName || ""} ${r.customer.lastName || ""}`.trim() || r.customer.firstName || "—" : "—";
 
 const Pill = ({ label, map }) => {
   const s = map[label] || { bg: G.goldFaint, border: G.goldBorder, color: G.gold };
@@ -56,67 +56,21 @@ const FilterBtn = ({ label, active, onClick }) => (
   </button>
 );
 
-const InfoBox = ({ title, rows }) => (
-  <div style={{ background: G.input, border: `1px solid ${G.divider}`, borderRadius: 10, padding: 16 }}>
-    <p style={{ color: G.gold, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 12px" }}>{title}</p>
-    {rows.map(([l, v]) => (
-      <div key={l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${G.divider}` }}>
-        <span style={{ color: G.muted, fontSize: 12 }}>{l}</span>
-        <span style={{ color: G.text, fontSize: 12, fontWeight: 600, textAlign: "right", maxWidth: "60%" }}>{v || "—"}</span>
-      </div>
-    ))}
-  </div>
-);
-
-const UpdateSection = ({ newStatus, setNewStatus, adminNote, setAdminNote, updateMsg }) => (
-  <div style={{ background: G.goldFaint, border: `1px solid ${G.goldBorder}`, borderRadius: 10, padding: 16 }}>
-    <p style={{ color: G.gold, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 14px" }}>Update Report</p>
-    <div style={{ marginBottom: 12 }}>
-      <label style={{ color: G.muted, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 6 }}>Change Status</label>
-      <div style={{ display: "flex", gap: 8 }}>
-        {STATUS_FLOW.map((s) => (
-          <button key={s} onClick={() => setNewStatus(s)} style={{ background: newStatus === s ? (STATUS_MAP[s]?.bg || G.goldFaint) : "transparent", border: `1px solid ${newStatus === s ? (STATUS_MAP[s]?.border || G.goldBorder) : G.divider}`, color: newStatus === s ? (STATUS_MAP[s]?.color || G.gold) : G.muted, padding: "6px 14px", borderRadius: 7, cursor: "pointer", fontSize: 12, fontWeight: newStatus === s ? 700 : 400 }}>
-            {s.replace("_", " ")}
-          </button>
-        ))}
-      </div>
-    </div>
-    <div>
-      <label style={{ color: G.muted, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 6 }}>Admin Note</label>
-      <textarea className="rp-ta" rows={3} placeholder="Add a note or action taken..." value={adminNote} onChange={(e) => setAdminNote(e.target.value)} />
-    </div>
-    {updateMsg && <p style={{ color: updateMsg.includes("success") ? "#4ade80" : "#f87171", fontSize: 12, margin: "10px 0 0", fontWeight: 600 }}>{updateMsg}</p>}
-  </div>
-);
-
-const Pagination = ({ page, setPage, totalPages, total, pageSize, count }) => (
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: `1px solid ${G.divider}` }}>
-    <span style={{ color: G.muted, fontSize: 12 }}>Showing {count ? (page-1)*pageSize+1 : 0}–{(page-1)*pageSize+count} of {total}</span>
-    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-      <button className="rp-pg" disabled={page<=1} onClick={() => setPage((p) => p-1)}><i className="fe fe-chevron-left" style={{ fontSize: 12 }} /></button>
-      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i+1).map((p) => <button key={p} className={`rp-pg${page===p?" active":""}`} onClick={() => setPage(p)}>{p}</button>)}
-      {totalPages > 5 && <><span style={{ color: G.muted, fontSize: 12 }}>…</span><button className="rp-pg" onClick={() => setPage(totalPages)}>{totalPages}</button></>}
-      <button className="rp-pg" disabled={page>=totalPages} onClick={() => setPage((p) => p+1)}><i className="fe fe-chevron-right" style={{ fontSize: 12 }} /></button>
-    </div>
-  </div>
-);
-
-export default function TrainerReports() {
+export default function CustomerReports() {
   const [statusFilter,   setStatusFilter]   = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
   const [page,    setPage]    = useState(1);
   const PAGE_SIZE = 10;
 
-  const [reports,       setReports]       = useState([]);
-  const [total,         setTotal]         = useState(0);
-  const [loading,       setLoading]       = useState(true);
-  const [selected,      setSelected]      = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [adminNote,     setAdminNote]     = useState("");
-  const [newStatus,     setNewStatus]     = useState("");
-  const [updating,      setUpdating]      = useState(false);
-  const [updateMsg,     setUpdateMsg]     = useState("");
+  const [reports,  setReports]  = useState([]);
+  const [total,    setTotal]    = useState(0);
+  const [loading,  setLoading]  = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [adminNote, setAdminNote] = useState("");
+  const [newStatus, setNewStatus] = useState("");
+  const [updating,  setUpdating]  = useState(false);
+  const [updateMsg, setUpdateMsg] = useState("");
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -125,12 +79,12 @@ export default function TrainerReports() {
       if (statusFilter)   p.set("status",   statusFilter);
       if (categoryFilter) p.set("category", categoryFilter);
       if (priorityFilter) p.set("priority", priorityFilter);
-      const res  = await fetch(`${BASE}/api/reports?${p}`, { headers: { Authorization: `Bearer ${token()}` } });
+      const res  = await fetch(`${BASE}/api/admin/customer-reports?${p}`, { headers: { Authorization: `Bearer ${token()}` } });
       const data = await res.json();
       if (res.ok && data.success) {
-        const list = data.data?.reports || data.data || [];
+        const list = data.data?.reports || [];
         setReports(list);
-        setTotal(data.data?.pagination?.total || data.data?.total || list.length);
+        setTotal(data.data?.pagination?.total || list.length);
       } else { setReports([]); }
     } catch { setReports([]); }
     finally  { setLoading(false); }
@@ -138,15 +92,7 @@ export default function TrainerReports() {
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
-  const openDetail = async (r) => {
-    setSelected(r); setAdminNote(""); setNewStatus(r.status); setUpdateMsg(""); setDetailLoading(true);
-    try {
-      const res  = await fetch(`${BASE}/api/reports/${r.id}`, { headers: { Authorization: `Bearer ${token()}` } });
-      const data = await res.json();
-      if (res.ok && data.success) { setSelected(data.data); setNewStatus(data.data.status); }
-    } catch { /* keep existing */ }
-    finally { setDetailLoading(false); }
-  };
+  const openDetail = (r) => { setSelected(r); setAdminNote(""); setNewStatus(r.status); setUpdateMsg(""); };
 
   const handleUpdate = async () => {
     if (!selected) return;
@@ -154,10 +100,14 @@ export default function TrainerReports() {
     try {
       const body = { status: newStatus };
       if (adminNote.trim()) body.adminNote = adminNote.trim();
-      const res  = await fetch(`${BASE}/api/reports/${selected.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` }, body: JSON.stringify(body) });
+      const res  = await fetch(`${BASE}/api/admin/customer-reports/${selected.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` }, body: JSON.stringify(body) });
       const data = await res.json();
-      if (res.ok && data.success) { setUpdateMsg("Updated successfully!"); setSelected((p) => ({ ...p, status: newStatus })); fetchReports(); setTimeout(() => setUpdateMsg(""), 2500); }
-      else { setUpdateMsg(data.message || "Update failed"); }
+      if (res.ok && data.success) {
+        setUpdateMsg("Updated successfully!");
+        setSelected((p) => ({ ...p, status: newStatus }));
+        fetchReports();
+        setTimeout(() => setUpdateMsg(""), 2500);
+      } else { setUpdateMsg(data.message || "Update failed"); }
     } catch (e) { setUpdateMsg(e.message); }
     finally { setUpdating(false); }
   };
@@ -189,15 +139,15 @@ export default function TrainerReports() {
       `}</style>
 
       <div style={{ marginBottom: 28 }}>
-        <h3 style={{ color: G.text, fontWeight: 700, margin: "0 0 4px" }}>Trainer Reports</h3>
-        <small style={{ color: G.muted }}>Manage and resolve trainer support requests</small>
+        <h3 style={{ color: G.text, fontWeight: 700, margin: "0 0 4px" }}>Customer Reports</h3>
+        <small style={{ color: G.muted }}>Manage and resolve customer support requests</small>
       </div>
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
-        <StatCard icon="inbox"          label="Total"          value={total}    sub="All records"     loading={loading} />
-        <StatCard icon="alert-circle"   label="Open"          value={openCount} sub="Needs attention" subColor={G.gold}  loading={loading} />
-        <StatCard icon="alert-triangle" label="High Priority" value={critCount} sub="Critical / High" subColor="#f87171" loading={loading} />
-        <StatCard icon="check-circle"   label="Resolved"      value={resCount}  sub="Current page"    loading={loading} />
+        <StatCard icon="inbox"          label="Total"          value={total}     sub="All records"     loading={loading} />
+        <StatCard icon="alert-circle"   label="Open"          value={openCount}  sub="Needs attention" subColor={G.gold}  loading={loading} />
+        <StatCard icon="alert-triangle" label="High Priority" value={critCount}  sub="Critical / High" subColor="#f87171" loading={loading} />
+        <StatCard icon="check-circle"   label="Resolved"      value={resCount}   sub="Current page"    loading={loading} />
       </div>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
@@ -215,17 +165,17 @@ export default function TrainerReports() {
       <div style={{ background: G.card, border: `1px solid ${G.divider}`, borderRadius: 14, overflow: "hidden" }}>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead><tr>{["Report ID","Trainer","Reported By","Category","Priority","Status","Date","Action"].map((h) => <th key={h} className="rp-th">{h}</th>)}</tr></thead>
+            <thead><tr>{["Report ID","Customer","Subject","Category","Priority","Status","Date","Action"].map((h) => <th key={h} className="rp-th">{h}</th>)}</tr></thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan={8} className="rp-td" style={{ textAlign: "center", padding: "40px 0" }}><Spinner animation="border" size="sm" style={{ borderColor: G.gold, borderRightColor: "transparent" }} /></td></tr>
               ) : reports.length === 0 ? (
-                <tr><td colSpan={8} className="rp-td" style={{ textAlign: "center", color: G.muted, padding: "40px 0" }}>No trainer reports found.</td></tr>
+                <tr><td colSpan={8} className="rp-td" style={{ textAlign: "center", color: G.muted, padding: "40px 0" }}>No customer reports found.</td></tr>
               ) : reports.map((r, i) => (
                 <tr key={r.id || i} className="rp-tr" onClick={() => openDetail(r)}>
                   <td className="rp-td" style={{ color: G.gold, fontWeight: 700 }}>{r.id?.slice(-6)?.toUpperCase()}</td>
-                  <td className="rp-td">{fullName(r.trainer)}</td>
-                  <td className="rp-td">{fullName(r.customer)}</td>
+                  <td className="rp-td">{custName(r)}</td>
+                  <td className="rp-td" style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.subject || "—"}</td>
                   <td className="rp-td"><span style={{ background: CAT_MAP[r.category]?.bg || G.goldFaint, color: CAT_MAP[r.category]?.color || G.gold, padding: "3px 10px", borderRadius: 6, fontSize: 10, fontWeight: 700 }}>{r.category || "—"}</span></td>
                   <td className="rp-td"><Pill label={r.priority} map={PRIORITY_MAP} /></td>
                   <td className="rp-td"><Pill label={r.status}   map={STATUS_MAP}   /></td>
@@ -236,31 +186,68 @@ export default function TrainerReports() {
             </tbody>
           </table>
         </div>
-        <Pagination page={page} setPage={setPage} totalPages={totalPages} total={total} pageSize={PAGE_SIZE} count={reports.length} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderTop: `1px solid ${G.divider}` }}>
+          <span style={{ color: G.muted, fontSize: 12 }}>Showing {reports.length ? (page-1)*PAGE_SIZE+1 : 0}–{(page-1)*PAGE_SIZE+reports.length} of {total}</span>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <button className="rp-pg" disabled={page<=1} onClick={() => setPage((p) => p-1)}><i className="fe fe-chevron-left" style={{ fontSize: 12 }} /></button>
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i+1).map((p) => <button key={p} className={`rp-pg${page===p?" active":""}`} onClick={() => setPage(p)}>{p}</button>)}
+            {totalPages > 5 && <><span style={{ color: G.muted, fontSize: 12 }}>…</span><button className="rp-pg" onClick={() => setPage(totalPages)}>{totalPages}</button></>}
+            <button className="rp-pg" disabled={page>=totalPages} onClick={() => setPage((p) => p+1)}><i className="fe fe-chevron-right" style={{ fontSize: 12 }} /></button>
+          </div>
+        </div>
       </div>
 
       <Modal show={!!selected} onHide={() => setSelected(null)} centered className="modal-gold" size="lg">
         <Modal.Header closeButton>
-          <Modal.Title style={{ color: G.goldLight, fontWeight: 700, fontSize: 16 }}>Trainer Report — <span style={{ color: G.muted, fontWeight: 400 }}>{selected?.id?.slice(-6)?.toUpperCase()}</span></Modal.Title>
+          <Modal.Title style={{ color: G.goldLight, fontWeight: 700, fontSize: 16 }}>Customer Report — <span style={{ color: G.muted, fontWeight: 400 }}>{selected?.id?.slice(-6)?.toUpperCase()}</span></Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {detailLoading ? (
-            <div style={{ textAlign: "center", padding: "40px 0" }}><Spinner animation="border" size="sm" style={{ borderColor: G.gold, borderRightColor: "transparent" }} /></div>
-          ) : selected && (
+          {selected && (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                <InfoBox title="Trainer" rows={[["Name", fullName(selected.trainer)], ["Email", selected.trainer?.email], ["Phone", selected.trainer?.phone]]} />
-                <InfoBox title="Reported By" rows={[["Name", fullName(selected.customer)], ["Email", selected.customer?.email], ["Phone", selected.customer?.phone]]} />
+              {/* Customer Info */}
+              <div style={{ background: G.input, border: `1px solid ${G.divider}`, borderRadius: 10, padding: 16 }}>
+                <p style={{ color: G.gold, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 12px" }}>Customer Info</p>
+                {[["Name", custName(selected)], ["Email", selected.customer?.email || "—"]].map(([l, v]) => (
+                  <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${G.divider}` }}>
+                    <span style={{ color: G.muted, fontSize: 12 }}>{l}</span><span style={{ color: G.text, fontSize: 12, fontWeight: 600 }}>{v}</span>
+                  </div>
+                ))}
               </div>
-              <InfoBox title="Report Details" rows={[
-                ["Category", <span key="c" style={{ background: CAT_MAP[selected.category]?.bg || G.goldFaint, color: CAT_MAP[selected.category]?.color || G.gold, padding: "2px 8px", borderRadius: 5, fontSize: 11, fontWeight: 700 }}>{selected.category}</span>],
-                ["Priority", <Pill key="p" label={selected.priority} map={PRIORITY_MAP} />],
-                ["Status",   <Pill key="s" label={selected.status}   map={STATUS_MAP}   />],
-                ["Date",     fmtDate(selected.createdAt)],
-              ]} />
-              {selected.description && <div style={{ background: G.input, border: `1px solid ${G.divider}`, borderRadius: 10, padding: 14 }}><p style={{ color: G.muted, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 8px" }}>Description</p><p style={{ color: G.text, fontSize: 13, lineHeight: 1.7, margin: 0 }}>{selected.description}</p></div>}
-              {selected.adminNote && <div style={{ background: G.input, border: `1px solid ${G.divider}`, borderRadius: 10, padding: 14 }}><p style={{ color: G.muted, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 8px" }}>Previous Admin Note</p><p style={{ color: G.muted, fontSize: 13, lineHeight: 1.7, margin: 0, fontStyle: "italic" }}>{selected.adminNote}</p></div>}
-              <UpdateSection newStatus={newStatus} setNewStatus={setNewStatus} adminNote={adminNote} setAdminNote={setAdminNote} updateMsg={updateMsg} />
+              {/* Report Details */}
+              <div style={{ background: G.input, border: `1px solid ${G.divider}`, borderRadius: 10, padding: 16 }}>
+                <p style={{ color: G.gold, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 12px" }}>Report Details</p>
+                {[
+                  ["Subject",  selected.subject || "—"],
+                  ["Category", <span key="c" style={{ background: CAT_MAP[selected.category]?.bg || G.goldFaint, color: CAT_MAP[selected.category]?.color || G.gold, padding: "2px 8px", borderRadius: 5, fontSize: 11, fontWeight: 700 }}>{selected.category}</span>],
+                  ["Priority", <Pill key="p" label={selected.priority} map={PRIORITY_MAP} />],
+                  ["Status",   <Pill key="s" label={selected.status}   map={STATUS_MAP}   />],
+                  ["Date",     fmtDate(selected.createdAt)],
+                ].map(([l, v]) => (
+                  <div key={l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${G.divider}` }}>
+                    <span style={{ color: G.muted, fontSize: 12 }}>{l}</span><span style={{ color: G.text, fontSize: 12, fontWeight: 600 }}>{v}</span>
+                  </div>
+                ))}
+                {selected.adminNote && <div style={{ paddingTop: 10 }}><span style={{ color: G.muted, fontSize: 12 }}>Previous Admin Note</span><p style={{ color: G.muted, fontSize: 12, lineHeight: 1.7, margin: "6px 0 0", fontStyle: "italic" }}>{selected.adminNote}</p></div>}
+              </div>
+              {/* Update */}
+              <div style={{ background: G.goldFaint, border: `1px solid ${G.goldBorder}`, borderRadius: 10, padding: 16 }}>
+                <p style={{ color: G.gold, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 14px" }}>Update Report</p>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ color: G.muted, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 6 }}>Change Status</label>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {STATUS_FLOW.map((s) => (
+                      <button key={s} onClick={() => setNewStatus(s)} style={{ background: newStatus === s ? (STATUS_MAP[s]?.bg || G.goldFaint) : "transparent", border: `1px solid ${newStatus === s ? (STATUS_MAP[s]?.border || G.goldBorder) : G.divider}`, color: newStatus === s ? (STATUS_MAP[s]?.color || G.gold) : G.muted, padding: "6px 14px", borderRadius: 7, cursor: "pointer", fontSize: 12, fontWeight: newStatus === s ? 700 : 400 }}>
+                        {s.replace("_", " ")}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ color: G.muted, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 6 }}>Admin Note</label>
+                  <textarea className="rp-ta" rows={3} placeholder="Add a note or action taken..." value={adminNote} onChange={(e) => setAdminNote(e.target.value)} />
+                </div>
+                {updateMsg && <p style={{ color: updateMsg.includes("success") ? "#4ade80" : "#f87171", fontSize: 12, margin: "10px 0 0", fontWeight: 600 }}>{updateMsg}</p>}
+              </div>
             </div>
           )}
         </Modal.Body>

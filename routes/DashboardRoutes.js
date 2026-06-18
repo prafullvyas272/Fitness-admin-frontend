@@ -64,10 +64,15 @@ export const DashboardMenu = [
         link: "/delete-requests",
         name: "Delete Requests",
       },
+      {
+        id: uuid(),
+        link: "/reports",
+        name: "Reports",
+      },
     ],
   },
 
-   {
+  {
     id: uuid(),
     title: "Client Management",
     icon: "user",
@@ -81,6 +86,11 @@ export const DashboardMenu = [
         id: uuid(),
         link: "/customer-delete-requests",
         name: "Delete Requests",
+      },
+      {
+        id: uuid(),
+        link: "/customer-reports",
+        name: "Reports",
       },
     ],
   },
