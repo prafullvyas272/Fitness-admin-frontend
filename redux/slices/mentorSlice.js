@@ -70,7 +70,54 @@ export const updateMentor = createAsyncThunk(
   }
 );
 
-/* ── DELETE ── */
+/* ── GET unassigned trainers ── */
+export const fetchUnassignedTrainers = createAsyncThunk(
+  "mentors/fetchUnassigned",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res  = await fetch(`${BASE}/mentors/trainers/unassigned`, {
+        headers: { Authorization: `Bearer ${tok()}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed");
+      return data.data || [];
+    } catch (e) { return rejectWithValue(e.message); }
+  }
+);
+
+/* ── POST assign trainers ── */
+export const assignTrainers = createAsyncThunk(
+  "mentors/assignTrainers",
+  async ({ mentorId, trainerIds }, { rejectWithValue }) => {
+    try {
+      const res  = await fetch(`${BASE}/mentors/${mentorId}/assign-trainers`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${tok()}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ trainerIds }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to assign");
+      return data.data;
+    } catch (e) { return rejectWithValue(e.message); }
+  }
+);
+
+/* ── DELETE unassign trainer ── */
+export const unassignTrainer = createAsyncThunk(
+  "mentors/unassignTrainer",
+  async ({ mentorId, trainerId }, { rejectWithValue }) => {
+    try {
+      const res = await fetch(`${BASE}/mentors/${mentorId}/unassign-trainer/${trainerId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${tok()}` },
+      });
+      if (!res.ok) throw new Error("Failed to unassign");
+      return trainerId;
+    } catch (e) { return rejectWithValue(e.message); }
+  }
+);
+
+/* ── DELETE mentor ── */
 export const deleteMentor = createAsyncThunk(
   "mentors/delete",
   async (id, { rejectWithValue }) => {
@@ -89,15 +136,17 @@ export const deleteMentor = createAsyncThunk(
 const mentorSlice = createSlice({
   name: "mentors",
   initialState: {
-    list:       [],
-    selected:   null,
-    loading:    false,
-    saving:     false,
-    error:      null,
-    total:      0,
-    totalPages: 1,
-    page:       1,
-    pageSize:   10,
+    list:               [],
+    selected:           null,
+    unassignedTrainers: [],
+    loading:            false,
+    saving:             false,
+    assigning:          false,
+    error:              null,
+    total:              0,
+    totalPages:         1,
+    page:               1,
+    pageSize:           10,
   },
   reducers: {
     clearSelected: (state) => { state.selected = null; },
@@ -126,6 +175,16 @@ const mentorSlice = createSlice({
       .addCase(updateMentor.pending,   (s) => { s.saving = true; })
       .addCase(updateMentor.fulfilled, (s) => { s.saving = false; })
       .addCase(updateMentor.rejected,  (s) => { s.saving = false; })
+
+      .addCase(fetchUnassignedTrainers.fulfilled, (s, a) => { s.unassignedTrainers = a.payload; })
+
+      .addCase(assignTrainers.pending,   (s) => { s.assigning = true; })
+      .addCase(assignTrainers.fulfilled, (s) => { s.assigning = false; })
+      .addCase(assignTrainers.rejected,  (s) => { s.assigning = false; })
+
+      .addCase(unassignTrainer.pending,   (s) => { s.assigning = true; })
+      .addCase(unassignTrainer.fulfilled, (s) => { s.assigning = false; })
+      .addCase(unassignTrainer.rejected,  (s) => { s.assigning = false; })
 
       .addCase(deleteMentor.fulfilled, (s, a) => {
         s.list  = s.list.filter((m) => (m._id || m.id) !== a.payload);

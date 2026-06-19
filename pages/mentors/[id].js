@@ -4,7 +4,7 @@ import { InputGroup, Form } from "react-bootstrap";
 import Dropdown from "react-bootstrap/Dropdown";
 import ReactCountryFlag from "react-country-flag";
 import { useDispatch, useSelector } from "react-redux";
-import { createMentor, updateMentor, fetchMentorById } from "../../redux/slices/mentorSlice";
+import { createMentor, updateMentor, fetchMentorById, fetchUnassignedTrainers, assignTrainers, unassignTrainer } from "../../redux/slices/mentorSlice";
 import { fetchSpecialities } from "../../redux/slices/specialitySlice";
 
 const G = {
@@ -59,11 +59,12 @@ export default function MentorProfile() {
   const { selected, saving, loading } = useSelector((s) => s.mentors);
   const { skills: specialities }      = useSelector((s) => s.speciality);
 
-  const [form, setForm]         = useState(EMPTY_FORM);
+  const [form, setForm]             = useState(EMPTY_FORM);
   const [specSearch, setSpecSearch] = useState("");
-  const [showSugg, setShowSugg] = useState(false);
-  const [loaded, setLoaded]     = useState(false);
-  const [showPass, setShowPass] = useState(false);
+  const [showSugg, setShowSugg]     = useState(false);
+  const [loaded, setLoaded]         = useState(false);
+  const [showPass, setShowPass]     = useState(false);
+  const [activeTab, setActiveTab]   = useState("overview");
 
   // fetch specialities for dropdown
   useEffect(() => { dispatch(fetchSpecialities()); }, [dispatch]);
@@ -333,6 +334,38 @@ export default function MentorProfile() {
         {/* ── RIGHT PANEL ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
+          {/* TABS */}
+          {!isNew && (
+            <div style={{ display: "flex", borderBottom: `1px solid ${G.divider}`, gap: 0 }}>
+              {["overview", "pts"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  style={{
+                    background: "transparent", border: "none",
+                    borderBottom: activeTab === tab ? `2px solid ${G.gold}` : "2px solid transparent",
+                    color: activeTab === tab ? G.goldLight : G.muted,
+                    padding: "10px 24px", cursor: "pointer",
+                    fontWeight: activeTab === tab ? 700 : 400,
+                    fontSize: 14, textTransform: "capitalize", marginBottom: -1,
+                    fontFamily: "Montserrat, Arial, sans-serif",
+                  }}
+                >
+                  {tab === "pts" ? "PTs" : "Overview"}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* PTs TAB */}
+          {activeTab === "pts" && !isNew && (
+            <PTsTab assignedTrainers={selected?.assignedTrainers || []} G={G} mentorId={id} />
+          )}
+
+          {/* OVERVIEW TAB (or always show when new) */}
+          {(activeTab === "overview" || isNew) && (
+            <>
+
           {/* CORE INFORMATION */}
           <div style={{ background: G.card, border: G.cardBorder, borderRadius: 14, padding: "24px 28px" }}>
             <div className="sec-title">
@@ -527,8 +560,243 @@ export default function MentorProfile() {
             </div>
           </div>
 
+            </>
+          )}
+
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── PTs Tab Component ── */
+function PTsTab({ assignedTrainers, G, mentorId }) {
+  const dispatch = useDispatch();
+  const { unassignedTrainers, assigning } = useSelector((s) => s.mentors);
+
+  const [search, setSearch]           = useState("");
+  const [showModal, setShowModal]     = useState(false);
+  const [modalSearch, setModalSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  const openModal = () => {
+    dispatch(fetchUnassignedTrainers());
+    setSelectedIds([]);
+    setModalSearch("");
+    setShowModal(true);
+  };
+
+  const toggleSelect = (id) =>
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+
+  const handleAssign = async () => {
+    if (!selectedIds.length) return;
+    try {
+      await dispatch(assignTrainers({ mentorId, trainerIds: selectedIds })).unwrap();
+      dispatch(fetchMentorById(mentorId));
+      setShowModal(false);
+    } catch (err) { alert(err || "Failed to assign"); }
+  };
+
+  const handleUnassign = async (trainerId) => {
+    if (!confirm("Remove this PT from mentor?")) return;
+    try {
+      await dispatch(unassignTrainer({ mentorId, trainerId })).unwrap();
+      dispatch(fetchMentorById(mentorId));
+    } catch (err) { alert(err || "Failed to unassign"); }
+  };
+
+  const filtered = assignedTrainers.filter((pt) => {
+    const name = [pt.firstName, pt.lastName].filter(Boolean).join(" ").toLowerCase();
+    return (
+      name.includes(search.toLowerCase()) ||
+      (pt.email || "").toLowerCase().includes(search.toLowerCase()) ||
+      (pt.phone || "").includes(search)
+    );
+  });
+
+  const filteredUnassigned = unassignedTrainers.filter((t) => {
+    const name = [t.firstName, t.lastName].filter(Boolean).join(" ").toLowerCase();
+    return (
+      name.includes(modalSearch.toLowerCase()) ||
+      (t.email || "").toLowerCase().includes(modalSearch.toLowerCase())
+    );
+  });
+
+  return (
+    <>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ background: G.card, border: G.cardBorder, borderRadius: 14, overflow: "hidden" }}>
+
+          {/* Toolbar */}
+          <div style={{ padding: "18px 24px", borderBottom: `1px solid ${G.divider}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
+              <i className="fe fe-search" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: G.muted, fontSize: 13 }} />
+              <input
+                placeholder="Search by name, email or phone..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ width: "100%", background: G.input, border: `1px solid ${G.divider}`, color: "#cccccc", borderRadius: 7, padding: "8px 12px 8px 36px", fontSize: 13, outline: "none" }}
+              />
+            </div>
+            <button
+              onClick={openModal}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 18px", borderRadius: 8, background: G.gold, border: "none", color: "#000", fontWeight: 700, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}
+            >
+              <i className="fe fe-plus" style={{ fontSize: 14 }} /> Add PT
+            </button>
+          </div>
+
+          {/* Table */}
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  {["TRAINER", "EMAIL", "PHONE", ""].map((h, i) => (
+                    <th key={i} style={{ background: "#111111", color: "rgba(248,227,150,0.6)", borderBottom: `1px solid ${G.divider}`, fontSize: 10, letterSpacing: "1.2px", padding: "12px 16px", fontWeight: 700, textAlign: i === 3 ? "right" : "left" }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} style={{ background: G.card, padding: "48px 16px", textAlign: "center", color: G.muted, fontSize: 13 }}>
+                      <i className="fe fe-users" style={{ fontSize: 28, display: "block", marginBottom: 10, opacity: 0.3 }} />
+                      No PTs assigned yet
+                    </td>
+                  </tr>
+                ) : filtered.map((pt) => {
+                  const name = [pt.firstName, pt.lastName].filter(Boolean).join(" ");
+                  return (
+                    <tr key={pt.id} style={{ borderBottom: "1px solid #141414" }}>
+                      <td style={{ background: G.card, padding: "14px 16px", verticalAlign: "middle" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(248,227,150,0.07)", border: `1px solid ${G.divider}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: G.goldLight, flexShrink: 0 }}>
+                            {name.charAt(0).toUpperCase()}
+                          </div>
+                          <span style={{ fontWeight: 700, fontSize: 13, color: "#cccccc" }}>{name}</span>
+                        </div>
+                      </td>
+                      <td style={{ background: G.card, padding: "14px 16px", color: G.muted, fontSize: 12, verticalAlign: "middle" }}>{pt.email || "—"}</td>
+                      <td style={{ background: G.card, padding: "14px 16px", color: G.muted, fontSize: 12, verticalAlign: "middle" }}>{pt.phone || "—"}</td>
+                      <td style={{ background: G.card, padding: "14px 16px", textAlign: "right", verticalAlign: "middle" }}>
+                        <button
+                          onClick={() => handleUnassign(pt.id)}
+                          disabled={assigning}
+                          style={{ width: 30, height: 30, borderRadius: 6, cursor: assigning ? "not-allowed" : "pointer", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", display: "inline-flex", alignItems: "center", justifyContent: "center", opacity: assigning ? 0.5 : 1 }}
+                        >
+                          <i className="fe fe-user-minus" style={{ color: "#f87171", fontSize: 13 }} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {filtered.length > 0 && (
+            <div style={{ padding: "12px 24px", borderTop: `1px solid ${G.divider}` }}>
+              <span style={{ color: G.muted, fontSize: 12 }}>{filtered.length} trainer{filtered.length !== 1 ? "s" : ""} assigned</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── ADD PT MODAL ── */}
+      {showModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
+          <div style={{ background: G.card, border: G.cardBorder, borderRadius: 14, width: "100%", maxWidth: 500, maxHeight: "80vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+
+            {/* Modal header */}
+            <div style={{ padding: "20px 24px", borderBottom: `1px solid ${G.divider}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <h5 style={{ color: G.text, fontWeight: 700, margin: 0, fontSize: 15 }}>Assign PTs</h5>
+                <p style={{ color: G.muted, fontSize: 12, margin: "4px 0 0" }}>Select trainers to assign to this mentor</p>
+              </div>
+              <button onClick={() => setShowModal(false)} style={{ background: "none", border: "none", color: G.muted, cursor: "pointer", fontSize: 20, lineHeight: 1, padding: 0 }}>×</button>
+            </div>
+
+            {/* Modal search */}
+            <div style={{ padding: "14px 24px", borderBottom: `1px solid ${G.divider}` }}>
+              <div style={{ position: "relative" }}>
+                <i className="fe fe-search" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: G.muted, fontSize: 13 }} />
+                <input
+                  placeholder="Search trainers..."
+                  value={modalSearch}
+                  onChange={(e) => setModalSearch(e.target.value)}
+                  style={{ width: "100%", background: G.input, border: `1px solid ${G.divider}`, color: "#cccccc", borderRadius: 7, padding: "8px 12px 8px 36px", fontSize: 13, outline: "none" }}
+                />
+              </div>
+            </div>
+
+            {/* Trainer list */}
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              {filteredUnassigned.length === 0 ? (
+                <div style={{ padding: "40px 24px", textAlign: "center", color: G.muted, fontSize: 13 }}>
+                  <i className="fe fe-users" style={{ fontSize: 26, display: "block", marginBottom: 10, opacity: 0.3 }} />
+                  No unassigned trainers found
+                </div>
+              ) : filteredUnassigned.map((t) => {
+                const name     = [t.firstName, t.lastName].filter(Boolean).join(" ");
+                const selected = selectedIds.includes(t.id);
+                return (
+                  <div
+                    key={t.id}
+                    onClick={() => toggleSelect(t.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 24px", cursor: "pointer", borderBottom: `1px solid ${G.divider}`, background: selected ? "rgba(248,227,150,0.05)" : "transparent", transition: "background 0.15s" }}
+                  >
+                    {/* Checkbox */}
+                    <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${selected ? G.gold : "#333"}`, background: selected ? G.gold : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
+                      {selected && <i className="fe fe-check" style={{ fontSize: 11, color: "#000" }} />}
+                    </div>
+
+                    {/* Avatar */}
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(248,227,150,0.07)", border: `1px solid ${G.divider}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: G.goldLight, flexShrink: 0 }}>
+                      {name.charAt(0).toUpperCase()}
+                    </div>
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: "#cccccc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name}</div>
+                      <div style={{ fontSize: 11, color: G.muted, marginTop: 2 }}>{t.email || "—"}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Modal footer */}
+            <div style={{ padding: "16px 24px", borderTop: `1px solid ${G.divider}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ color: G.muted, fontSize: 12 }}>
+                {selectedIds.length} trainer{selectedIds.length !== 1 ? "s" : ""} selected
+              </span>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => setShowModal(false)}
+                  style={{ padding: "8px 20px", borderRadius: 8, background: "#2a2a2a", border: `1px solid ${G.divider}`, color: G.text, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAssign}
+                  disabled={!selectedIds.length || assigning}
+                  style={{ padding: "8px 22px", borderRadius: 8, background: selectedIds.length ? G.gold : "#333", border: "none", color: selectedIds.length ? "#000" : G.muted, fontWeight: 700, fontSize: 13, cursor: selectedIds.length && !assigning ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 6, opacity: assigning ? 0.7 : 1 }}
+                >
+                  {assigning ? <><span className="spinner-border spinner-border-sm" style={{ width: 12, height: 12 }} /> Assigning…</> : "Assign"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
