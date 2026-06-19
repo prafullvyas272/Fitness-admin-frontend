@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Row, Col } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchMentors, deleteMentor } from "../../redux/slices/mentorSlice";
 
 const G = {
   bg:         "#0a0a0a",
@@ -16,13 +17,13 @@ const G = {
   rowHover:   "#111111",
 };
 
-const SPECIALIZATIONS = ["All Specializations", "Tactical Strength", "Business Growth", "Nutrition", "Biometric"];
+const STATUS_DISPLAY = { ACTIVE: "Active", IN_REVIEW: "In Review", SUSPENDED: "Suspended" };
 
-const INITIAL_MENTORS = [
-  { id: 1, name: "Elias Thorne",  role: "Senior Executive Mentor", contact: "+1 (555) 012-7209", specialization: "Tactical Strength", specializations: ["Tactical Strength", "Business Growth", "Nutrition", "Leadership"], extraSpec: 3, assignedPts: 12, ptSaturation: 12, ptSaturationMax: 30, unit: "", status: "Active", experience: "8", region: "North America" },
-  { id: 2, name: "Sarah Jenkins", role: "Operations Specialist",   contact: "+1 (555) 012-1154", specialization: "Business Growth",   specializations: ["Business Growth"], extraSpec: 0, assignedPts: 8,  ptSaturation: 8,  ptSaturationMax: 30, unit: "Personnel", status: "Active",    experience: "5", region: "Europe" },
-  { id: 3, name: "Marcus Vane",   role: "Biometric Lead",          contact: "+1 (555) 012-4432", specialization: "Nutrition",         specializations: ["Nutrition", "Biometric"], extraSpec: 0, assignedPts: 4,  ptSaturation: 4,  ptSaturationMax: 30, unit: "Personnel", status: "In Review", experience: "3", region: "Asia Pacific" },
-  { id: 4, name: "Adrian Locke",  role: "Strategic Analyst",       contact: "+1 (555) 012-0012", specialization: "Tactical Strength", specializations: ["Tactical Strength"], extraSpec: 0, assignedPts: 0,  ptSaturation: 0,  ptSaturationMax: 30, unit: "Personnel", status: "Suspended", experience: "2", region: "South America" },
+const STATUS_TABS = [
+  { label: "All",         value: ""           },
+  { label: "Active",      value: "ACTIVE"     },
+  { label: "In Review",   value: "IN_REVIEW"  },
+  { label: "Suspended",   value: "SUSPENDED"  },
 ];
 
 function StatusBadge({ status }) {
@@ -56,69 +57,61 @@ function SpecBadge({ spec, extra }) {
 }
 
 export default function MentorsPage() {
-  const router = useRouter();
-  const [mentors, setMentors] = useState(INITIAL_MENTORS);
-  const [ready, setReady] = useState(false);
-  const [search, setSearch] = useState("");
-  const [specFilter, setSpecFilter] = useState("All Specializations");
-  const [currentPage, setCurrentPage] = useState(1);
-  const entriesPerPage = 10;
+  const router   = useRouter();
+  const dispatch = useDispatch();
+  const { list: mentors, loading, total, totalPages, page, pageSize } = useSelector((s) => s.mentors);
 
-  // Load persisted mentors from localStorage on mount
+  const [search, setSearch]         = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [currentPage, setCurrentPage]   = useState(1);
+
   useEffect(() => {
-    const saved = localStorage.getItem("mentors_data");
-    if (saved) {
-      try { setMentors(JSON.parse(saved)); } catch (_) {}
-    }
-    setReady(true);
-  }, []);
+    dispatch(fetchMentors({ page: currentPage, pageSize: 10, status: statusFilter }));
+  }, [dispatch, currentPage, statusFilter]);
 
-  // Persist to localStorage whenever mentors change
-  useEffect(() => {
-    if (ready) localStorage.setItem("mentors_data", JSON.stringify(mentors));
-  }, [mentors, ready]);
+  const handleStatusChange = (val) => {
+    setStatusFilter(val);
+    setCurrentPage(1);
+  };
 
-  // Re-load mentors when navigating back to this page (after save on profile page)
-  useEffect(() => {
-    const handleFocus = () => {
-      const saved = localStorage.getItem("mentors_data");
-      if (saved) {
-        try { setMentors(JSON.parse(saved)); } catch (_) {}
-      }
-    };
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, []);
+  // Normalise mentor data from API response shape
+  const normalised = mentors.map((m) => ({
+    _id:            m.id,
+    name:           [m.firstName, m.lastName].filter(Boolean).join(" ") || "—",
+    role:           m.mentorProfile?.title   || "",
+    contact:        m.phone                  || "",
+    specialization: m.specialities?.[0]?.speciality?.name || "General",
+    extraSpec:      Math.max(0, (m.specialities?.length || 0) - 1),
+    assignedPts:    m.assignedPTs            ?? 0,
+    status:         STATUS_DISPLAY[m.mentorProfile?.status] || "Active",
+    profilePhoto:   m.mentorProfile?.avatarUrl || "",
+  }));
 
-  const filtered = mentors.filter((m) => {
-    const matchSearch =
-      m.name.toLowerCase().includes(search.toLowerCase()) ||
-      m.contact.includes(search) ||
-      m.specialization.toLowerCase().includes(search.toLowerCase());
-    const matchSpec = specFilter === "All Specializations" || m.specialization === specFilter;
-    return matchSearch && matchSpec;
-  });
+  // client-side text search on the current page only
+  const filtered = normalised.filter((m) =>
+    m.name.toLowerCase().includes(search.toLowerCase()) ||
+    m.contact.includes(search) ||
+    m.specialization.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const totalPages = Math.ceil(filtered.length / entriesPerPage);
-  const paginated = filtered.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
+  const paginated = filtered; // already the current page from API
 
-  const totalActive    = mentors.filter((m) => m.status === "Active").length;
-  const pendingReviews = mentors.filter((m) => m.status === "In Review").length;
-  const totalPts       = mentors.reduce((sum, m) => sum + m.assignedPts, 0);
+  const totalActive    = normalised.filter((m) => m.status === "Active").length;
+  const pendingReviews = normalised.filter((m) => m.status === "In Review").length;
+  const totalPts       = normalised.reduce((sum, m) => sum + (m.assignedPts || 0), 0);
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!confirm("Delete this mentor?")) return;
-    const updated = mentors.filter((m) => m.id !== id);
-    setMentors(updated);
+    dispatch(deleteMentor(id));
   };
 
   const exportCSV = () => {
     const header = ["Name", "Role", "Contact", "Specialization", "Assigned Pts", "Status"];
-    const rows = mentors.map((m) => [m.name, m.role, m.contact, m.specialization, m.assignedPts, m.status]);
-    const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "mentors.csv"; a.click();
+    const rows   = normalised.map((m) => [m.name, m.role, m.contact, m.specialization, m.assignedPts, m.status]);
+    const csv    = [header, ...rows].map((r) => r.join(",")).join("\n");
+    const blob   = new Blob([csv], { type: "text/csv" });
+    const url    = URL.createObjectURL(blob);
+    const a      = document.createElement("a"); a.href = url; a.download = "mentors.csv"; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -132,7 +125,7 @@ export default function MentorsPage() {
         .inp-gold::placeholder { color: #2a2a2a !important; }
         .inp-gold:focus { border-color: rgba(248,227,150,0.25) !important; outline: none !important; }
         .inp-gold option { background: #111111; color: #cccccc; }
-        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: rgba(248,227,150,0.07); border: 1px solid ${G.divider}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: ${G.goldLight}; flex-shrink: 0; }
+        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: rgba(248,227,150,0.07); border: 1px solid ${G.divider}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: ${G.goldLight}; flex-shrink: 0; overflow: hidden; }
       `}</style>
 
       {/* HEADER */}
@@ -155,19 +148,11 @@ export default function MentorsPage() {
       {/* STAT CARDS */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 28 }}>
         {[
-          { label: "Total Active Mentors", value: String(totalActive).padStart(2, "0"), accent: "#4ade80" },
+          { label: "Total Active Mentors", value: String(totalActive).padStart(2, "0"),    accent: "#4ade80" },
           { label: "Pending Reviews",      value: String(pendingReviews).padStart(2, "0"), accent: "#f8e396" },
-          { label: "Total Managed Pts",    value: String(totalPts), accent: "#f8e396" },
+          { label: "Total Managed PTs",    value: String(totalPts),                        accent: "#f8e396" },
         ].map((stat, i) => (
-          <div key={i} style={{
-            background: G.card,
-            border: G.cardBorder,
-            borderLeft: `3px solid ${stat.accent}`,
-            borderRadius: 12,
-            padding: "24px 28px",
-            position: "relative",
-            overflow: "hidden",
-          }}>
+          <div key={i} style={{ background: G.card, border: G.cardBorder, borderLeft: `3px solid ${stat.accent}`, borderRadius: 12, padding: "24px 28px", position: "relative", overflow: "hidden" }}>
             <p style={{ color: G.muted, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08rem", margin: "0 0 8px" }}>{stat.label}</p>
             <h2 style={{ color: G.text, fontWeight: 800, margin: 0, fontSize: 36 }}>{stat.value}</h2>
           </div>
@@ -178,87 +163,120 @@ export default function MentorsPage() {
       <div style={{ background: G.card, border: G.cardBorder, borderRadius: 12, overflow: "hidden" }}>
 
         {/* TOOLBAR */}
-        <div style={{ padding: "20px 24px", borderBottom: `1px solid ${G.divider}`, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: 200, position: "relative" }}>
-            <i className="fe fe-search" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: G.muted, fontSize: 14 }} />
-            <input className="inp-gold" placeholder="Filter by Name, Contact Number and speciality" value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} style={{ width: "100%", padding: "8px 12px 8px 36px", fontSize: 13 }} />
+        <div style={{ padding: "16px 24px", borderBottom: `1px solid ${G.divider}` }}>
+          {/* Status tabs */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+            {STATUS_TABS.map((tab) => {
+              const active = statusFilter === tab.value;
+              return (
+                <button
+                  key={tab.value}
+                  onClick={() => handleStatusChange(tab.value)}
+                  style={{
+                    padding: "5px 16px", borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                    background: active ? G.gold : "transparent",
+                    color: active ? "#000" : G.muted,
+                    border: active ? "none" : `1px solid ${G.divider}`,
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
-          <select className="inp-gold" style={{ padding: "8px 12px", fontSize: 13, minWidth: 160 }} value={specFilter} onChange={(e) => { setSpecFilter(e.target.value); setCurrentPage(1); }}>
-            {SPECIALIZATIONS.map((s) => <option key={s}>{s}</option>)}
-          </select>
-          <button onClick={exportCSV} style={{ padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", background: G.goldFaint, border: `1px solid ${G.divider}`, color: G.goldLight }}>
-            Export CSV
-          </button>
+
+          {/* Search + export */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 200, position: "relative" }}>
+              <i className="fe fe-search" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: G.muted, fontSize: 14 }} />
+              <input className="inp-gold" placeholder="Filter by Name, Contact Number or specialization" value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: "100%", padding: "8px 12px 8px 36px", fontSize: 13 }} />
+            </div>
+            <button onClick={exportCSV} style={{ padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", background: G.goldFaint, border: `1px solid ${G.divider}`, color: G.goldLight }}>
+              Export CSV
+            </button>
+          </div>
         </div>
 
         {/* TABLE */}
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th className="th-mentor">MENTOR</th>
-                <th className="th-mentor">CONTACT NUMBER</th>
-                <th className="th-mentor">SPECIALIZATION</th>
-                <th className="th-mentor">ASSIGNED PTS</th>
-                <th className="th-mentor">STATUS</th>
-                <th className="th-mentor" style={{ textAlign: "right" }}>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginated.length === 0 ? (
-                <tr className="tr-mentor">
-                  <td colSpan={6} style={{ textAlign: "center", padding: "40px", color: G.muted }}>No mentors found</td>
+          {loading ? (
+            <div style={{ padding: 60, textAlign: "center" }}>
+              <span className="spinner-border" style={{ color: G.gold }} />
+            </div>
+          ) : (
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th className="th-mentor">MENTOR</th>
+                  <th className="th-mentor">CONTACT NUMBER</th>
+                  <th className="th-mentor">SPECIALIZATION</th>
+                  <th className="th-mentor">ASSIGNED PTS</th>
+                  <th className="th-mentor">STATUS</th>
+                  <th className="th-mentor" style={{ textAlign: "right" }}>ACTIONS</th>
                 </tr>
-              ) : paginated.map((mentor) => (
-                <tr key={mentor.id} className="tr-mentor">
-                  <td>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div className="avatar-circle">{mentor.name.charAt(0)}</div>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 14, color: G.text }}>{mentor.name}</div>
-                        <div style={{ fontSize: 11, color: G.muted, textTransform: "uppercase", letterSpacing: "0.05rem", marginTop: 2 }}>{mentor.role}</div>
+              </thead>
+              <tbody>
+                {paginated.length === 0 ? (
+                  <tr className="tr-mentor">
+                    <td colSpan={6} style={{ textAlign: "center", padding: "40px", color: G.muted }}>No mentors found</td>
+                  </tr>
+                ) : paginated.map((mentor) => (
+                  <tr key={mentor._id} className="tr-mentor">
+                    <td>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div className="avatar-circle">
+                          {mentor.profilePhoto
+                            ? <img src={mentor.profilePhoto} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : mentor.name.charAt(0).toUpperCase()
+                          }
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: G.text }}>{mentor.name}</div>
+                          <div style={{ fontSize: 11, color: G.muted, textTransform: "uppercase", letterSpacing: "0.05rem", marginTop: 2 }}>{mentor.role}</div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td style={{ color: G.muted }}>{mentor.contact}</td>
-                  <td><SpecBadge spec={mentor.specialization} extra={mentor.extraSpec} /></td>
-                  <td style={{ fontWeight: 700 }}>
-                    {String(mentor.assignedPts).padStart(2, "0")}
-                    {mentor.unit && <span style={{ color: G.muted, fontWeight: 400, marginLeft: 4 }}>{mentor.unit}</span>}
-                  </td>
-                  <td><StatusBadge status={mentor.status} /></td>
-                  <td style={{ textAlign: "right" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
-                      <button
-                        onClick={() => router.push(`/mentors/${mentor.id}`)}
-                        style={{ width: 32, height: 32, borderRadius: 6, cursor: "pointer", background: G.goldFaint, border: `1px solid ${G.divider}`, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-                      >
-                        <i className="fe fe-edit-2" style={{ color: G.goldLight, fontSize: 13 }} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(mentor.id)}
-                        style={{ width: 32, height: 32, borderRadius: 6, cursor: "pointer", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-                      >
-                        <i className="fe fe-trash-2" style={{ color: "#f87171", fontSize: 13 }} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                    <td style={{ color: G.muted }}>{mentor.contact || "—"}</td>
+                    <td><SpecBadge spec={mentor.specialization} extra={mentor.extraSpec} /></td>
+                    <td style={{ fontWeight: 700 }}>
+                      {String(mentor.assignedPts).padStart(2, "0")}
+                      {mentor.unit && <span style={{ color: G.muted, fontWeight: 400, marginLeft: 4 }}>{mentor.unit}</span>}
+                    </td>
+                    <td><StatusBadge status={mentor.status} /></td>
+                    <td style={{ textAlign: "right" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
+                        <button
+                          onClick={() => router.push(`/mentors/${mentor._id}`)}
+                          style={{ width: 32, height: 32, borderRadius: 6, cursor: "pointer", background: G.goldFaint, border: `1px solid ${G.divider}`, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                        >
+                          <i className="fe fe-edit-2" style={{ color: G.goldLight, fontSize: 13 }} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(mentor._id)}
+                          style={{ width: 32, height: 32, borderRadius: 6, cursor: "pointer", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                        >
+                          <i className="fe fe-trash-2" style={{ color: "#f87171", fontSize: 13 }} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* FOOTER / PAGINATION */}
         <div style={{ padding: "16px 24px", borderTop: `1px solid ${G.divider}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ color: G.muted, fontSize: 13 }}>
-            Showing {filtered.length === 0 ? 0 : (currentPage - 1) * entriesPerPage + 1} of {filtered.length} Ledger Entries
+            Showing {total === 0 ? 0 : (currentPage - 1) * (pageSize || 10) + 1}–{Math.min(currentPage * (pageSize || 10), total)} of {total} mentors
           </span>
           <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
             {[
               { label: "‹", page: currentPage - 1, disabled: currentPage === 1 },
               ...[...Array(totalPages || 1)].map((_, i) => ({ label: i + 1, page: i + 1, disabled: false })),
-              { label: "›", page: currentPage + 1, disabled: currentPage === totalPages || totalPages === 0 },
+              { label: "›", page: currentPage + 1, disabled: currentPage >= (totalPages || 1) },
             ].map((btn, i) => {
               const isActive = btn.label === currentPage;
               return (

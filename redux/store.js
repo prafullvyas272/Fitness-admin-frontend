@@ -5,6 +5,7 @@ import sessionReducer from "./slices/sessionSlice";
 import workoutReducer from "./slices/workoutSlice";
 import billingReducer from "./slices/billingSlice";
 import specialityReducer from "./slices/specialitySlice";
+import mentorReducer from "./slices/mentorSlice";
 
 
 
@@ -16,6 +17,7 @@ const store = configureStore({
     workout: workoutReducer,
     billing: billingReducer,
     speciality: specialityReducer,
+    mentors: mentorReducer,
   },
 });
 
