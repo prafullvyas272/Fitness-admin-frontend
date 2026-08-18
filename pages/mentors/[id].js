@@ -145,10 +145,19 @@ export default function MentorProfile() {
 
 
     const fd = new FormData();
-    fd.append("firstName",  form.firstName);
-    fd.append("lastName",   form.lastName);
-    if (isNew)              fd.append("email",    form.email);
-    if (form.password.trim()) fd.append("password", form.password);
+    if (isNew) {
+      // For new mentor, send all required fields
+      fd.append("firstName",  form.firstName);
+      fd.append("lastName",   form.lastName);
+      fd.append("email",      form.email);
+      fd.append("password",   form.password);
+    } else {
+      // For update, only send fields that might have changed
+      if (form.firstName) fd.append("firstName",  form.firstName);
+      if (form.lastName)  fd.append("lastName",   form.lastName);
+      if (form.password.trim()) fd.append("password", form.password);
+    }
+
     if (form.phone)      fd.append("phone",      `${form.countryCode}${form.phone}`);
     if (form.title)      fd.append("title",      form.title);
     if (form.experience) fd.append("experience", form.experience);
@@ -156,7 +165,7 @@ export default function MentorProfile() {
     fd.append("maxPTs",  form.maxPTs);
     fd.append("status",  STATUS_API[form.status] || "ACTIVE");
     if (form.specialities.length)
-      fd.append("specialityIds", form.specialities.map((s) => s.name).join(", "));
+      fd.append("specialityIds", JSON.stringify(form.specialities.map((s) => s.id)));
     if (form.photoFile)  fd.append("profilePhoto", form.photoFile);
 
     try {
