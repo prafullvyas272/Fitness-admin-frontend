@@ -553,7 +553,7 @@ export default function BillingDetails() {
       <Modal show={assignModal} onHide={() => setAssignModal(false)} centered className="modal-gold" size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
-            Assign "{plans?.find((p) => p.id === selectedPlanId)?.name || "Plan"}" to Trainers
+            Assign &quot;{plans?.find((p) => p.id === selectedPlanId)?.name || "Plan"}&quot; to Trainers
           </Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ maxHeight: "70vh", overflowY: "auto" }}>

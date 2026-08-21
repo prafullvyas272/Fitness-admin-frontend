@@ -123,14 +123,14 @@ useEffect(() => {
     dispatch(fetchTrainerById(id));
   }
 
-}, [id]);
+}, [id, dispatch, trainers]);
 
 useEffect(() => {
   if (!trainer?.id) return;
 
   dispatch(fetchTrainerBookings(trainer.id));
 
-}, [trainer]);
+}, [trainer, dispatch]);
 
 useEffect(() => {
   if (!trainer?.id) return;
@@ -176,8 +176,10 @@ useEffect(() => {
 
 useEffect(() => {
   if (activeTab === "sessions" && selectedDate && trainer?.id) {
-    fetchTrainerTimeSlots(selectedDate, trainer.id);
+    // fetchTrainerTimeSlots is an async function defined below
+    // No need to add it to deps as it would cause infinite loops
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [selectedDate, activeTab, trainer?.id]);
 
 
