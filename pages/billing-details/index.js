@@ -135,7 +135,7 @@ export default function BillingDetails() {
 
       // Find trainers that already have this plan assigned
       const trainersWithPlan = fetchedTrainers
-        .filter((trainer) => trainer.plan?.id === planId)
+        .filter((trainer) => trainer.assignedPlans?.some((p) => p.id === planId))
         .map((trainer) => trainer.id);
 
       setTrainers(fetchedTrainers);
@@ -155,14 +155,14 @@ export default function BillingDetails() {
       // Initialize selected plans based on trainer's current plans
       let assignedPlanIds = [];
 
-      // Check if trainer has single plan assigned
-      if (trainer.plan?.id) {
-        assignedPlanIds = [trainer.plan.id];
+      // Check if trainer has multiple plans assigned (array)
+      if (trainer.assignedPlans && Array.isArray(trainer.assignedPlans)) {
+        assignedPlanIds = trainer.assignedPlans.map((p) => p.id || p);
       }
 
-      // Check if trainer has multiple plans assigned (array)
-      if (trainer.plans && Array.isArray(trainer.plans)) {
-        assignedPlanIds = trainer.plans.map((p) => p.id || p);
+      // Fallback: Check single plan field for backward compatibility
+      if (assignedPlanIds.length === 0 && trainer.plan?.id) {
+        assignedPlanIds = [trainer.plan.id];
       }
 
       setSelectedPlans(assignedPlanIds);
@@ -185,8 +185,8 @@ export default function BillingDetails() {
     try {
       setAssignLoading(true);
       const token = localStorage.getItem("adminToken");
-      await axios.put(
-        "https://fitness-app-seven-beryl.vercel.app/api/trainers/assign-plans",
+      await axios.post(
+        "https://fitness-app-seven-beryl.vercel.app/api/trainer-plans/assign-multiple",
         { trainerId: selectedTrainer.id, planIds: selectedPlans },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -226,16 +226,37 @@ export default function BillingDetails() {
     try {
       setAssignLoading(true);
       const adminToken = localStorage.getItem("adminToken");
-      await axios.put(
-        "https://fitness-app-seven-beryl.vercel.app/api/admin-assign-plan",
-        { trainerIds: selectedTrainers, planId: selectedPlanId },
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
+
+      // Get trainers that are NOT already assigned to this plan
+      const newlySelectedTrainers = selectedTrainers.filter((trainerId) => {
+        const trainer = trainers.find((t) => t.id === trainerId);
+        return !trainer?.assignedPlans?.some((p) => p.id === selectedPlanId); // Only include if NOT already assigned
+      });
+
+      // If no new trainers to assign, just close modal
+      if (newlySelectedTrainers.length === 0) {
+        alert("These trainers already have this plan assigned.");
+        setAssignModal(false);
+        setSelectedTrainers([]);
+        return;
+      }
+
+      // Call POST API for each trainer (API expects trainerId + planIds array)
+      for (let trainerId of newlySelectedTrainers) {
+        await axios.post(
+          "https://fitness-app-seven-beryl.vercel.app/api/trainer-plans/assign-multiple",
+          { trainerId, planIds: [selectedPlanId] },
+          { headers: { Authorization: `Bearer ${adminToken}` } }
+        );
+      }
+
+      alert(`Plan assigned to ${newlySelectedTrainers.length} trainer(s)!`);
       setAssignModal(false);
       setSelectedTrainers([]);
       dispatch(fetchPlans());
     } catch (err) {
-      console.log(err);
+      alert(err.response?.data?.message || "Failed to assign plan");
+      console.error(err);
     } finally {
       setAssignLoading(false);
     }

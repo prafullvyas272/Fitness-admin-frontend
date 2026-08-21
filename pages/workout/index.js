@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Modal } from "react-bootstrap";
+import { Modal, Spinner } from "react-bootstrap";
 import {
   uploadWorkout,
   fetchWorkouts,
@@ -93,6 +93,12 @@ export default function Workout() {
     }
   }, [trainerFilter, dispatch]);
 
+  useEffect(() => {
+    if (!loading && showUploadModal) {
+      resetUploadForm();
+    }
+  }, [loading]);
+
   const handleFile = (file) => {
     if (!file) return;
     const url = URL.createObjectURL(file);
@@ -122,7 +128,6 @@ export default function Workout() {
     } else {
       dispatch(uploadWorkout(data));
     }
-    resetUploadForm();
   };
 
   const resetUploadForm = () => {
@@ -535,13 +540,31 @@ export default function Workout() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 8 }}>
-            <button onClick={resetUploadForm} style={{ background: "transparent", border: `1px solid ${G.divider}`, color: G.text, padding: "7px 18px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}>Cancel</button>
-            <button onClick={handleSubmit} style={{ background: G.gold, border: "none", color: "#000", padding: "7px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
-              {editItem ? "Update" : "Upload Video"}
+            <button onClick={resetUploadForm} disabled={loading} style={{ background: "transparent", border: `1px solid ${G.divider}`, color: loading ? "#555" : G.text, padding: "7px 18px", borderRadius: 8, cursor: loading ? "not-allowed" : "pointer", fontSize: 13 }}>Cancel</button>
+            <button onClick={handleSubmit} disabled={loading} style={{ background: loading ? "#333" : G.gold, border: "none", color: loading ? G.muted : "#000", padding: "7px 24px", borderRadius: 8, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+              {loading ? (
+                <>
+                  <Spinner animation="border" size="sm" style={{ color: G.gold }} />
+                  {editItem ? "Updating..." : "Uploading..."}
+                </>
+              ) : (
+                editItem ? "Update" : "Upload Video"
+              )}
             </button>
           </div>
         </Modal.Body>
       </Modal>
+
+      {/* FULL PAGE LOADER OVERLAY */}
+      {loading && showUploadModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ width: 50, height: 50, border: `4px solid ${G.divider}`, borderTop: `4px solid ${G.gold}`, borderRadius: "50%", animation: "wk-spin 1s linear infinite", margin: "0 auto 16px" }} />
+            <p style={{ color: G.text, fontSize: 16, fontWeight: 600, margin: 0, marginBottom: 6 }}>{editItem ? "Updating video..." : "Uploading video..."}</p>
+            <p style={{ color: G.muted, fontSize: 13 }}>Please wait, this may take a few moments</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

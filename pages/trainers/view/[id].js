@@ -951,18 +951,17 @@ const formatDisplayDate = (dateString) => {
 
               <Table responsive className="align-middle mb-0">
                 <thead>
-                  <tr>{["#","Total Payout","Net Payout","Period","Note","Date"].map(h => <th key={h} className="vw-th">{h.toUpperCase()}</th>)}</tr>
+                  <tr>{["Total Payout","Net Payout","Period","Note","Date"].map(h => <th key={h} className="vw-th">{h.toUpperCase()}</th>)}</tr>
                 </thead>
                 <tbody>
                   {payoutLoading ? (
-                    <tr><td colSpan={6} className="text-center py-5" style={{ background: G.card, color: G.muted }}>
+                    <tr><td colSpan={5} className="text-center py-5" style={{ background: G.card, color: G.muted }}>
                       <Spinner animation="border" size="sm" style={{ color: G.gold }} className="me-2" />Loading payouts...
                     </td></tr>
                   ) : payouts.length === 0 ? (
-                    <tr><td colSpan={6} className="text-center py-5" style={{ background: G.card, color: G.muted, fontWeight: 600 }}>No payouts found for this period</td></tr>
+                    <tr><td colSpan={5} className="text-center py-5" style={{ background: G.card, color: G.muted, fontWeight: 600 }}>No payouts found for this period</td></tr>
                   ) : payouts.map((payout, idx) => (
                     <tr key={payout.id || idx} className="vw-tr">
-                      <td style={{ color: G.muted }}>{(payoutPage-1)*payoutPageSize+idx+1}</td>
                       <td style={{ fontWeight: 600, color: G.goldLight }}>€{payout.totalPayout ?? "—"}</td>
                       <td style={{ fontWeight: 600, color: "#4ade80" }}>€{payout.netPayout ?? "—"}</td>
                       <td style={{ color: G.muted, fontSize: 13 }}>
