@@ -2,6 +2,27 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const API_URL = "https://fitness-app-seven-beryl.vercel.app/api/plans";
+const STATS_URL = "https://fitness-app-seven-beryl.vercel.app/api/subscriptions/stats";
+
+/* ================================
+   FETCH SUBSCRIPTION STATS
+================================ */
+export const fetchSubscriptionStats = createAsyncThunk(
+  "billing/fetchStats",
+  async (_, { rejectWithValue }) => {
+    try {
+      const adminToken = localStorage.getItem("adminToken");
+      const res = await axios.get(STATS_URL, {
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || "Error fetching stats");
+    }
+  }
+);
 
 /* ================================
    GET ALL PLANS
@@ -120,14 +141,33 @@ const billingSlice = createSlice({
   name: "billing",
   initialState: {
     plans: [],
+    stats: {
+      activeSubscriptions: 0,
+      totalPlans: 0,
+      expiringPlans: 0,
+    },
     loading: false,
+    statsLoading: false,
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
 
-      // FETCH
+      // FETCH STATS
+      .addCase(fetchSubscriptionStats.pending, (state) => {
+        state.statsLoading = true;
+      })
+      .addCase(fetchSubscriptionStats.fulfilled, (state, action) => {
+        state.statsLoading = false;
+        state.stats = action.payload;
+      })
+      .addCase(fetchSubscriptionStats.rejected, (state, action) => {
+        state.statsLoading = false;
+        state.error = action.payload;
+      })
+
+      // FETCH PLANS
       .addCase(fetchPlans.pending, (state) => {
         state.loading = true;
       })

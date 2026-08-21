@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   fetchPlans,
+  fetchSubscriptionStats,
   createPlan,
   updatePlan,
   deletePlan,
@@ -25,7 +26,7 @@ const CURRENCIES = [
 
 export default function BillingDetails() {
   const dispatch = useDispatch();
-  const { plans } = useSelector((state) => state.billing);
+  const { plans, stats, statsLoading } = useSelector((state) => state.billing);
   const [assignLoading, setAssignLoading] = useState(false);
   const [fetchingTrainers, setFetchingTrainers] = useState(false);
   const [savingPlan, setSavingPlan] = useState(false);
@@ -40,6 +41,11 @@ export default function BillingDetails() {
   const [trainers, setTrainers] = useState([]);
   const [billingView, setBillingView] = useState("Monthly");
 
+  // New state for assigning plans to trainer
+  const [assignPlansModal, setAssignPlansModal] = useState(false);
+  const [selectedTrainer, setSelectedTrainer] = useState(null);
+  const [selectedPlans, setSelectedPlans] = useState([]);
+
   const [formData, setFormData] = useState({
     name: "", description: "", cycle: "Monthly", price: "", currency: "EUR",
     features: "", isPopular: false,
@@ -47,6 +53,7 @@ export default function BillingDetails() {
 
   useEffect(() => {
     dispatch(fetchPlans());
+    dispatch(fetchSubscriptionStats());
   }, [dispatch]);
 
   const handleSave = async () => {
@@ -122,14 +129,76 @@ export default function BillingDetails() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const fetchedTrainers = res.data.data;
-      const unassignedTrainers = fetchedTrainers.filter((trainer) => !trainer.plan);
-      setTrainers(unassignedTrainers);
-      setSelectedTrainers([]);
+
+      // Get the selected plan details
+      const selectedPlan = plans.find((p) => p.id === planId);
+
+      // Find trainers that already have this plan assigned
+      const trainersWithPlan = fetchedTrainers
+        .filter((trainer) => trainer.plan?.id === planId)
+        .map((trainer) => trainer.id);
+
+      setTrainers(fetchedTrainers);
+      setSelectedTrainers(trainersWithPlan);
       setAssignModal(true);
     } catch (err) {
       console.error(err);
     } finally {
       setFetchingTrainers(false);
+    }
+  };
+
+  const openAssignPlansModal = async (trainer) => {
+    setSelectedTrainer(trainer);
+    setFetchingTrainers(true);
+    try {
+      // Initialize selected plans based on trainer's current plans
+      let assignedPlanIds = [];
+
+      // Check if trainer has single plan assigned
+      if (trainer.plan?.id) {
+        assignedPlanIds = [trainer.plan.id];
+      }
+
+      // Check if trainer has multiple plans assigned (array)
+      if (trainer.plans && Array.isArray(trainer.plans)) {
+        assignedPlanIds = trainer.plans.map((p) => p.id || p);
+      }
+
+      setSelectedPlans(assignedPlanIds);
+      setAssignPlansModal(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setFetchingTrainers(false);
+    }
+  };
+
+  const togglePlanSelection = (planId) => {
+    setSelectedPlans((prev) =>
+      prev.includes(planId) ? prev.filter((id) => id !== planId) : [...prev, planId]
+    );
+  };
+
+  const handleAssignPlans = async () => {
+    if (!selectedTrainer) return;
+    try {
+      setAssignLoading(true);
+      const token = localStorage.getItem("adminToken");
+      await axios.put(
+        "https://fitness-app-seven-beryl.vercel.app/api/trainers/assign-plans",
+        { trainerId: selectedTrainer.id, planIds: selectedPlans },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("Plans assigned successfully!");
+      setAssignPlansModal(false);
+      setSelectedTrainer(null);
+      setSelectedPlans([]);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to assign plans");
+      console.error(err);
+    } finally {
+      setAssignLoading(false);
     }
   };
 
@@ -259,24 +328,66 @@ export default function BillingDetails() {
           <h3 style={{ color: G.text, fontWeight: 700, margin: 0 }}>Membership Plans</h3>
           <small style={{ color: G.muted }}>Manage all membership plans</small>
         </div>
-        <button
-          onClick={() => setShow(true)}
-          style={{ background: `${G.gold}`, border: "none", color: "#111", padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14 }}
-        >
-          + Create Plan
-        </button>
+        <div style={{ display: "flex", gap: 12 }}>
+          <button
+            onClick={async () => {
+              setFetchingTrainers(true);
+              try {
+                const token = localStorage.getItem("adminToken");
+                const res = await axios.get(
+                  "https://fitness-app-seven-beryl.vercel.app/api/trainers",
+                  { headers: { Authorization: `Bearer ${token}` } }
+                );
+                setTrainers(res.data.data || []);
+              } catch (err) {
+                alert("Failed to load trainers");
+                console.error(err);
+              } finally {
+                setFetchingTrainers(false);
+              }
+              setAssignPlansModal(true);
+              setSelectedTrainer(null);
+              setSelectedPlans([]);
+            }}
+            style={{ background: `rgba(248,227,150,0.15)`, border: `1px solid ${G.divider}`, color: G.goldLight, padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14 }}
+          >
+            📋 Assign Plans
+          </button>
+          <button
+            onClick={() => setShow(true)}
+            style={{ background: `${G.gold}`, border: "none", color: "#111", padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14 }}
+          >
+            + Create Plan
+          </button>
+        </div>
       </div>
 
-      {/* STAT CARDS */}
+      {/* 3 STAT BOXES */}
       <Row className="g-3 mb-4">
-        {STATS.map((s, i) => (
-          <Col md={4} key={i}>
-            <div className="plan-stat-card">
-              <p className="plan-stat-label">{s.label}</p>
-              <h3 className="plan-stat-value">{s.value}</h3>
-            </div>
-          </Col>
-        ))}
+        <Col md={4}>
+          <div className="plan-stat-card" style={{ borderLeft: `4px solid ${G.gold}` }}>
+            <p className="plan-stat-label">Active Subscriptions</p>
+            <h3 className="plan-stat-value" style={{ color: statsLoading ? G.muted : G.text }}>
+              {statsLoading ? "—" : (stats?.activeSubscriptions || 0).toLocaleString()}
+            </h3>
+          </div>
+        </Col>
+        <Col md={4}>
+          <div className="plan-stat-card" style={{ borderLeft: `4px solid ${G.gold}` }}>
+            <p className="plan-stat-label">Total Plans</p>
+            <h3 className="plan-stat-value" style={{ color: statsLoading ? G.muted : G.text }}>
+              {statsLoading ? "—" : (stats?.totalPlans || 0)}
+            </h3>
+          </div>
+        </Col>
+        <Col md={4}>
+          <div className="plan-stat-card" style={{ borderLeft: `4px solid ${G.gold}` }}>
+            <p className="plan-stat-label">Expiring Plans (30 Days)</p>
+            <h3 className="plan-stat-value" style={{ color: statsLoading ? G.muted : G.text }}>
+              {statsLoading ? "—" : (stats?.expiringPlans || 0)}
+            </h3>
+          </div>
+        </Col>
       </Row>
 
       {/* CYCLE TOGGLE */}
@@ -439,39 +550,308 @@ export default function BillingDetails() {
       </Offcanvas>
 
       {/* ASSIGN TRAINERS MODAL */}
-      <Modal show={assignModal} onHide={() => setAssignModal(false)} centered className="modal-gold">
+      <Modal show={assignModal} onHide={() => setAssignModal(false)} centered className="modal-gold" size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Assign Trainers</Modal.Title>
+          <Modal.Title>
+            Assign "{plans?.find((p) => p.id === selectedPlanId)?.name || "Plan"}" to Trainers
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body style={{ maxHeight: "70vh", overflowY: "auto" }}>
           {trainers.length === 0 ? (
-            <p style={{ color: G.muted, textAlign: "center", margin: 0 }}>No unassigned trainers available.</p>
+            <p style={{ color: G.muted, textAlign: "center", margin: 0 }}>No trainers available.</p>
           ) : (
-            trainers.map((trainer) => (
-              <Form.Check
-                key={trainer.id}
-                type="checkbox"
-                label={`${trainer.firstName} ${trainer.lastName}`}
-                checked={selectedTrainers.includes(trainer.id)}
-                onChange={() => handleTrainerSelect(trainer.id)}
-                className="mb-2"
-              />
-            ))
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {trainers.map((trainer) => {
+                const isSelected = selectedTrainers.includes(trainer.id);
+                const isAlreadyAssigned = trainer.plan?.id === selectedPlanId;
+                return (
+                  <div
+                    key={trainer.id}
+                    onClick={() => handleTrainerSelect(trainer.id)}
+                    style={{
+                      padding: 14,
+                      borderRadius: 8,
+                      border: isSelected ? `2px solid ${G.gold}` : `1px solid ${G.divider}`,
+                      background: isSelected ? "rgba(248,227,150,0.08)" : G.input,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      position: "relative",
+                    }}
+                  >
+                    {isAlreadyAssigned && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 6,
+                          right: 10,
+                          background: G.gold,
+                          color: "#000",
+                          padding: "3px 8px",
+                          borderRadius: 4,
+                          fontSize: 9,
+                          fontWeight: 700,
+                          letterSpacing: 0.5,
+                        }}
+                      >
+                        ✓ ASSIGNED
+                      </span>
+                    )}
+                    <div
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: 4,
+                        border: isSelected ? `2px solid ${G.gold}` : `1px solid ${G.divider}`,
+                        background: isSelected ? G.gold : "transparent",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {isSelected && (
+                        <i className="fe fe-check" style={{ color: "#000", fontSize: 13, fontWeight: 700 }} />
+                      )}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: 0, color: G.text, fontWeight: 600, fontSize: 14 }}>
+                        {trainer.firstName} {trainer.lastName}
+                      </p>
+                      <p style={{ margin: "4px 0 0", color: G.muted, fontSize: 12 }}>
+                        {trainer.email}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </Modal.Body>
         <Modal.Footer>
           <button
             onClick={() => setAssignModal(false)}
-            style={{ background: "transparent", border: `1px solid ${G.divider}`, color: G.text, padding: "6px 16px", borderRadius: 8, cursor: "pointer" }}
+            style={{
+              background: "transparent",
+              border: `1px solid ${G.divider}`,
+              color: G.text,
+              padding: "8px 18px",
+              borderRadius: 8,
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
           >
             Cancel
           </button>
           <button
             onClick={handleAssign}
             disabled={assignLoading}
-            style={{ background: selectedTrainers.length > 0 ? `${G.gold}` : "#333", border: "none", color: selectedTrainers.length > 0 ? "#111" : G.muted, padding: "6px 20px", borderRadius: 8, fontWeight: 700, cursor: selectedTrainers.length > 0 ? "pointer" : "not-allowed" }}
+            style={{
+              background: selectedTrainers.length > 0 ? G.gold : "#333",
+              border: "none",
+              color: selectedTrainers.length > 0 ? "#111" : G.muted,
+              padding: "8px 20px",
+              borderRadius: 8,
+              fontWeight: 700,
+              cursor: selectedTrainers.length > 0 && !assignLoading ? "pointer" : "not-allowed",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
           >
-            {assignLoading ? "Assigning..." : "Assign"}
+            {assignLoading ? (
+              <>
+                <span className="spinner-border spinner-border-sm" style={{ width: 12, height: 12 }} />
+                Assigning...
+              </>
+            ) : (
+              "Assign Trainers"
+            )}
+          </button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* ASSIGN PLANS TO TRAINER MODAL */}
+      <Modal show={assignPlansModal} onHide={() => setAssignPlansModal(false)} centered className="modal-gold" size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {selectedTrainer ? `Assign Plans to ${selectedTrainer.firstName} ${selectedTrainer.lastName}` : "Select Trainer"}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ maxHeight: "70vh", overflowY: "auto" }}>
+          {!selectedTrainer ? (
+            <div>
+              <p style={{ color: G.muted, marginBottom: 16 }}>Select a trainer to assign multiple plans:</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {trainers.length === 0 ? (
+                  <p style={{ color: G.muted, textAlign: "center" }}>Loading trainers...</p>
+                ) : (
+                  trainers.map((trainer) => (
+                    <div
+                      key={trainer.id}
+                      onClick={() => openAssignPlansModal(trainer)}
+                      style={{
+                        padding: 12,
+                        borderRadius: 8,
+                        border: `1px solid ${G.divider}`,
+                        background: G.input,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(248,227,150,0.08)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = G.input)}
+                    >
+                      <div
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: "50%",
+                          background: "rgba(248,227,150,0.07)",
+                          border: `1px solid ${G.divider}`,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: G.goldLight,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {`${trainer.firstName?.charAt(0)}${trainer.lastName?.charAt(0)}`.toUpperCase()}
+                      </div>
+                      <div>
+                        <p style={{ margin: 0, color: G.text, fontWeight: 600, fontSize: 14 }}>{trainer.firstName} {trainer.lastName}</p>
+                        <p style={{ margin: "4px 0 0", color: G.muted, fontSize: 11 }}>{trainer.email || "No email"}</p>
+                      </div>
+                      <i className="fe fe-chevron-right" style={{ marginLeft: "auto", color: G.muted }} />
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <button
+                onClick={() => setSelectedTrainer(null)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: G.goldLight,
+                  padding: "4px 0",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  marginBottom: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <i className="fe fe-chevron-left" /> Back to Trainers
+              </button>
+              <p style={{ color: G.muted, marginBottom: 20 }}>Select which plans to assign (checkmark = selected):</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                {plans?.map((plan) => {
+                  const isSelected = selectedPlans.includes(plan.id);
+                  const wasInitiallyAssigned = selectedTrainer.plan?.id === plan.id ||
+                    (selectedTrainer.plans && selectedTrainer.plans.some((p) => p.id === plan.id));
+                  return (
+                    <div
+                      key={plan.id}
+                      onClick={() => togglePlanSelection(plan.id)}
+                      style={{
+                        padding: 12,
+                        borderRadius: 8,
+                        border: isSelected ? `2px solid ${G.gold}` : `1px solid ${G.divider}`,
+                        background: isSelected ? "rgba(248,227,150,0.08)" : G.input,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        position: "relative",
+                      }}
+                    >
+                      {wasInitiallyAssigned && (
+                        <span style={{
+                          position: "absolute",
+                          top: 4,
+                          right: 4,
+                          background: G.gold,
+                          color: "#000",
+                          padding: "2px 6px",
+                          borderRadius: 3,
+                          fontSize: 9,
+                          fontWeight: 700,
+                        }}>
+                          ASSIGNED
+                        </span>
+                      )}
+                      <div
+                        style={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: 4,
+                          border: isSelected ? `2px solid ${G.gold}` : `1px solid ${G.divider}`,
+                          background: isSelected ? G.gold : "transparent",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isSelected && <i className="fe fe-check" style={{ color: "#000", fontSize: 12, fontWeight: 700 }} />}
+                      </div>
+                      <div>
+                        <p style={{ margin: 0, color: G.text, fontWeight: 600, fontSize: 13 }}>{plan.name}</p>
+                        <p style={{ margin: "4px 0 0", color: G.muted, fontSize: 11 }}>€{plan.price} / {plan.duration?.toLowerCase() || "monthly"}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <button
+            onClick={() => {
+              setAssignPlansModal(false);
+              setSelectedTrainer(null);
+              setSelectedPlans([]);
+            }}
+            style={{ background: "transparent", border: `1px solid ${G.divider}`, color: G.text, padding: "6px 16px", borderRadius: 8, cursor: "pointer" }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleAssignPlans}
+            disabled={assignLoading || !selectedTrainer}
+            style={{
+              background: selectedTrainer ? G.gold : "#333",
+              border: "none",
+              color: selectedTrainer ? "#111" : G.muted,
+              padding: "6px 20px",
+              borderRadius: 8,
+              fontWeight: 700,
+              cursor: selectedTrainer && !assignLoading ? "pointer" : "not-allowed",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            {assignLoading ? (
+              <>
+                <span className="spinner-border spinner-border-sm" style={{ width: 12, height: 12 }} />
+                Assigning...
+              </>
+            ) : (
+              "Assign Plans"
+            )}
           </button>
         </Modal.Footer>
       </Modal>
