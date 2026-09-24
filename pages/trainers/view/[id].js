@@ -92,6 +92,13 @@ const trainer = selectedTrainer;
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [payoutForm, setPayoutForm] = useState({ totalPayout: "", netPayout: "", note: "", periodStart: "", periodEnd: "" });
 
+  // Gym Rent state
+  const [gymRent, setGymRent] = useState(null);
+  const [gymRentLoading, setGymRentLoading] = useState(false);
+  const [gymRentSaving, setGymRentSaving] = useState(false);
+  const [showGymRentModal, setShowGymRentModal] = useState(false);
+  const [gymRentForm, setGymRentForm] = useState({ rentAmount: "", rentFrequency: "MONTHLY", currency: "EUR", description: "", notes: "" });
+
 
 
 const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -153,6 +160,32 @@ useEffect(() => {
     }
   };
   fetchUnavailable();
+}, [trainer?.id]);
+
+useEffect(() => {
+  if (!trainer?.id) return;
+  const fetchGymRent = async () => {
+    setGymRentLoading(true);
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(
+        `https://fitness-app-seven-beryl.vercel.app/api/admin/gym-rent/${trainer.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setGymRent(data.data || null);
+      } else {
+        setGymRent(null);
+      }
+    } catch (err) {
+      console.error("Failed to fetch gym rent:", err);
+      setGymRent(null);
+    } finally {
+      setGymRentLoading(false);
+    }
+  };
+  fetchGymRent();
 }, [trainer?.id]);
 
 useEffect(() => {
@@ -416,6 +449,57 @@ const handlePostPayout = async () => {
     alert("Payout failed: " + err.message);
   } finally {
     setPayoutPosting(false);
+  }
+};
+
+/* ================= GYM RENT ================= */
+
+const openGymRentModal = () => {
+  setGymRentForm({
+    rentAmount: gymRent?.rentAmount ?? "",
+    rentFrequency: gymRent?.rentFrequency || "MONTHLY",
+    currency: gymRent?.currency || "EUR",
+    description: gymRent?.description || "",
+    notes: gymRent?.notes || "",
+  });
+  setShowGymRentModal(true);
+};
+
+const handleSaveGymRent = async () => {
+  if (!trainer?.id) return;
+  setGymRentSaving(true);
+  try {
+    const token = localStorage.getItem("adminToken");
+    const isUpdate = !!gymRent;
+    const url = isUpdate
+      ? `https://fitness-app-seven-beryl.vercel.app/api/admin/gym-rent/${trainer.id}`
+      : "https://fitness-app-seven-beryl.vercel.app/api/admin/gym-rent";
+    const res = await fetch(url, {
+      method: isUpdate ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        ...(isUpdate ? {} : { trainerId: trainer.id }),
+        rentAmount: Number(gymRentForm.rentAmount),
+        rentFrequency: gymRentForm.rentFrequency,
+        currency: gymRentForm.currency,
+        ...(gymRentForm.description ? { description: gymRentForm.description } : {}),
+        ...(gymRentForm.notes ? { notes: gymRentForm.notes } : {}),
+      }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setGymRent(data.data);
+      setShowGymRentModal(false);
+    } else {
+      alert(data.error || data.message || "Failed to save gym rent");
+    }
+  } catch (err) {
+    alert("Failed to save gym rent: " + err.message);
+  } finally {
+    setGymRentSaving(false);
   }
 };
 
@@ -709,6 +793,21 @@ const formatDisplayDate = (dateString) => {
                     <Col md={8} style={{ color: "#cccccc", fontSize: 14 }}>{value}</Col>
                   </Row>
                 ))}
+                <Row className="mb-3 align-items-center">
+                  <Col md={4} style={{ color: G.muted, fontWeight: 600, fontSize: 13 }}>Gym Rent:</Col>
+                  <Col md={8} style={{ color: "#cccccc", fontSize: 14, display: "flex", alignItems: "center", gap: 12 }}>
+                    {gymRentLoading ? (
+                      <Spinner animation="border" size="sm" style={{ color: G.gold }} />
+                    ) : gymRent ? (
+                      <span>
+                        {gymRent.currency} {gymRent.rentAmount} <span style={{ color: G.muted, fontSize: 12 }}>/ {gymRent.rentFrequency}</span>
+                      </span>
+                    ) : (
+                      <span style={{ color: G.muted }}>Not set</span>
+                    )}
+                    <button style={ghostBtn} onClick={openGymRentModal}>{gymRent ? "Edit" : "Add"} Rent</button>
+                  </Col>
+                </Row>
               </Col>
             </Row>
           )}
@@ -1043,6 +1142,49 @@ const formatDisplayDate = (dateString) => {
           <button style={cancelBtn} onClick={() => setShowPayoutModal(false)}>Cancel</button>
           <button style={goldBtn} onClick={handlePostPayout} disabled={payoutPosting || !payoutForm.totalPayout || !payoutForm.netPayout || !payoutForm.periodStart || !payoutForm.periodEnd}>
             {payoutPosting ? <><Spinner animation="border" size="sm" className="me-2" />Processing...</> : "Confirm Payout"}
+          </button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* GYM RENT MODAL */}
+      <Modal show={showGymRentModal} onHide={() => setShowGymRentModal(false)} centered className="modal-gold">
+        <Modal.Header closeButton><Modal.Title>{gymRent ? "Edit" : "Add"} Gym Rent</Modal.Title></Modal.Header>
+        <Modal.Body>
+          <Row className="mb-3">
+            <Col md={7}>
+              <Form.Label>Rent Amount *</Form.Label>
+              <Form.Control type="number" min="0" placeholder="e.g. 5000" value={gymRentForm.rentAmount} onChange={(e) => setGymRentForm({ ...gymRentForm, rentAmount: e.target.value })} />
+            </Col>
+            <Col md={5}>
+              <Form.Label>Currency</Form.Label>
+              <Form.Select className="vw-inp" value={gymRentForm.currency} onChange={(e) => setGymRentForm({ ...gymRentForm, currency: e.target.value })}>
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+              </Form.Select>
+            </Col>
+          </Row>
+          <Form.Group className="mb-3">
+            <Form.Label>Rent Frequency *</Form.Label>
+            <Form.Select className="vw-inp" value={gymRentForm.rentFrequency} onChange={(e) => setGymRentForm({ ...gymRentForm, rentFrequency: e.target.value })}>
+              <option value="WEEKLY">Weekly</option>
+              <option value="MONTHLY">Monthly</option>
+              <option value="QUARTERLY">Quarterly</option>
+              <option value="YEARLY">Yearly</option>
+            </Form.Select>
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Description <span style={{ color: G.muted }}>(optional)</span></Form.Label>
+            <Form.Control type="text" placeholder="e.g. Monthly gym rent" value={gymRentForm.description} onChange={(e) => setGymRentForm({ ...gymRentForm, description: e.target.value })} />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Notes <span style={{ color: G.muted }}>(optional)</span></Form.Label>
+            <Form.Control type="text" placeholder="e.g. Payment due on 1st of month" value={gymRentForm.notes} onChange={(e) => setGymRentForm({ ...gymRentForm, notes: e.target.value })} />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <button style={cancelBtn} onClick={() => setShowGymRentModal(false)}>Cancel</button>
+          <button style={goldBtn} onClick={handleSaveGymRent} disabled={gymRentSaving || !gymRentForm.rentAmount || !gymRentForm.rentFrequency}>
+            {gymRentSaving ? <><Spinner animation="border" size="sm" className="me-2" />Saving...</> : gymRent ? "Update Rent" : "Save Rent"}
           </button>
         </Modal.Footer>
       </Modal>
