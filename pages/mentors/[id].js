@@ -280,9 +280,15 @@ export default function MentorProfile() {
               150×150 · PNG, JPG (Max 2MB)
             </p>
 
-            <h5 style={{ color: G.text, fontWeight: 700, margin: "14px 0 6px", textAlign: "center", fontSize: 16 }}>
+            <h5 style={{ color: G.text, fontWeight: 700, margin: "14px 0 2px", textAlign: "center", fontSize: 16 }}>
               {displayName}
             </h5>
+
+            {form.email && (
+              <p style={{ color: G.muted, fontSize: 12, margin: "0 0 8px", textAlign: "center" }}>
+                {form.email}
+              </p>
+            )}
 
             {form.title && (
               <span style={{ padding: "4px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: G.goldFaint, border: `1px solid ${G.divider}`, color: G.goldLight, textAlign: "center" }}>
