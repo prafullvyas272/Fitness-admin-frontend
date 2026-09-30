@@ -26,12 +26,16 @@ export default function GoldDatePicker({ value, onChange, placeholder = "mm/dd/y
           border-radius: 7px !important;
           padding: 6px 32px 6px 12px !important;
           font-size: 13px !important;
+          line-height: 1.4 !important;
           width: 100%;
+          display: block;
+          box-sizing: border-box;
           cursor: pointer;
+          vertical-align: top;
         }
         .gold-datepicker-input::placeholder { color: #555; }
         .gold-datepicker-input:focus { outline: none; border-color: rgba(248,227,150,0.4) !important; }
-        .gold-datepicker-wrapper { width: 100%; }
+        .gold-datepicker-wrapper { display: block !important; width: 100%; }
         .react-datepicker-popper { z-index: 3000; }
         .react-datepicker { background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 10px; font-family: inherit; }
         .react-datepicker__triangle { display: none; }
@@ -45,7 +49,7 @@ export default function GoldDatePicker({ value, onChange, placeholder = "mm/dd/y
         .react-datepicker__day--disabled { color: #333 !important; cursor: not-allowed; }
         .react-datepicker__navigation-icon::before { border-color: #f8e396; }
       `}</style>
-      <div style={{ position: "relative", width }}>
+      <div style={{ position: "relative", width, display: "flex", alignItems: "center" }}>
         <DatePicker
           selected={isoToDate(value)}
           onChange={(date) => onChange(dateToIso(date))}
@@ -57,7 +61,7 @@ export default function GoldDatePicker({ value, onChange, placeholder = "mm/dd/y
           disabled={disabled}
           autoComplete="off"
         />
-        <i className="fe fe-calendar" style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", color: "#f8e396", fontSize: 13, pointerEvents: "none" }} />
+        <i className="fe fe-calendar" style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", color: "#f8e396", fontSize: 13, pointerEvents: "none", lineHeight: 1 }} />
       </div>
     </>
   );
