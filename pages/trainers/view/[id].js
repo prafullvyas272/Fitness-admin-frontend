@@ -10,7 +10,7 @@ import {
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTrainerById } from "../../../redux/slices/trainerSlice";
-import { GeoAltFill } from "react-bootstrap-icons";
+import { Calendar3, GeoAltFill } from "react-bootstrap-icons";
 
 import { removeCustomerFromTrainer } from "../../../redux/slices/trainerSlice";
 
@@ -91,6 +91,7 @@ const trainer = selectedTrainer;
   const payoutPageSize = 20;
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [payoutForm, setPayoutForm] = useState({ totalPayout: "", netPayout: "", note: "", periodStart: "", periodEnd: "" });
+  const [payoutDateDrafts, setPayoutDateDrafts] = useState({ periodStart: "", periodEnd: "" });
 
   // Gym Rent state
   const [gymRent, setGymRent] = useState(null);
@@ -440,6 +441,7 @@ const handlePostPayout = async () => {
     if (res.ok) {
       setShowPayoutModal(false);
       setPayoutForm({ totalPayout: "", netPayout: "", note: "", periodStart: "", periodEnd: "" });
+      setPayoutDateDrafts({ periodStart: "", periodEnd: "" });
       fetchPayouts(payoutPeriod, payoutStartDate, payoutEndDate, 1);
       setPayoutPage(1);
     } else {
@@ -1130,7 +1132,29 @@ const formatDisplayDate = (dateString) => {
             {[["Period Start *","periodStart"],["Period End *","periodEnd"]].map(([label,key]) => (
               <Col key={key}>
                 <Form.Label>{label}</Form.Label>
-                <Form.Control type="date" lang="en-US" value={payoutForm[key]} onChange={(e) => setPayoutForm({ ...payoutForm, [key]: e.target.value })} onClick={(e) => { try { e.target.showPicker?.(); } catch { /* noop */ } }} />
+                <div style={{ position: "relative" }}>
+                <Form.Control type="text" inputMode="numeric" placeholder="mm/dd/yyyy" value={payoutDateDrafts[key]} onClick={() => { try { document.getElementById(`payout-date-${key}`)?.showPicker?.(); } catch { /* noop */ } }} style={{ paddingRight: "2.5rem" }} onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+                  const draft = digits.length > 4 ? `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}` : digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
+                  setPayoutDateDrafts({ ...payoutDateDrafts, [key]: draft });
+                  const match = draft.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+                  if (match) {
+                    const [, month, day, year] = match;
+                    const date = new Date(Number(year), Number(month) - 1, Number(day));
+                    const valid = date.getFullYear() === Number(year) && date.getMonth() === Number(month) - 1 && date.getDate() === Number(day);
+                    setPayoutForm({ ...payoutForm, [key]: valid ? `${year}-${month}-${day}` : "" });
+                  } else {
+                    setPayoutForm({ ...payoutForm, [key]: "" });
+                  }
+                }} />
+                <Calendar3 size={16} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: G.muted }} />
+                <input id={`payout-date-${key}`} type="date" lang="en-US" value={payoutForm[key]} aria-label={`Choose ${label.replace(" *", "").toLowerCase()}`} onChange={(e) => {
+                  const isoDate = e.target.value;
+                  const [year, month, day] = isoDate ? isoDate.split("-") : ["", "", ""];
+                  setPayoutForm({ ...payoutForm, [key]: isoDate });
+                  setPayoutDateDrafts({ ...payoutDateDrafts, [key]: isoDate ? `${month}/${day}/${year}` : "" });
+                }} style={{ position: "absolute", right: 0, top: 0, width: "2.5rem", height: "100%", opacity: 0, cursor: "pointer" }} />
+                </div>
               </Col>
             ))}
           </Row>
@@ -1158,10 +1182,9 @@ const formatDisplayDate = (dateString) => {
             </Col>
             <Col md={5}>
               <Form.Label>Currency</Form.Label>
-              <Form.Select className="vw-inp" value={gymRentForm.currency} onChange={(e) => setGymRentForm({ ...gymRentForm, currency: e.target.value })}>
-                <option value="EUR">EUR</option>
-                <option value="USD">USD</option>
-              </Form.Select>
+              <div className="vw-inp" style={{ padding: "8px 12px", display: "flex", alignItems: "center", cursor: "default", userSelect: "none" }}>
+                EUR
+              </div>
             </Col>
           </Row>
           <Form.Group className="mb-3">
