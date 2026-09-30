@@ -44,6 +44,12 @@ const formatDate = (dateString) => {
   return `${month}/${day}/${d.getFullYear()}`;
 };
 
+const formatInputDate = (dateString) => {
+  if (!dateString) return "";
+  const [y, m, d] = dateString.split("-");
+  return `${m}/${d}/${y}`;
+};
+
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -54,6 +60,7 @@ export default function Dashboard() {
   const [revenueEndDate, setRevenueEndDate] = useState("");
   const [revenueChartLoading, setRevenueChartLoading] = useState(false);
   const [revenueChartError, setRevenueChartError] = useState("");
+  const [appliedCustomRange, setAppliedCustomRange] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -95,6 +102,7 @@ export default function Dashboard() {
       const data = await res.json();
       if (res.ok && data.success && data.data?.revenueChart) {
         setStats((prev) => (prev ? { ...prev, revenueChart: data.data.revenueChart } : data.data));
+        if (period === "custom") setAppliedCustomRange({ start: startDate, end: endDate });
       } else {
         setRevenueChartError(data.message || "Failed to load revenue data for this period");
       }
@@ -140,6 +148,21 @@ export default function Dashboard() {
     });
 
   const revenueChart = stats?.revenueChart || { categories: [], series: [] };
+
+  const revenuePeriodLabel = (() => {
+    const now = new Date();
+    if (revenuePeriod === "monthly") {
+      return now.toLocaleString("en-US", { month: "long", year: "numeric" });
+    }
+    if (revenuePeriod === "yearly") {
+      return `${now.getFullYear()}`;
+    }
+    if (appliedCustomRange) {
+      return `${formatInputDate(appliedCustomRange.start)} – ${formatInputDate(appliedCustomRange.end)}`;
+    }
+    return "Select a date range";
+  })();
+
   const membershipSplit = stats?.membershipSplit || { total: 0, breakdown: [] };
   const recentMembers = stats?.recentMembers || [];
   const totalRevenue = stats?.totalRevenue;
@@ -249,6 +272,7 @@ export default function Dashboard() {
         .tr-dash:hover td { background: #111111 !important; }
         .th-dash { background: #111111 !important; color: rgba(248,227,150,0.6) !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700 !important; }
         .apexcharts-tooltip { border: 1px solid #2a2a2a !important; }
+        .dash-date-input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
       `}</style>
 
       {/* PAGE HEADER */}
@@ -323,9 +347,7 @@ export default function Dashboard() {
                 Revenue Overview
               </p>
               <h5 style={{ color: G.text, fontWeight: 700, margin: "4px 0 0" }}>
-                {revenueChart.categories.length > 0
-                  ? `${revenueChart.categories[0]} – ${revenueChart.categories[revenueChart.categories.length - 1]}`
-                  : "Revenue trend"}
+                {revenuePeriodLabel}
               </h5>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
@@ -349,16 +371,18 @@ export default function Dashboard() {
           {revenuePeriod === "custom" && (
             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, flexWrap: "wrap" }}>
               <input
-                type="date" lang="en-US" className="vw-inp"
+                type="date" lang="en-US" className="vw-inp dash-date-input"
                 style={{ padding: "5px 10px", background: "#111111", border: `1px solid ${G.divider}`, color: "#cccccc", borderRadius: 7 }}
                 value={revenueStartDate}
                 onChange={(e) => setRevenueStartDate(e.target.value)}
+                onClick={(e) => { try { e.target.showPicker?.(); } catch { /* noop */ } }}
               />
               <input
-                type="date" lang="en-US" className="vw-inp"
+                type="date" lang="en-US" className="vw-inp dash-date-input"
                 style={{ padding: "5px 10px", background: "#111111", border: `1px solid ${G.divider}`, color: "#cccccc", borderRadius: 7 }}
                 value={revenueEndDate}
                 onChange={(e) => setRevenueEndDate(e.target.value)}
+                onClick={(e) => { try { e.target.showPicker?.(); } catch { /* noop */ } }}
               />
               <button
                 disabled={!revenueStartDate || !revenueEndDate}
