@@ -318,7 +318,7 @@ export default function Dashboard() {
                   background: stat.up ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
                   color: stat.up ? "#4ade80" : "#f87171",
                 }}>
-                  {stat.up ? "▲" : "▼"} {stat.changeLabel}
+                  {stat.changeLabel}
                 </span>
               )}
             </div>
