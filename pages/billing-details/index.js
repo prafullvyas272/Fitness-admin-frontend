@@ -17,6 +17,7 @@ const G = {
 };
 
 const CYCLES = ["Weekly", "Monthly", "Quarterly", "Yearly"];
+const DURATION_SUFFIX = { WEEKLY: "/wk", MONTHLY: "/mo", QUARTERLY: "/qtr", YEARLY: "/yr" };
 const CURRENCIES = [
   { code: "EUR", label: "EUR - Euro", symbol: "€" },
   { code: "USD", label: "USD - US Dollar", symbol: "$" },
@@ -427,6 +428,14 @@ export default function BillingDetails() {
       </div>
 
       {/* PLANS GRID */}
+      {visiblePlans?.length === 0 ? (
+        <div style={{
+          background: G.card, border: `1px dashed ${G.divider}`, borderRadius: 14,
+          padding: "48px 24px", textAlign: "center", color: G.muted, fontSize: 14,
+        }}>
+          No plan created
+        </div>
+      ) : (
       <Row>
         {visiblePlans?.map((plan) => (
           <Col md={4} key={plan.id} className="mb-4">
@@ -449,7 +458,9 @@ export default function BillingDetails() {
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 18 }}>
                 <span style={{ color: plan.isPopular ? G.goldLight : G.text, fontSize: 20, fontWeight: 700 }}>€</span>
                 <span style={{ color: plan.isPopular ? G.goldLight : G.text, fontSize: 38, fontWeight: 800, lineHeight: 1 }}>{plan.price}</span>
-                <span style={{ color: G.muted, fontSize: 13, fontStyle: "italic" }}>/mo</span>
+                <span style={{ color: G.muted, fontSize: 13, fontStyle: "italic" }}>
+                  {DURATION_SUFFIX[(plan.duration || "").toUpperCase()] || ""}
+                </span>
               </div>
 
               {/* FEATURES */}
@@ -473,6 +484,7 @@ export default function BillingDetails() {
           </Col>
         ))}
       </Row>
+      )}
 
       {/* CREATE / EDIT PLAN PANEL */}
       <Offcanvas show={show} onHide={resetForm} placement="end" className="offcanvas-gold">
