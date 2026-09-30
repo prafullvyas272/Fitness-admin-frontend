@@ -164,7 +164,7 @@ const mentorSlice = createSlice({
       })
       .addCase(fetchMentors.rejected,  (s, a) => { s.loading = false; s.error = a.payload; })
 
-      .addCase(fetchMentorById.pending,   (s) => { s.loading = true;  s.selected = null; })
+      .addCase(fetchMentorById.pending,   (s) => { s.loading = true; })
       .addCase(fetchMentorById.fulfilled, (s, a) => { s.loading = false; s.selected = a.payload; })
       .addCase(fetchMentorById.rejected,  (s) => { s.loading = false; })
 
