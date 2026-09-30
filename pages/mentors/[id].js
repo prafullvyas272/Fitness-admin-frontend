@@ -43,11 +43,11 @@ const KNOWN_CODES = ["+971", "+91", "+61", "+44", "+1"];
 const EMPTY_FORM = {
   firstName: "", lastName: "", email: "", password: "",
   phone: "", countryCode: "+44", country: "GB",
-  title: "", experience: "", region: "North America",
-  maxPTs: 30, status: "Active",
+  title: "", experience: "", region: "",
+  maxPTs: "30", status: "Active",
   specialities: [],   // [{id, name}]
   photoFile: null, photoPreview: "",
-  ptSaturation: 0, ptSaturationMax: 30, assignedPts: 0,
+  ptSaturation: 0, assignedPts: 0,
 };
 
 export default function MentorProfile() {
@@ -103,8 +103,8 @@ export default function MentorProfile() {
       country:         countryObj.country,
       title:           profile.title       || "",
       experience:      profile.experience  != null ? String(profile.experience) : "",
-      region:          profile.region      || "North America",
-      maxPTs:          profile.maxPTs      ?? 30,
+      region:          profile.region      || "",
+      maxPTs:          profile.maxPTs      != null ? String(profile.maxPTs) : "",
       status:          STATUS_DISPLAY[profile.status] || "Active",
       specialities:    (selected.specialities || []).map((s) => ({
                          id:   s.specialityId || s.speciality?.id,
@@ -113,7 +113,6 @@ export default function MentorProfile() {
       photoFile:       null,
       photoPreview:    profile.avatarUrl   || "",
       ptSaturation:    selected.assignedPTs ?? 0,
-      ptSaturationMax: profile.maxPTs      ?? 30,
       assignedPts:     selected.assignedPTs ?? 0,
     });
     setLoaded(true);
@@ -162,7 +161,7 @@ export default function MentorProfile() {
     if (form.title)      fd.append("title",      form.title);
     if (form.experience) fd.append("experience", form.experience);
     fd.append("region",  form.region);
-    fd.append("maxPTs",  form.maxPTs);
+    fd.append("maxPTs",  form.maxPTs !== "" ? form.maxPTs : 0);
     fd.append("status",  STATUS_API[form.status] || "ACTIVE");
     if (form.specialities.length)
       fd.append("specialityIds", JSON.stringify(form.specialities.map((s) => s.id)));
@@ -182,7 +181,8 @@ export default function MentorProfile() {
     }
   };
 
-  const satPct      = form.ptSaturationMax > 0 ? Math.min(100, (form.ptSaturation / form.ptSaturationMax) * 100) : 0;
+  const maxPTsNum   = Number(form.maxPTs) || 0;
+  const satPct      = maxPTsNum > 0 ? Math.min(100, (form.ptSaturation / maxPTsNum) * 100) : 0;
   const statusColor = STATUS_COLORS[form.status] || STATUS_COLORS.Active;
   const displayName = [form.firstName, form.lastName].filter(Boolean).join(" ") || "New Mentor";
 
@@ -323,7 +323,7 @@ export default function MentorProfile() {
             <div style={{ marginBottom: 18 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <span style={{ color: G.muted, fontSize: 12, fontWeight: 600 }}>PT Saturation</span>
-                <span style={{ color: G.text, fontSize: 12, fontWeight: 700 }}>{form.ptSaturation} / {form.ptSaturationMax}</span>
+                <span style={{ color: G.text, fontSize: 12, fontWeight: 700 }}>{form.ptSaturation} / {maxPTsNum}</span>
               </div>
               <div style={{ height: 5, background: "rgba(248,227,150,0.1)", borderRadius: 4, overflow: "hidden" }}>
                 <div style={{ height: "100%", width: `${satPct}%`, background: `linear-gradient(90deg, ${G.gold}, ${G.goldLight})`, borderRadius: 4, transition: "width 0.4s ease" }} />
@@ -478,7 +478,7 @@ export default function MentorProfile() {
 
               <div>
                 <label className="field-label">Max PTs</label>
-                <input className="inp-profile" type="number" min="0" placeholder="30" value={form.maxPTs} onChange={(e) => set("maxPTs", Number(e.target.value))} />
+                <input className="inp-profile" type="number" min="0" placeholder="30" value={form.maxPTs} onChange={(e) => set("maxPTs", e.target.value)} />
               </div>
             </div>
           </div>
