@@ -30,7 +30,7 @@ const formatCurrency = (value, currency) => {
 };
 
 const formatChange = (card) => {
-  if (card.changePercent !== undefined && card.changePercent !== null) return `${card.changePercent}%`;
+  if (card.changePercent !== undefined && card.changePercent !== null) return `${card.changePercent}`;
   if (card.change !== undefined && card.change !== null) return `${card.change}`;
   return null;
 };
@@ -521,7 +521,7 @@ export default function Dashboard() {
                   fontSize: 12, fontWeight: 600, color: "#4ade80",
                   background: "rgba(34,197,94,0.12)", padding: "3px 10px", borderRadius: 20,
                 }}>
-                  ▲ +{totalRevenue.changePercent}% {totalRevenue.label}
+                  ▲ +{totalRevenue.changePercent} {totalRevenue.label}
                 </span>
               )}
             </div>
