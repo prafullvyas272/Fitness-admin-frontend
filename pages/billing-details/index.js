@@ -373,7 +373,7 @@ export default function BillingDetails() {
             }}
             style={{ background: `rgba(248,227,150,0.15)`, border: `1px solid ${G.divider}`, color: G.goldLight, padding: "8px 24px", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 14 }}
           >
-            📋 Assign Plans
+            Assign Plans
           </button>
           <button
             onClick={() => setShow(true)}
