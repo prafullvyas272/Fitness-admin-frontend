@@ -105,16 +105,6 @@ export default function MentorsPage() {
     dispatch(deleteMentor(id));
   };
 
-  const exportCSV = () => {
-    const header = ["Name", "Role", "Contact", "Specialization", "Assigned Pts", "Status"];
-    const rows   = normalised.map((m) => [m.name, m.role, m.contact, m.specialization, m.assignedPts, m.status]);
-    const csv    = [header, ...rows].map((r) => r.join(",")).join("\n");
-    const blob   = new Blob([csv], { type: "text/csv" });
-    const url    = URL.createObjectURL(blob);
-    const a      = document.createElement("a"); a.href = url; a.download = "mentors.csv"; a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: "28px" }}>
       <style>{`
@@ -186,15 +176,12 @@ export default function MentorsPage() {
             })}
           </div>
 
-          {/* Search + export */}
+          {/* Search */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 200, position: "relative" }}>
               <i className="fe fe-search" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: G.muted, fontSize: 14 }} />
               <input className="inp-gold" placeholder="Filter by Name, Contact Number or specialization" value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: "100%", padding: "8px 12px 8px 36px", fontSize: 13 }} />
             </div>
-            <button onClick={exportCSV} style={{ padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", background: G.goldFaint, border: `1px solid ${G.divider}`, color: G.goldLight }}>
-              Export CSV
-            </button>
           </div>
         </div>
 
