@@ -674,6 +674,7 @@ const formatDisplayDate = (dateString) => {
         .vw-inp { background: ${G.input} !important; border: 1px solid ${G.divider} !important; color: #cccccc !important; border-radius: 7px !important; }
         .vw-inp:focus { border-color: rgba(248,227,150,0.25) !important; box-shadow: none !important; outline: none !important; }
         .vw-inp option { background: ${G.card}; color: #cccccc; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
         .modal-gold .modal-content { background: ${G.card}; border: 1px solid ${G.divider}; color: ${G.text}; }
         .modal-gold .modal-header { border-bottom: 1px solid ${G.divider}; background: ${G.card}; }
         .modal-gold .modal-footer { border-top: 1px solid ${G.divider}; background: ${G.card}; }
@@ -1039,8 +1040,8 @@ const formatDisplayDate = (dateString) => {
                 </Col>
                 {payoutPeriod === "custom" && (
                   <>
-                    <Col xs="auto"><input type="date" lang="en-US" className="vw-inp" style={{ padding: "5px 10px" }} value={payoutStartDate} onChange={(e) => setPayoutStartDate(e.target.value)} /></Col>
-                    <Col xs="auto"><input type="date" lang="en-US" className="vw-inp" style={{ padding: "5px 10px" }} value={payoutEndDate} onChange={(e) => setPayoutEndDate(e.target.value)} /></Col>
+                    <Col xs="auto"><input type="date" lang="en-US" className="vw-inp" style={{ padding: "5px 10px" }} value={payoutStartDate} onChange={(e) => setPayoutStartDate(e.target.value)} onClick={(e) => { try { e.target.showPicker?.(); } catch { /* noop */ } }} /></Col>
+                    <Col xs="auto"><input type="date" lang="en-US" className="vw-inp" style={{ padding: "5px 10px" }} value={payoutEndDate} onChange={(e) => setPayoutEndDate(e.target.value)} onClick={(e) => { try { e.target.showPicker?.(); } catch { /* noop */ } }} /></Col>
                     <Col xs="auto">
                       <button style={goldBtn} disabled={!payoutStartDate || !payoutEndDate} onClick={() => { setPayoutPage(1); fetchPayouts("custom",payoutStartDate,payoutEndDate,1); }}>Apply</button>
                     </Col>
@@ -1129,7 +1130,7 @@ const formatDisplayDate = (dateString) => {
             {[["Period Start *","periodStart"],["Period End *","periodEnd"]].map(([label,key]) => (
               <Col key={key}>
                 <Form.Label>{label}</Form.Label>
-                <Form.Control type="date" lang="en-US" value={payoutForm[key]} onChange={(e) => setPayoutForm({ ...payoutForm, [key]: e.target.value })} />
+                <Form.Control type="date" lang="en-US" value={payoutForm[key]} onChange={(e) => setPayoutForm({ ...payoutForm, [key]: e.target.value })} onClick={(e) => { try { e.target.showPicker?.(); } catch { /* noop */ } }} />
               </Col>
             ))}
           </Row>
