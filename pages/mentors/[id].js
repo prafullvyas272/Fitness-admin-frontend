@@ -120,6 +120,8 @@ export default function MentorProfile() {
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
+  const setNonNegativeInt = (key, val) => set(key, val.replace(/[^0-9]/g, ""));
+
   const removeSpec = (id) =>
     set("specialities", form.specialities.filter((s) => s.id !== id));
 
@@ -459,7 +461,7 @@ export default function MentorProfile() {
 
               <div>
                 <label className="field-label">Experience (Years)</label>
-                <input className="inp-profile" type="number" min="0" placeholder="e.g. 5" value={form.experience} onChange={(e) => set("experience", e.target.value)} />
+                <input className="inp-profile" type="number" min="0" placeholder="e.g. 5" value={form.experience} onChange={(e) => setNonNegativeInt("experience", e.target.value)} onKeyDown={(e) => { if (e.key === "-" || e.key === "e") e.preventDefault(); }} />
               </div>
 
               <div>
@@ -484,7 +486,7 @@ export default function MentorProfile() {
 
               <div>
                 <label className="field-label">Max PTs</label>
-                <input className="inp-profile" type="number" min="0" placeholder="30" value={form.maxPTs} onChange={(e) => set("maxPTs", e.target.value)} />
+                <input className="inp-profile" type="number" min="0" placeholder="30" value={form.maxPTs} onChange={(e) => setNonNegativeInt("maxPTs", e.target.value)} onKeyDown={(e) => { if (e.key === "-" || e.key === "e") e.preventDefault(); }} />
               </div>
             </div>
           </div>
