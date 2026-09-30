@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import GoldDatePicker from "../components/GoldDatePicker";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -273,6 +272,7 @@ export default function Dashboard() {
         .tr-dash:hover td { background: #111111 !important; }
         .th-dash { background: #111111 !important; color: rgba(248,227,150,0.6) !important; border-bottom: 1px solid ${G.divider} !important; font-size: 10px !important; letter-spacing: 1.2px !important; padding: 12px 16px !important; font-weight: 700 !important; }
         .apexcharts-tooltip { border: 1px solid #2a2a2a !important; }
+        .dash-date-input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
       `}</style>
 
       {/* PAGE HEADER */}
@@ -361,8 +361,20 @@ export default function Dashboard() {
           </div>
           {revenuePeriod === "custom" && (
             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, flexWrap: "wrap" }}>
-              <GoldDatePicker value={revenueStartDate} onChange={setRevenueStartDate} />
-              <GoldDatePicker value={revenueEndDate} onChange={setRevenueEndDate} />
+              <input
+                type="date" lang="en-US" className="vw-inp dash-date-input"
+                style={{ padding: "5px 10px", background: "#111111", border: `1px solid ${G.divider}`, color: "#cccccc", borderRadius: 7 }}
+                value={revenueStartDate}
+                onChange={(e) => setRevenueStartDate(e.target.value)}
+                onClick={(e) => { try { e.target.showPicker?.(); } catch { /* noop */ } }}
+              />
+              <input
+                type="date" lang="en-US" className="vw-inp dash-date-input"
+                style={{ padding: "5px 10px", background: "#111111", border: `1px solid ${G.divider}`, color: "#cccccc", borderRadius: 7 }}
+                value={revenueEndDate}
+                onChange={(e) => setRevenueEndDate(e.target.value)}
+                onClick={(e) => { try { e.target.showPicker?.(); } catch { /* noop */ } }}
+              />
               <button
                 disabled={!revenueStartDate || !revenueEndDate}
                 onClick={handleApplyCustomRange}
