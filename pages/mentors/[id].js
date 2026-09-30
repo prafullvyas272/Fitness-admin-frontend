@@ -223,7 +223,7 @@ export default function MentorProfile() {
         .avatar-upload-wrap { width: 110px; height: 110px; border-radius: 50%; border: 3px solid ${G.gold}; background: rgba(248,227,150,0.07); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; margin: 0 auto 16px; }
         .avatar-upload-wrap .avatar-upload-overlay { opacity: 0; transition: opacity 0.2s ease; }
         .avatar-upload-wrap:hover .avatar-upload-overlay { opacity: 1; }
-        .avatar-upload-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.72); text-align: center; padding: 5px 0; font-size: 10px; font-weight: 700; color: ${G.gold}; letter-spacing: 0.5px; }
+        .avatar-upload-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 14px; font-size: 10px; font-weight: 700; color: ${G.gold}; letter-spacing: 0.5px; line-height: 1.4; }
         .sugg-box { position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid ${G.divider}; border-radius: 7px; z-index: 99; max-height: 160px; overflow-y: auto; margin-top: 4px; }
         .sugg-item { padding: 9px 14px; font-size: 12px; color: #cccccc; cursor: pointer; }
         .sugg-item:hover { background: rgba(248,227,150,0.07); color: ${G.goldLight}; }
