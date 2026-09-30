@@ -4,6 +4,13 @@ function base64UrlDecode(str) {
   return atob(base64);
 }
 
+export const SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+export function isSessionExpired(loginAt, now = Date.now()) {
+  const startedAt = Number(loginAt);
+  return !Number.isFinite(startedAt) || now - startedAt >= SESSION_MAX_AGE_MS;
+}
+
 export function isTokenExpired(token) {
   if (!token) return true;
   try {
@@ -19,6 +26,7 @@ export function forceLogout() {
   localStorage.removeItem("adminToken");
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("adminId");
+  localStorage.removeItem("adminLoginAt");
   if (window.location.pathname !== "/login") {
     window.location.href = "/login";
   }

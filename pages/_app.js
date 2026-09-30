@@ -19,7 +19,7 @@ import 'styles/theme.scss';
 import DefaultDashboardLayout from 'layouts/DefaultDashboardLayout';
 
 // import auth guard helpers
-import { isTokenExpired, forceLogout } from 'utils/auth';
+import { isTokenExpired, isSessionExpired, forceLogout } from 'utils/auth';
 
 function setupAuthGuards() {
   if (typeof window === 'undefined' || window.__authGuardsInstalled) return;
@@ -71,12 +71,28 @@ const Layout = noLayoutPages.includes(router.pathname)
 
     const checkExpiry = () => {
       const token = localStorage.getItem('adminToken');
-      if (token && isTokenExpired(token)) forceLogout();
+      if (!token) return;
+
+      let loginAt = localStorage.getItem('adminLoginAt');
+      if (!loginAt) {
+        loginAt = String(Date.now());
+        localStorage.setItem('adminLoginAt', loginAt);
+      }
+
+      if (isTokenExpired(token) || isSessionExpired(loginAt)) forceLogout();
     };
 
     checkExpiry();
     const interval = setInterval(checkExpiry, 60000);
-    return () => clearInterval(interval);
+    window.addEventListener('focus', checkExpiry);
+    window.addEventListener('pageshow', checkExpiry);
+    document.addEventListener('visibilitychange', checkExpiry);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', checkExpiry);
+      window.removeEventListener('pageshow', checkExpiry);
+      document.removeEventListener('visibilitychange', checkExpiry);
+    };
   }, [router.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
 return (

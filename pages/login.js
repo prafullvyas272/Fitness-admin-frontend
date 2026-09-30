@@ -158,6 +158,7 @@ export default function Login() {
       localStorage.setItem("adminToken",   token);
       localStorage.setItem("refreshToken", data?.data?.refresh_token);
       localStorage.setItem("adminId",      data?.data?.user?.id);
+      localStorage.setItem("adminLoginAt", String(Date.now()));
       router.push("/dashboard");
     } catch (err) {
       setError(err.message);
