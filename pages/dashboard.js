@@ -312,15 +312,6 @@ export default function Dashboard() {
               }}>
                 <i className={`fe ${stat.icon}`} style={{ color: G.gold, fontSize: 16 }}></i>
               </div>
-              {stat.changeLabel !== null && (
-                <span style={{
-                  fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 20,
-                  background: stat.up ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
-                  color: stat.up ? "#4ade80" : "#f87171",
-                }}>
-                  {stat.changeLabel}
-                </span>
-              )}
             </div>
 
             <p style={{ color: G.muted, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08rem", margin: 0 }}>
