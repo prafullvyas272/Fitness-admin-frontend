@@ -107,9 +107,19 @@ export default function AvailabilitySlots() {
     return moment(time, "h:mm A").hours() * 60 + moment(time, "h:mm A").minutes();
   };
 
-  const startTimeOptions = timeOptions.filter(
-    (t) => timeToMinutes(t.value) + 45 < 1440
-  );
+  const nowISTMinutes = () => {
+    const now = moment().utcOffset(330);
+    return now.hours() * 60 + now.minutes();
+  };
+
+  const todayIST = formatDateIST(new Date());
+  const isSelectedDateToday = selectedDate && formatDate(selectedDate) === todayIST;
+
+  const startTimeOptions = timeOptions.filter((t) => {
+    if (timeToMinutes(t.value) + 45 >= 1440) return false;
+    if (isSelectedDateToday && timeToMinutes(t.value) <= nowISTMinutes()) return false;
+    return true;
+  });
 
   const slotsOverlap = (startA, endA, startB, endB) => {
     const sA = timeToMinutes(startA);
@@ -216,6 +226,7 @@ export default function AvailabilitySlots() {
   };
 
   const handleDateClick = (date) => {
+    if (formatDate(date) < formatDateIST(new Date())) return;
     setSelectedDate(date);
   };
 
@@ -383,6 +394,7 @@ export default function AvailabilitySlots() {
             const formatted = formatDate(date);
             const hasSlots = slotDates.includes(formatted);
             const isSelected = selectedDate && formatDate(date) === formatDate(selectedDate);
+            const isPast = formatted < todayIST;
             return (
               <div
                 key={i}
@@ -392,16 +404,17 @@ export default function AvailabilitySlots() {
                   textAlign: "center",
                   padding: "8px 4px",
                   borderRadius: 8,
-                  cursor: "pointer",
+                  cursor: isPast ? "not-allowed" : "pointer",
                   fontSize: 13,
                   fontWeight: isSelected ? 700 : 400,
                   background: isSelected ? `${G.gold}` : "transparent",
-                  color: isSelected ? "#111" : G.text,
+                  color: isPast ? "#3a3a3a" : isSelected ? "#111" : G.text,
                   border: `1px solid ${isSelected ? "transparent" : "transparent"}`,
+                  opacity: isPast ? 0.6 : 1,
                   transition: "background 0.15s",
                 }}
-                onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "rgba(248,227,150,0.1)"; }}
-                onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}
+                onMouseEnter={(e) => { if (!isSelected && !isPast) e.currentTarget.style.background = "rgba(248,227,150,0.1)"; }}
+                onMouseLeave={(e) => { if (!isSelected && !isPast) e.currentTarget.style.background = "transparent"; }}
               >
                 {date.getDate()}
                 {hasSlots && (
