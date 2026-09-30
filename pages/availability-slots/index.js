@@ -114,6 +114,7 @@ export default function AvailabilitySlots() {
 
   const todayIST = formatDateIST(new Date());
   const isSelectedDateToday = selectedDate && formatDate(selectedDate) === todayIST;
+  const isSelectedDatePast = selectedDate && formatDate(selectedDate) < todayIST;
 
   const startTimeOptions = timeOptions.filter((t) => {
     if (timeToMinutes(t.value) + 45 >= 1440) return false;
@@ -226,7 +227,6 @@ export default function AvailabilitySlots() {
   };
 
   const handleDateClick = (date) => {
-    if (formatDate(date) < formatDateIST(new Date())) return;
     setSelectedDate(date);
   };
 
@@ -404,17 +404,16 @@ export default function AvailabilitySlots() {
                   textAlign: "center",
                   padding: "8px 4px",
                   borderRadius: 8,
-                  cursor: isPast ? "not-allowed" : "pointer",
+                  cursor: "pointer",
                   fontSize: 13,
                   fontWeight: isSelected ? 700 : 400,
                   background: isSelected ? `${G.gold}` : "transparent",
-                  color: isPast ? "#3a3a3a" : isSelected ? "#111" : G.text,
+                  color: isSelected ? "#111" : isPast ? G.muted : G.text,
                   border: `1px solid ${isSelected ? "transparent" : "transparent"}`,
-                  opacity: isPast ? 0.6 : 1,
                   transition: "background 0.15s",
                 }}
-                onMouseEnter={(e) => { if (!isSelected && !isPast) e.currentTarget.style.background = "rgba(248,227,150,0.1)"; }}
-                onMouseLeave={(e) => { if (!isSelected && !isPast) e.currentTarget.style.background = "transparent"; }}
+                onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "rgba(248,227,150,0.1)"; }}
+                onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}
               >
                 {date.getDate()}
                 {hasSlots && (
@@ -529,19 +528,35 @@ export default function AvailabilitySlots() {
                 </div>
               ))}
 
+              {isSelectedDatePast && (
+                <div style={{
+                  background: "rgba(248,227,150,0.07)",
+                  border: `1px solid ${G.divider}`,
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                  marginBottom: 16,
+                  color: G.muted,
+                  fontSize: 13,
+                }}>
+                  This date is in the past — existing slots are shown below, but new slots can&apos;t be added here.
+                </div>
+              )}
+
               {/* Actions */}
               <div style={{ marginTop: 8, display: "flex", gap: 10, alignItems: "center" }}>
                 <button
                   onClick={addSlot}
+                  disabled={isSelectedDatePast}
                   style={{
                     background: "transparent",
                     border: `1px solid ${G.divider}`,
-                    color: G.text,
+                    color: isSelectedDatePast ? G.muted : G.text,
                     padding: "8px 20px",
                     borderRadius: 8,
-                    cursor: "pointer",
+                    cursor: isSelectedDatePast ? "not-allowed" : "pointer",
                     fontSize: 13,
                     fontWeight: 600,
+                    opacity: isSelectedDatePast ? 0.5 : 1,
                   }}
                 >
                   + Add Slot
