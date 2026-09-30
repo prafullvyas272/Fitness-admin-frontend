@@ -49,6 +49,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [revenuePeriod, setRevenuePeriod] = useState("monthly");
+  const [revenueStartDate, setRevenueStartDate] = useState("");
+  const [revenueEndDate, setRevenueEndDate] = useState("");
+  const [revenueChartLoading, setRevenueChartLoading] = useState(false);
+  const [revenueChartError, setRevenueChartError] = useState("");
+
   useEffect(() => {
     const fetchStats = async () => {
       setLoading(true);
@@ -56,7 +62,7 @@ export default function Dashboard() {
       try {
         const token = localStorage.getItem("adminToken");
         const res = await fetch(
-          "https://fitness-app-seven-beryl.vercel.app/api/admin/dashboard/stats",
+          "https://fitness-app-seven-beryl.vercel.app/api/admin/dashboard/stats?period=monthly",
           { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } }
         );
         const data = await res.json();
@@ -73,6 +79,48 @@ export default function Dashboard() {
     };
     fetchStats();
   }, []);
+
+  const fetchRevenueChart = async (period, startDate, endDate) => {
+    setRevenueChartLoading(true);
+    setRevenueChartError("");
+    try {
+      const token = localStorage.getItem("adminToken");
+      let url = `https://fitness-app-seven-beryl.vercel.app/api/admin/dashboard/stats?period=${period}`;
+      if (period === "custom" && startDate && endDate) {
+        url += `&startDate=${startDate}&endDate=${endDate}`;
+      }
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.data?.revenueChart) {
+        setStats((prev) => (prev ? { ...prev, revenueChart: data.data.revenueChart } : data.data));
+      } else {
+        setRevenueChartError(data.message || "Failed to load revenue data for this period");
+      }
+    } catch (err) {
+      setRevenueChartError("Failed to load revenue data: " + err.message);
+    } finally {
+      setRevenueChartLoading(false);
+    }
+  };
+
+  const handleRevenuePeriodChange = (period) => {
+    setRevenuePeriod(period);
+    setRevenueChartError("");
+    if (period !== "custom") {
+      fetchRevenueChart(period, "", "");
+    }
+  };
+
+  const handleApplyCustomRange = () => {
+    if (!revenueStartDate || !revenueEndDate) return;
+    if (revenueStartDate > revenueEndDate) {
+      setRevenueChartError("Start date must be before end date");
+      return;
+    }
+    fetchRevenueChart("custom", revenueStartDate, revenueEndDate);
+  };
 
   const cardsData = stats?.cards || {};
   const cardEntries = Object.keys(CARD_META)
@@ -269,7 +317,7 @@ export default function Dashboard() {
 
         {/* Revenue Chart */}
         <div style={{ background: G.card, border: G.cardBorder, borderRadius: 12, padding: "22px 24px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, flexWrap: "wrap", gap: 12 }}>
             <div>
               <p style={{ color: G.muted, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08rem", margin: 0 }}>
                 Revenue Overview
@@ -280,16 +328,63 @@ export default function Dashboard() {
                   : "Revenue trend"}
               </h5>
             </div>
-            <div style={{
-              background: G.goldFaint, border: `1px solid ${G.divider}`,
-              borderRadius: 8, padding: "6px 14px",
-              color: G.goldLight, fontSize: 12, fontWeight: 600,
-            }}>
-              Monthly
+            <div style={{ display: "flex", gap: 8 }}>
+              {["monthly", "yearly", "custom"].map((p) => (
+                <button
+                  key={p}
+                  onClick={() => handleRevenuePeriodChange(p)}
+                  style={{
+                    background: revenuePeriod === p ? G.gold : "transparent",
+                    border: `1px solid ${revenuePeriod === p ? G.gold : G.divider}`,
+                    color: revenuePeriod === p ? "#000" : G.goldLight,
+                    fontWeight: 600, borderRadius: 8, padding: "6px 14px",
+                    fontSize: 12, cursor: "pointer",
+                  }}
+                >
+                  {p.charAt(0).toUpperCase() + p.slice(1)}
+                </button>
+              ))}
             </div>
           </div>
+          {revenuePeriod === "custom" && (
+            <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, flexWrap: "wrap" }}>
+              <input
+                type="date" lang="en-US" className="vw-inp"
+                style={{ padding: "5px 10px", background: "#111111", border: `1px solid ${G.divider}`, color: "#cccccc", borderRadius: 7 }}
+                value={revenueStartDate}
+                onChange={(e) => setRevenueStartDate(e.target.value)}
+              />
+              <input
+                type="date" lang="en-US" className="vw-inp"
+                style={{ padding: "5px 10px", background: "#111111", border: `1px solid ${G.divider}`, color: "#cccccc", borderRadius: 7 }}
+                value={revenueEndDate}
+                onChange={(e) => setRevenueEndDate(e.target.value)}
+              />
+              <button
+                disabled={!revenueStartDate || !revenueEndDate}
+                onClick={handleApplyCustomRange}
+                style={{
+                  background: G.gold, border: "none", color: "#000", fontWeight: 700,
+                  borderRadius: 8, padding: "6px 16px", cursor: "pointer", fontSize: 12,
+                  opacity: !revenueStartDate || !revenueEndDate ? 0.5 : 1,
+                }}
+              >
+                Apply
+              </button>
+            </div>
+          )}
           <div style={{ height: 2, background: `linear-gradient(90deg, ${G.gold}, transparent)`, borderRadius: 4, marginBottom: 8 }} />
-          <Chart options={chartOptions} series={chartSeries} type="area" height={270} />
+          {revenueChartError ? (
+            <div style={{ height: 270, display: "flex", alignItems: "center", justifyContent: "center", color: "#ff6b6b", fontSize: 13, textAlign: "center", padding: "0 20px" }}>
+              {revenueChartError}
+            </div>
+          ) : revenueChartLoading ? (
+            <div style={{ height: 270, display: "flex", alignItems: "center", justifyContent: "center", color: G.muted, fontSize: 13 }}>
+              Loading revenue data...
+            </div>
+          ) : (
+            <Chart options={chartOptions} series={chartSeries} type="area" height={270} />
+          )}
         </div>
 
         {/* Membership Donut */}
