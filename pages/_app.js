@@ -101,8 +101,8 @@ return (
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="keywords" content={keywords} />
-        <link rel="shortcut icon" href="https://res.cloudinary.com/dbazlbkfj/image/upload/c_pad,w_64,h_64,b_transparent/v1771390209/Layer_x0020_1_p5f6fs.png" type="image/png" />
-        <link rel="icon" href="https://res.cloudinary.com/dbazlbkfj/image/upload/c_pad,w_64,h_64,b_transparent/v1771390209/Layer_x0020_1_p5f6fs.png" type="image/png" />
+        <link rel="shortcut icon" href="/fav.png" type="image/png" />
+        <link rel="icon" href="/fav.png" type="image/png" />
       </Head>
 
       <NextSeo
