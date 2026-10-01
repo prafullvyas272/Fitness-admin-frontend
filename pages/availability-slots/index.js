@@ -122,6 +122,14 @@ export default function AvailabilitySlots() {
     return true;
   });
 
+  const getRowTimeOptions = (currentValue) => {
+    if (!currentValue || startTimeOptions.some((t) => t.value === currentValue)) {
+      return startTimeOptions;
+    }
+    // Keep an already-saved past time visible/selected even though it's no longer pickable for new slots
+    return [{ value: currentValue, label: currentValue }, ...startTimeOptions];
+  };
+
   const slotsOverlap = (startA, endA, startB, endB) => {
     const sA = timeToMinutes(startA);
     const eA = timeToMinutes(endA);
@@ -469,8 +477,8 @@ export default function AvailabilitySlots() {
                   {/* Start time */}
                   <div style={{ width: 180 }}>
                     <Select
-                      options={startTimeOptions}
-                      value={startTimeOptions.find((t) => t.value === slot.startTime) || null}
+                      options={getRowTimeOptions(slot.startTime)}
+                      value={slot.startTime ? { value: slot.startTime, label: slot.startTime } : null}
                       onChange={(selected) => handleStartTimeChange(index, selected?.value || "")}
                       placeholder="Select Time"
                       menuPlacement="top"
