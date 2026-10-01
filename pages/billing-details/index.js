@@ -70,7 +70,7 @@ export default function BillingDetails() {
           : [],
         duration: formData.cycle.toUpperCase(),
         isPopular: formData.isPopular,
-        maxTrainerPlans: formData.maxTrainerPlans !== "" ? parseInt(formData.maxTrainerPlans, 10) : null,
+        ...(formData.maxTrainerPlans !== "" ? { maxSlots: parseInt(formData.maxTrainerPlans, 10) } : {}),
       };
       if (editId) {
         await dispatch(updatePlan({ id: editId, planData: payload }));
@@ -97,7 +97,7 @@ export default function BillingDetails() {
       currency: plan.currency || "EUR",
       features: Array.isArray(plan.features) ? plan.features.join("\n") : (plan.features || ""),
       isPopular: plan.isPopular || false,
-      maxTrainerPlans: plan.maxTrainerPlans != null ? String(plan.maxTrainerPlans) : "",
+      maxTrainerPlans: plan.maxSlots != null ? String(plan.maxSlots) : "",
     });
     setEditId(plan.id);
     setShow(true);
