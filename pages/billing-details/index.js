@@ -49,7 +49,7 @@ export default function BillingDetails() {
 
   const [formData, setFormData] = useState({
     name: "", description: "", cycle: "Monthly", price: "", currency: "EUR",
-    features: "", isPopular: false,
+    features: "", isPopular: false, maxTrainerPlans: "",
   });
 
   useEffect(() => {
@@ -70,6 +70,7 @@ export default function BillingDetails() {
           : [],
         duration: formData.cycle.toUpperCase(),
         isPopular: formData.isPopular,
+        maxTrainerPlans: formData.maxTrainerPlans !== "" ? parseInt(formData.maxTrainerPlans, 10) : null,
       };
       if (editId) {
         await dispatch(updatePlan({ id: editId, planData: payload }));
@@ -96,6 +97,7 @@ export default function BillingDetails() {
       currency: plan.currency || "EUR",
       features: Array.isArray(plan.features) ? plan.features.join("\n") : (plan.features || ""),
       isPopular: plan.isPopular || false,
+      maxTrainerPlans: plan.maxTrainerPlans != null ? String(plan.maxTrainerPlans) : "",
     });
     setEditId(plan.id);
     setShow(true);
@@ -115,7 +117,7 @@ export default function BillingDetails() {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", description: "", cycle: "Monthly", price: "", currency: "EUR", features: "", isPopular: false });
+    setFormData({ name: "", description: "", cycle: "Monthly", price: "", currency: "EUR", features: "", isPopular: false, maxTrainerPlans: "" });
     setEditId(null);
     setShow(false);
   };
@@ -567,6 +569,19 @@ export default function BillingDetails() {
               </div>
             </Col>
           </Row>
+
+          {/* MAX TRAINER PLANS */}
+          <div style={{ marginBottom: 20 }}>
+            <label className="plan-field-label">Max Plans Trainer Can Create</label>
+            <input
+              className="plan-input"
+              type="number"
+              min="0"
+              value={formData.maxTrainerPlans}
+              onChange={(e) => setFormData({ ...formData, maxTrainerPlans: e.target.value.replace(/[^0-9]/g, "") })}
+              placeholder="e.g. 5"
+            />
+          </div>
 
           {/* FOOTER ACTIONS */}
           <div style={{ display: "flex", gap: 10, marginTop: "auto", paddingTop: 24 }}>
