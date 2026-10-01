@@ -131,11 +131,19 @@ const workoutSlice = createSlice({
       })
 
       /* ================= POST ================= */
+      .addCase(uploadWorkout.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(uploadWorkout.fulfilled, (state, action) => {
+        state.loading = false;
         state.workouts.unshift({
           ...action.payload,
           id: action.payload.id || action.payload._id,
         });
+      })
+      .addCase(uploadWorkout.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
       /* ================= DELETE ================= */
@@ -189,7 +197,11 @@ const workoutSlice = createSlice({
   state.trainerVideosLoading = false;
 })
       /* ================= UPDATE ================= */
+      .addCase(updateWorkoutAPI.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(updateWorkoutAPI.fulfilled, (state, action) => {
+        state.loading = false;
         const index = state.workouts.findIndex(
           (item) => item.id === action.payload.id
         );
@@ -200,6 +212,10 @@ const workoutSlice = createSlice({
             id: action.payload.id || action.payload._id,
           };
         }
+      })
+      .addCase(updateWorkoutAPI.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

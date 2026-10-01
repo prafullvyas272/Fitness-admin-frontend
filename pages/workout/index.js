@@ -117,16 +117,20 @@ export default function Workout() {
 
   const removeTag = (tag) => setForm({ ...form, tags: form.tags.filter((t) => t !== tag) });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const data = new FormData();
     data.append("title", form.title);
     data.append("description", form.description);
     form.tags.forEach((tag) => data.append("tags", tag));
     if (form.file) data.append("video", form.file);
-    if (editItem) {
-      dispatch(updateWorkoutAPI({ id: editItem.id, formData: data }));
-    } else {
-      dispatch(uploadWorkout(data));
+    try {
+      if (editItem) {
+        await dispatch(updateWorkoutAPI({ id: editItem.id, formData: data })).unwrap();
+      } else {
+        await dispatch(uploadWorkout(data)).unwrap();
+      }
+    } catch (err) {
+      alert(err?.message || "Failed to save workout. Please try again.");
     }
   };
 
