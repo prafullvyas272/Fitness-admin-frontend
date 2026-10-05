@@ -72,7 +72,7 @@ export const DashboardMenu = [
       {
         id: uuid(),
         link: "/cancelled-reports",
-        name: "Cancelled & reports",
+        name: "Reports & Reviews",
       },
     ],
   },

@@ -24,18 +24,42 @@ const fmtTime  = (value) => {
     const clock = String(value).match(/^(\d{1,2}:\d{2})\s*(am|pm)$/i);
     if (clock) return `${clock[1]}${clock[2].toLowerCase()}`;
     const parsed = new Date(`1970-01-01T${value}`);
-    return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).toLowerCase().replace(" ", "");
+    return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).toLowerCase().replace(/\s+(am|pm)$/i, "$1");
   }
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).toLowerCase().replace(" ", "");
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).toLowerCase().replace(/\s+(am|pm)$/i, "$1");
 };
-const fmtSlot = (slot) => slot ? `${fmtTime(slot.startTime)}-${fmtTime(slot.endTime)}` : "—";
+const fmtSlot = (slot) => slot ? `${fmtTime(slot.startTime)} - ${fmtTime(slot.endTime)}` : "—";
 const fullName = (obj) => obj ? obj.name || `${obj.firstName || ""} ${obj.lastName || ""}`.trim() || "—" : "—";
+const isInPeriod = (value, period) => {
+  if (!period) return true;
+  if (!value) return false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  if (period === "week") {
+    const daysSinceMonday = (start.getDay() + 6) % 7;
+    start.setDate(start.getDate() - daysSinceMonday);
+  } else if (period === "month") {
+    start.setDate(1);
+  } else if (period === "year") {
+    start.setMonth(0, 1);
+  }
+  return date >= start && date <= now;
+};
 const getReporter = (report) => {
   const type = String(report?.reportType || "").toUpperCase();
   if (type.startsWith("TRAINER_REPORTED")) return report.trainer;
   if (type.startsWith("MENTOR_REPORTED")) return report.mentor;
   return report.customer;
+};
+const getReporterLabel = (report) => {
+  const type = String(report?.reportType || "").toUpperCase();
+  if (type.startsWith("TRAINER_REPORTED")) return "Trainer";
+  if (type.startsWith("MENTOR_REPORTED")) return "Mentor";
+  return "Customer";
 };
 
 const Pill = ({ label, map }) => {
@@ -86,15 +110,21 @@ export default function CancelledReports() {
   const [cancelledSessionsTotal, setCancelledSessionsTotal] = useState(0);
   const [trainerFilter, setTrainerFilter] = useState("");
   const [customerFilter, setCustomerFilter] = useState("");
+  const [periodFilter, setPeriodFilter] = useState("");
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("cancelled");
   const [statusFilter,   setStatusFilter]   = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [reportTypeFilter, setReportTypeFilter] = useState("");
   const [page,    setPage]    = useState(1);
+  const [cancelledPage, setCancelledPage] = useState(1);
   const PAGE_SIZE = 10;
 
   const [reports,       setReports]       = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsTotal, setReviewsTotal] = useState(0);
+  const [feedbackPage, setFeedbackPage] = useState(1);
   const [total,         setTotal]         = useState(0);
   const [loading,       setLoading]       = useState(true);
   const [selected,      setSelected]      = useState(null);
@@ -176,7 +206,33 @@ export default function CancelledReports() {
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
-  const openDetail = (report) => setSelected(report);
+  const fetchReviews = useCallback(async () => {
+    setReviewsLoading(true);
+    try {
+      const params = new URLSearchParams({ page: feedbackPage, pageSize: PAGE_SIZE });
+      const res = await fetch(`${BASE}/api/session-reviews/admin/all?${params}`, {
+        headers: { Authorization: `Bearer ${token()}` },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setReviews(data.data?.reviews || []);
+        setReviewsTotal(data.data?.pagination?.total || 0);
+      } else {
+        setReviews([]);
+        setReviewsTotal(0);
+      }
+    } catch {
+      setReviews([]);
+      setReviewsTotal(0);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [feedbackPage]);
+
+  useEffect(() => { fetchReviews(); }, [fetchReviews]);
+
+  const openDetail = (report) => setSelected({ ...report, _detailType: "report" });
+  const openReviewDetail = (review) => setSelected({ ...review, _detailType: "review" });
 
   const resetFilters = () => { setStatusFilter(""); setCategoryFilter(""); setReportTypeFilter(""); setPage(1); };
   const totalPages   = Math.ceil(total / PAGE_SIZE);
@@ -186,23 +242,24 @@ export default function CancelledReports() {
     return (!trainerFilter || String(itemTrainerId) === String(trainerFilter)) &&
       (!customerFilter || String(itemCustomerId) === String(customerFilter));
   };
-  const filteredBookings = bookings.filter(matchesFilters);
+  const filteredBookings = bookings.filter((booking) => matchesFilters(booking) &&
+    isInPeriod(booking.timeSlot?.startTime || booking.timeSlot?.date || booking.date || booking.createdAt, periodFilter));
   const filteredReports = reports.filter((report) => matchesFilters(report) &&
     (!statusFilter || report.status === statusFilter) &&
     (!categoryFilter || String(report.reason || "").toUpperCase() === categoryFilter) &&
-    (!reportTypeFilter || report.reportType === reportTypeFilter));
-  const visibleReports = filteredReports;
+    (!reportTypeFilter || report.reportType === reportTypeFilter) &&
+    isInPeriod(report.createdAt, periodFilter));
+  const visibleReports = filteredReports.slice(0, PAGE_SIZE);
+  const filteredReviews = reviews.filter((review) => matchesFilters(review) && isInPeriod(review.createdAt, periodFilter)).slice(0, PAGE_SIZE);
   const filteredCancelledSessions = cancelledSessions.filter((session) => {
     const trainerId = session.trainer?.id || session.trainerId;
     const customerId = session.customer?.id || session.customerId;
     return (!trainerFilter || String(trainerId) === String(trainerFilter)) &&
-      (!customerFilter || String(customerId) === String(customerFilter));
+      (!customerFilter || String(customerId) === String(customerFilter)) &&
+      isInPeriod(session.date || session.cancelledAt, periodFilter);
   });
+  const visibleCancelledSessions = filteredCancelledSessions.slice((cancelledPage - 1) * PAGE_SIZE, cancelledPage * PAGE_SIZE);
   const cancelledByTrainer = filteredCancelledSessions.length;
-  const attendedSessions = filteredBookings.filter((booking) => {
-    const status = String(booking.status || "").toUpperCase();
-    return booking.attended === true || status === "ATTENDED" || status === "COMPLETED";
-  }).length;
 
   return (
     <div style={{ background: G.bg, minHeight: "100vh", padding: 28, fontFamily: "Montserrat, Arial, sans-serif" }}>
@@ -225,7 +282,7 @@ export default function CancelledReports() {
       `}</style>
 
       <div style={{ marginBottom: 28 }}>
-        <h3 style={{ color: G.text, fontWeight: 700, margin: "0 0 4px" }}>Cancelled & reports</h3>
+        <h3 style={{ color: G.text, fontWeight: 700, margin: "0 0 4px" }}>Reports & Reviews</h3>
         <small style={{ color: G.muted }}>Manage and resolve trainer support requests</small>
       </div>
 
@@ -233,23 +290,31 @@ export default function CancelledReports() {
         {[{ label: "Trainer", value: trainerFilter, onChange: setTrainerFilter, options: trainers }, { label: "Customer", value: customerFilter, onChange: setCustomerFilter, options: customers }].map((filter) => (
           <label key={filter.label} style={{ display: "flex", flexDirection: "column", gap: 6, color: G.muted, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
             {filter.label}
-            <select value={filter.value} onChange={(event) => filter.onChange(event.target.value)} style={{ minWidth: 220, background: G.input, border: `1px solid ${G.divider}`, borderRadius: 7, color: G.text, padding: "9px 12px", fontSize: 12, outline: "none" }}>
+            <select value={filter.value} onChange={(event) => { filter.onChange(event.target.value); setPage(1); setFeedbackPage(1); setCancelledPage(1); }} style={{ minWidth: 220, background: G.input, border: `1px solid ${G.divider}`, borderRadius: 7, color: G.text, padding: "9px 12px", fontSize: 12, outline: "none" }}>
               <option value="">All {filter.label === "Trainer" ? "trainers" : "customers"}</option>
               {filter.options.map((person) => <option key={person.id} value={person.id}>{fullName(person) !== "—" ? fullName(person) : person.name || person.email || person.id}</option>)}
             </select>
           </label>
         ))}
+        <label style={{ display: "flex", flexDirection: "column", gap: 6, color: G.muted, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+          Date Range
+          <select value={periodFilter} onChange={(event) => { setPeriodFilter(event.target.value); setPage(1); setFeedbackPage(1); setCancelledPage(1); }} style={{ minWidth: 180, background: G.input, border: `1px solid ${G.divider}`, borderRadius: 7, color: G.text, padding: "9px 12px", fontSize: 12, outline: "none" }}>
+            <option value="">All time</option>
+            <option value="week">This week</option>
+            <option value="month">This month</option>
+            <option value="year">This year</option>
+          </select>
+        </label>
       </div>
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
         <StatCard icon="calendar" label="Total Sessions" value={filteredBookings.length} sub="All sessions" loading={sessionsLoading} />
         <StatCard icon="x-circle" label="Cancelled by Trainer" value={cancelledByTrainer} sub="Trainer cancellations" loading={sessionsLoading} />
-        <StatCard icon="check-circle" label="Attended Sessions" value={attendedSessions} sub="Completed / attended" loading={sessionsLoading} />
         <StatCard icon="alert-circle" label="Reported Sessions" value={filteredReports.length} sub="Matching reports" loading={loading} />
       </div>
 
       <div role="tablist" aria-label="Session reports" style={{ display: "flex", gap: 8, borderBottom: `1px solid ${G.divider}`, marginBottom: 18 }}>
-        {[{ id: "cancelled", label: "Cancelled Sessions" }, { id: "reported", label: "Reported Events" }].map((tab) => (
+        {[{ id: "cancelled", label: "Cancelled Sessions" }, { id: "reported", label: "Reports" }, { id: "feedback", label: "Feedback" }].map((tab) => (
           <button key={tab.id} role="tab" aria-selected={activeTab === tab.id} onClick={() => setActiveTab(tab.id)} style={{ background: "transparent", border: "none", borderBottom: `2px solid ${activeTab === tab.id ? G.gold : "transparent"}`, color: activeTab === tab.id ? G.gold : G.muted, padding: "11px 16px", cursor: "pointer", fontWeight: activeTab === tab.id ? 700 : 500, fontSize: 13 }}>
             {tab.label}
           </button>
@@ -259,7 +324,7 @@ export default function CancelledReports() {
       {activeTab === "cancelled" && <>
       <div style={{ background: G.card, border: `1px solid ${G.divider}`, borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
         <div style={{ padding: "16px 20px", borderBottom: `1px solid ${G.divider}` }}>
-          <h4 style={{ color: G.text, fontSize: 14, fontWeight: 700, margin: 0 }}>Cancelled Sessions ({cancelledSessionsTotal})</h4>
+          <h4 style={{ color: G.text, fontSize: 14, fontWeight: 700, margin: 0 }}>Cancelled Sessions ({filteredCancelledSessions.length || (!periodFilter && !trainerFilter && !customerFilter ? cancelledSessionsTotal : 0)})</h4>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -269,7 +334,7 @@ export default function CancelledReports() {
                 <tr><td colSpan={7} className="rp-td" style={{ textAlign: "center", padding: "32px 0" }}><Spinner animation="border" size="sm" style={{ borderColor: G.gold, borderRightColor: "transparent" }} /></td></tr>
               ) : filteredCancelledSessions.length === 0 ? (
                 <tr><td colSpan={7} className="rp-td" style={{ textAlign: "center", color: G.muted, padding: "32px 0" }}>No cancelled sessions found.</td></tr>
-              ) : filteredCancelledSessions.map((session) => (
+              ) : visibleCancelledSessions.map((session) => (
                 <tr key={session.bookingId}>
                   <td className="rp-td" style={{ color: G.gold, fontWeight: 700 }}>{session.bookingId?.slice(-6)?.toUpperCase() || "—"}</td>
                   <td className="rp-td">{session.customer?.name || "—"}</td>
@@ -283,6 +348,7 @@ export default function CancelledReports() {
             </tbody>
           </table>
         </div>
+        <Pagination page={cancelledPage} setPage={setCancelledPage} totalPages={Math.ceil(filteredCancelledSessions.length / PAGE_SIZE)} total={filteredCancelledSessions.length} pageSize={PAGE_SIZE} count={visibleCancelledSessions.length} />
       </div>
       </>}
 
@@ -307,7 +373,7 @@ export default function CancelledReports() {
       <div style={{ background: G.card, border: `1px solid ${G.divider}`, borderRadius: 14, overflow: "hidden" }}>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead><tr>{["Report ID", "Reported By", "Customer", "Trainer", "Reason", "Status", "Session Date", "Slot", "Reported At", "Action"].map((h) => <th key={h} className="rp-th">{h}</th>)}</tr></thead>
+            <thead><tr>{["Report ID", "Reported By", "Customer", "Trainer", "Reason", "Status", "Session Date", "Session Time", "Reported At", "Action"].map((h) => <th key={h} className="rp-th">{h}</th>)}</tr></thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan={10} className="rp-td" style={{ textAlign: "center", padding: "40px 0" }}><Spinner animation="border" size="sm" style={{ borderColor: G.gold, borderRightColor: "transparent" }} /></td></tr>
@@ -316,7 +382,7 @@ export default function CancelledReports() {
               ) : visibleReports.map((r, i) => (
                 <tr key={r.id || i} className="rp-tr" onClick={() => openDetail(r)}>
                   <td className="rp-td" style={{ color: G.gold, fontWeight: 700 }}>{r.id?.slice(-6)?.toUpperCase()}</td>
-                  <td className="rp-td">{fullName(getReporter(r))}</td>
+                  <td className="rp-td">{getReporterLabel(r)}</td>
                   <td className="rp-td">{fullName(r.customer)}</td>
                   <td className="rp-td">{fullName(r.trainer)}</td>
                   <td className="rp-td">{r.reason || "—"}</td>
@@ -338,24 +404,74 @@ export default function CancelledReports() {
       </div>
       </>}
 
+      {activeTab === "feedback" && <>
+        <div style={{ background: G.card, border: `1px solid ${G.divider}`, borderRadius: 14, overflow: "hidden" }}>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead><tr>{["Customer", "Trainer", "Host Gym", "Gym Address", "Rating", "Session Date", "Session Time", "Reviewed At", "Action"].map((heading) => <th key={heading} className="rp-th">{heading}</th>)}</tr></thead>
+              <tbody>
+                {reviewsLoading ? (
+                  <tr><td colSpan={9} className="rp-td" style={{ textAlign: "center", padding: "40px 0" }}><Spinner animation="border" size="sm" style={{ borderColor: G.gold, borderRightColor: "transparent" }} /></td></tr>
+                ) : filteredReviews.length === 0 ? (
+                  <tr><td colSpan={9} className="rp-td" style={{ textAlign: "center", color: G.muted, padding: "40px 0" }}>No feedback found for this date range.</td></tr>
+                ) : filteredReviews.map((review) => (
+                  <tr key={review.id}>
+                    <td className="rp-td">{fullName(review.customer)}</td>
+                    <td className="rp-td">{fullName(review.trainer)}</td>
+                    <td className="rp-td">{review.trainer?.hostGymName || review.trainer?.userProfileDetails?.[0]?.hostGymName || "—"}</td>
+                    <td className="rp-td">{review.trainer?.hostGymAddress || review.trainer?.userProfileDetails?.[0]?.hostGymAddress || "—"}</td>
+                    <td className="rp-td" style={{ color: G.gold, whiteSpace: "nowrap" }}>★ {review.rating} / 5</td>
+                    <td className="rp-td" style={{ color: G.muted }}>{fmtDate(review.booking?.timeSlot?.date || review.booking?.timeSlot?.startTime)}</td>
+                    <td className="rp-td">{fmtSlot(review.booking?.timeSlot)}</td>
+                    <td className="rp-td" style={{ color: G.muted }}>{fmtDate(review.createdAt)}</td>
+                    <td className="rp-td">
+                      <button aria-label={`View feedback ${review.id}`} onClick={() => openReviewDetail(review)} style={{ background: G.goldFaint, border: `1px solid ${G.goldBorder}`, color: G.gold, width: 32, height: 30, borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                        <i className="fe fe-eye" aria-hidden="true" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Pagination page={feedbackPage} setPage={setFeedbackPage} totalPages={Math.ceil(reviewsTotal / PAGE_SIZE)} total={reviewsTotal} pageSize={PAGE_SIZE} count={filteredReviews.length} />
+        </div>
+      </>}
+
       <Modal show={!!selected} onHide={() => setSelected(null)} centered className="modal-gold" size="lg">
         <Modal.Header closeButton>
-          <Modal.Title style={{ color: G.goldLight, fontWeight: 700, fontSize: 16 }}>Reported Event — <span style={{ color: G.muted, fontWeight: 400 }}>{selected?.id?.slice(-6)?.toUpperCase()}</span></Modal.Title>
+          <Modal.Title style={{ color: G.goldLight, fontWeight: 700, fontSize: 16 }}>{selected?._detailType === "review" ? "Feedback Details" : "Reported Event"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selected && (
+          {selected?._detailType === "review" ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <InfoBox title="Trainer" rows={[["Name", fullName(selected.trainer)], ["Email", selected.trainer?.email], ["Phone", selected.trainer?.phone], ["Host Gym", selected.trainer?.hostGymName || selected.trainer?.userProfileDetails?.[0]?.hostGymName], ["Gym Address", selected.trainer?.hostGymAddress || selected.trainer?.userProfileDetails?.[0]?.hostGymAddress]]} />
+                <InfoBox title="Customer" rows={[["Name", fullName(selected.customer)], ["Email", selected.customer?.email], ["Phone", selected.customer?.phone]]} />
+              </div>
+              <InfoBox title="Review Details" rows={[
+                ["Review ID", selected.id],
+                ["Booking ID", selected.bookingId],
+                ["Rating", `${selected.rating} / 5`],
+                ["Session Date", fmtDate(selected.booking?.timeSlot?.date || selected.booking?.timeSlot?.startTime)],
+                ["Session Time", fmtSlot(selected.booking?.timeSlot)],
+                ["Submitted At", fmtDate(selected.createdAt)],
+                ["Updated At", fmtDate(selected.updatedAt)],
+              ]} />
+              {selected.comment && <div style={{ background: G.input, border: `1px solid ${G.divider}`, borderRadius: 10, padding: 14 }}><p style={{ color: G.muted, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 8px" }}>Comment</p><p style={{ color: G.text, fontSize: 13, lineHeight: 1.7, margin: 0 }}>{selected.comment}</p></div>}
+            </div>
+          ) : selected && (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                 <InfoBox title="Trainer" rows={[["Name", fullName(selected.trainer)], ["Email", selected.trainer?.email], ["Phone", selected.trainer?.phone]]} />
                 <InfoBox title="Customer" rows={[["Name", fullName(selected.customer)], ["Email", selected.customer?.email], ["Phone", selected.customer?.phone]]} />
               </div>
               <InfoBox title="Report Details" rows={[
-                ["Report Type", selected.reportType],
+                ["Reported By", `${getReporterLabel(selected)} — ${fullName(getReporter(selected))}`],
                 ["Reason", selected.reason],
                 ["Status", <Pill key="s" label={selected.status} map={STATUS_MAP} />],
-                ["Booking ID", selected.bookingId],
                 ["Session Date", fmtDate(selected.booking?.timeSlot?.date || selected.booking?.timeSlot?.startTime)],
-                ["Slot", fmtSlot(selected.booking?.timeSlot)],
+                ["Session Time", fmtSlot(selected.booking?.timeSlot)],
                 ["Reported At", fmtDate(selected.createdAt)],
               ]} />
               {selected.description && <div style={{ background: G.input, border: `1px solid ${G.divider}`, borderRadius: 10, padding: 14 }}><p style={{ color: G.muted, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 8px" }}>Description</p><p style={{ color: G.text, fontSize: 13, lineHeight: 1.7, margin: 0 }}>{selected.description}</p></div>}
