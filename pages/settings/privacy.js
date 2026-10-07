@@ -164,6 +164,11 @@ export default function PrivacyPolicy() {
   useEffect(() => { fetchDocs(); }, [fetchDocs]);
 
   const handleSave = async () => {
+    const plainText = (content[activeTab] || "").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+    if (!plainText) {
+      alert(`Please enter the Privacy Policy content for ${activeTab} before saving.`);
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch(`${BASE}/api/legal-documents`, {
