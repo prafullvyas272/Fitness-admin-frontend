@@ -1,5 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
+const BASE = "https://fitness-app-seven-beryl.vercel.app";
+const DOC_TYPE = "PRIVACY_POLICY";
+const AUDIENCE_MAP = { trainers: "TRAINER", customers: "CUSTOMER" };
+const token = () => (typeof window !== "undefined" ? localStorage.getItem("adminToken") : "");
+
 const G = {
   bg: "#0a0a0a", card: "#0d0d0d", gold: "#f8e396", goldLight: "#f8e396",
   goldFaint: "rgba(248,227,150,0.07)", text: "#ffffff", muted: "#888888",
@@ -127,6 +132,7 @@ function RichEditor({ value, onChange }) {
 
 export default function PrivacyPolicy() {
   const [activeTab, setActiveTab] = useState("trainers");
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [content, setContent] = useState({
@@ -134,13 +140,48 @@ export default function PrivacyPolicy() {
     customers: "",
   });
 
+  const fetchDocs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE}/api/legal-documents?type=${DOC_TYPE}`, {
+        headers: { Authorization: `Bearer ${token()}` },
+      });
+      const data = await res.json();
+      const docs = data?.data?.documents || data?.data || [];
+      const next = { trainers: "", customers: "" };
+      docs.forEach((doc) => {
+        if (doc.audience === "TRAINER") next.trainers = doc.content || "";
+        if (doc.audience === "CUSTOMER") next.customers = doc.content || "";
+      });
+      setContent(next);
+    } catch (err) {
+      console.error("Failed to load privacy policy:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchDocs(); }, [fetchDocs]);
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      // TODO: wire up API — e.g. POST /api/settings/privacy { role: activeTab, content: content[activeTab] }
-      await new Promise((r) => setTimeout(r, 800)); // placeholder
+      const res = await fetch(`${BASE}/api/legal-documents`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({
+          audience: AUDIENCE_MAP[activeTab],
+          type: DOC_TYPE,
+          title: "Privacy Policy",
+          content: content[activeTab],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) throw new Error(data.message || "Failed to save");
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      alert(err.message || "Failed to save privacy policy");
     } finally {
       setSaving(false);
     }
@@ -208,11 +249,17 @@ export default function PrivacyPolicy() {
         </p>
 
         {/* EDITOR */}
-        <RichEditor
-          key={activeTab}
-          value={content[activeTab]}
-          onChange={(val) => setContent((prev) => ({ ...prev, [activeTab]: val }))}
-        />
+        {loading ? (
+          <div style={{ minHeight: 320, display: "flex", alignItems: "center", justifyContent: "center", color: G.muted, fontSize: 13 }}>
+            Loading content...
+          </div>
+        ) : (
+          <RichEditor
+            key={activeTab}
+            value={content[activeTab]}
+            onChange={(val) => setContent((prev) => ({ ...prev, [activeTab]: val }))}
+          />
+        )}
       </div>
     </div>
   );
