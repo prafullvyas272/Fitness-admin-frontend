@@ -153,11 +153,11 @@ export const DashboardMenu = [
       link: "/settings/terms",
       name: "Terms & Conditions",
     },
-    {
-      id: uuid(),
-      link: "/settings/faq",
-      name: "FAQ",
-    },
+    // {
+    //   id: uuid(),
+    //   link: "/settings/faq",
+    //   name: "FAQ",
+    // },
   ],
 },
 ];
